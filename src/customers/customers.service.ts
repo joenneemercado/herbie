@@ -447,6 +447,7 @@ export class CustomersService {
     sortBy?: string;
     source?: string;
     order?: 'asc' | 'desc';
+    public_id?: string;
   }) {
     const {
       page,
@@ -460,6 +461,7 @@ export class CustomersService {
       sortBy,
       source,
       order,
+      public_id,
     } = params;
     //console.log('Parameters for findAll:', params);
     const skip = (page - 1) * limit;
@@ -479,6 +481,7 @@ export class CustomersService {
         cpf ? { cpf: cpf } : {},
         email ? { email: { contains: email, mode: 'insensitive' } } : {},
         organization_id ? { organization_id: organization_id } : {},
+        public_id ? { public_id: public_id } : {},
         is_unified === undefined ? {} : {},
         is_unified === false
           ? { OR: [{ is_unified: false }, { is_unified: null }] }

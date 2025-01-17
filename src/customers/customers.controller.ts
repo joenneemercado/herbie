@@ -275,6 +275,7 @@ export class CustomersController {
     @Query('sortBy') sortBy?: string,
     @Query('source') source?: string,
     @Query('order') order: 'asc' | 'desc' = 'asc',
+    @Query('public_id') public_id?: string,
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
@@ -295,6 +296,7 @@ export class CustomersController {
       sortBy,
       source,
       order,
+      public_id,
     });
   }
 
