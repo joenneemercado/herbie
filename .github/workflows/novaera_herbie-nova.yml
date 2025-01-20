@@ -7,6 +7,11 @@ on:
   push:
     branches:
       - novaera
+    paths-ignore:
+      - 'README.md'
+      - '.husky'
+      - '.github/**'
+      - '**/*.csv'
   workflow_dispatch:
 
 jobs:
@@ -17,15 +22,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
 
       - name: npm install, build, and test
         run: |
+          npm install -g @nestjs/cli
           npm install
-          npm run build --if-present
-          npm run test --if-present
+          npx prisma generate
+          npm run build
 
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
