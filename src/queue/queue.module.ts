@@ -18,14 +18,18 @@ import { WifiModule } from '@src/connectors/wifi/wifi.module';
 import { WifiProcessor } from './wifi.processor';
 import { OpahModule } from '@src/connectors/opah/opah.module';
 import { OpahProcessor } from './opah.processor';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRoot({
       redis: {
         host: 'friday.redis.cache.windows.net',
         port: 6380,
-        tls: {},
+        tls: {
+          rejectUnauthorized: false,
+        },
         password: process.env.BULL_PASSWORD,
         db: 0,
         maxRetriesPerRequest: 2,
