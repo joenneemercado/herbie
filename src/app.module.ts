@@ -19,6 +19,9 @@ import { ImportModule } from './import/import.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConnectorsModule } from './connectors/connectors.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { CampaignsModule } from './campaigns/campaigns.module';
+import { AudiencesModule } from './campaigns/audiences/audiences.module';
+
 
 @Module({
   imports: [
@@ -41,6 +44,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ImportModule,
     ConnectorsModule,
     DashboardModule,
+    CampaignsModule,
+    AudiencesModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

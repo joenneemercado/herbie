@@ -9,31 +9,42 @@ datasource db {
 }
 
 model Organization {
-  id              Int               @id @default(autoincrement())
-  name            String
-  slug            String?
-  domain          String?
-  created_at      DateTime?         @default(now())
-  updated_at      DateTime?         @updatedAt
-  user_id         Int?
-  public_id       String?           @unique @default(cuid())
-  avatar_url      String?
-  updated_by      Int?
-  addresses       Address[]
-  Brand           Brand[]
-  categories      Category[]
-  customers       Customer[]
-  CustomerField   CustomerField[]
-  CustomerUnified CustomerUnified[]
-  interactions    Interaction[]
-  members         Member[]
-  orders          Order[]
-  products        Product[]
-  segments        Segment[]
-  sellers         Seller[]
-  Sku             Sku[]
-  events          TypeEvent[]
-  users           User[]
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  slug                  String?
+  domain                String?
+  created_at            DateTime?               @default(now())
+  updated_at            DateTime?               @updatedAt
+  user_id               Int?
+  public_id             String?                 @unique @default(cuid())
+  avatar_url            String?
+  updated_by            Int?
+  addresses             Address[]
+  Audiences             Audiences[]
+  Audiencescontacts     Audiencescontacts[]
+  Audiencestatus        Audiencestatus[]
+  Brand                 Brand[]
+  Campaignaudience      Campaignaudience[]
+  Campaigndetails       Campaigndetails[]
+  Campaigndetailsstatus Campaigndetailsstatus[]
+  Campaigns             Campaigns[]
+  Campaignstatus        Campaignstatus[]
+  Campaigntags          Campaigntags[]
+  categories            Category[]
+  Channels              Channels[]
+  customers             Customer[]
+  CustomerField         CustomerField[]
+  CustomerUnified       CustomerUnified[]
+  interactions          Interaction[]
+  members               Member[]
+  orders                Order[]
+  products              Product[]
+  segments              Segment[]
+  sellers               Seller[]
+  Sku                   Sku[]
+  Tags                  Tags[]
+  events                TypeEvent[]
+  users                 User[]
 }
 
 model Member {
@@ -213,10 +224,10 @@ model Customer {
 }
 
 model CustomerUnified {
-  id                  Int               @id @default(autoincrement())
-  email               String?           @unique(map: "customerunified_email_idx")
+  id                  Int                 @id @default(autoincrement())
+  email               String?             @unique(map: "customerunified_email_idx")
   phone               String?
-  cpf                 String?           @unique(map: "customerunified_cpf_idx")
+  cpf                 String?             @unique(map: "customerunified_cpf_idx")
   cnpj                String?
   company_name        String?
   trading_name        String?
@@ -224,20 +235,22 @@ model CustomerUnified {
   gender              String?
   marital_status      String?
   organization_id     String
-  public_id           String            @unique @default(cuid())
+  public_id           String              @unique @default(cuid())
   firstname           String?
   lastname            String?
   nickname            String?
-  created_at          DateTime?         @default(now())
+  created_at          DateTime?           @default(now())
   created_by          Int?
   last_updated_system String?
-  updated_at          DateTime?         @updatedAt
+  updated_at          DateTime?           @updatedAt
   updated_by          Int?
   has_child           Int?
   status_id           Int?
   addresses           Address[]
+  audiencescontacts   Audiencescontacts[]
+  campaigndetails     Campaigndetails[]
   customer_fields     CustomerField[]
-  organization        Organization      @relation(fields: [organization_id], references: [public_id])
+  organization        Organization        @relation(fields: [organization_id], references: [public_id])
   interactions        Interaction[]
   segments            SegmentCustomer[]
 }
@@ -359,6 +372,196 @@ model Status {
   name        String? @db.VarChar
   description String? @db.VarChar
   color_code  String? @db.VarChar
+}
+
+model Audiences {
+  createdAt         DateTime?           @default(now())
+  createdBy         Int?
+  id                Int                 @id @default(autoincrement())
+  organization_id   String
+  name              String              @db.VarChar(255)
+  obs               String?
+  statusId          Int?                @default(1)
+  updatedAt         DateTime?
+  updatedBy         Int?
+  organization      Organization        @relation(fields: [organization_id], references: [public_id])
+  audiencescontacts Audiencescontacts[]
+  campaignaudience  Campaignaudience[]
+}
+
+model Audiencescontacts {
+  id              Int             @id @default(autoincrement())
+  idContact       Int
+  organization_id String
+  idAudience      Int
+  statusId        Int?
+  createdAt       DateTime?       @default(now())
+  updatedAt       DateTime?       @default(now())
+  createdBy       Int?
+  updatedBy       Int?
+  audiences       Audiences       @relation(fields: [idAudience], references: [id])
+  CustomerUnified CustomerUnified @relation(fields: [idContact], references: [id])
+  organization    Organization    @relation(fields: [organization_id], references: [public_id])
+  audiencestatus  Audiencestatus? @relation(fields: [statusId], references: [id])
+
+  @@index([idAudience])
+  @@index([idContact])
+  @@index([statusId])
+}
+
+model Audiencestatus {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(255)
+  createdAt         DateTime?           @default(now())
+  createdBy         Int?
+  organization_id   String
+  updatedAt         DateTime?
+  updatedBy         Int?
+  audiencescontacts Audiencescontacts[]
+  organization      Organization        @relation(fields: [organization_id], references: [public_id])
+}
+
+model Campaignaudience {
+  id              Int          @id @default(autoincrement())
+  idCampaign      Int?
+  idAudience      Int?
+  organization_id String
+  audiences       Audiences?   @relation(fields: [idAudience], references: [id])
+  campaigns       Campaigns?   @relation(fields: [idCampaign], references: [id])
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+
+  @@index([idAudience])
+  @@index([idCampaign])
+}
+
+model Campaigndetails {
+  id                    Int                   @id @default(autoincrement())
+  idContact             Int
+  idCampaign            Int
+  sender                String?               @db.VarChar(100)
+  sentAt                DateTime?
+  statusId              Int
+  createdAt             DateTime?             @default(now())
+  updatedAt             DateTime?             @default(now()) @db.Timestamp(0)
+  idSender              String?               @db.VarChar(100)
+  organization_id       String
+  campaigns             Campaigns             @relation(fields: [idCampaign], references: [id])
+  CustomerUnified       CustomerUnified       @relation(fields: [idContact], references: [id])
+  organization          Organization          @relation(fields: [organization_id], references: [public_id])
+  campaigndetailsstatus Campaigndetailsstatus @relation(fields: [statusId], references: [id])
+
+  @@index([createdAt, statusId])
+  @@index([idCampaign, sender, statusId])
+  @@index([idCampaign, statusId])
+  @@index([idCampaign, updatedAt])
+  @@index([idContact])
+  @@index([sender])
+  @@index([sender, sentAt])
+  @@index([statusId])
+  @@index([updatedAt])
+}
+
+model Campaigndetailsstatus {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  createdAt       DateTime?         @default(now())
+  createdBy       Int?
+  updatedAt       DateTime?
+  updatedBy       Int?
+  organization_id String
+  campaigndetails Campaigndetails[]
+  organization    Organization      @relation(fields: [organization_id], references: [public_id])
+}
+
+model Campaigns {
+  id               Int                @id @default(autoincrement())
+  name             String
+  message          String
+  file             String?
+  typeMessage      Int
+  sendingBy        String?            @db.VarChar(255)
+  statusId         Int?
+  createdAt        DateTime?          @default(now())
+  updatedAt        DateTime?          @default(now())
+  createdBy        Int?               @default(1)
+  priority         Int?               @default(0)
+  updatedBy        Int?
+  idChannel        Int?
+  dateStart        DateTime?          @default(now())
+  dateEnd          DateTime?
+  jsonMeta         Json?
+  subject          String?
+  organization_id  String
+  campaignaudience Campaignaudience[]
+  campaigndetails  Campaigndetails[]
+  channels         Channels?          @relation(fields: [idChannel], references: [id])
+  organization     Organization       @relation(fields: [organization_id], references: [public_id])
+  campaignstatus   Campaignstatus?    @relation(fields: [statusId], references: [id])
+  campaigntags     Campaigntags[]
+
+  @@index([createdAt])
+  @@index([dateStart, dateEnd])
+  @@index([idChannel, statusId, createdAt])
+  @@index([sendingBy])
+  @@index([sendingBy, statusId, createdAt])
+  @@index([statusId, idChannel, createdAt, typeMessage, dateStart, dateEnd])
+  @@index([statusId])
+  @@index([statusId, updatedAt])
+  @@index([updatedAt])
+}
+
+model Campaignstatus {
+  id              Int          @id @default(autoincrement())
+  name            String       @db.VarChar(255)
+  description     String?      @db.VarChar(255)
+  createdAt       DateTime?    @default(now())
+  createdBy       Int?
+  updatedAt       DateTime?    @default(now())
+  updatedBy       Int?
+  organization_id String
+  campaigns       Campaigns[]
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+}
+
+model Campaigntags {
+  id              Int          @id @default(autoincrement())
+  idCampaign      Int?
+  idTag           Int?
+  organization_id String
+  campaigns       Campaigns?   @relation(fields: [idCampaign], references: [id])
+  tags            Tags?        @relation(fields: [idTag], references: [id])
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+
+  @@index([idCampaign])
+  @@index([idTag])
+}
+
+model Channels {
+  id              Int          @id @default(autoincrement())
+  name            String       @db.VarChar(255)
+  type            String?      @db.VarChar(255)
+  colorCode       String?
+  statusId        Int
+  createdAt       DateTime?    @default(now())
+  updatedAt       DateTime?    @default(now())
+  createdBy       Int?
+  updatedBy       Int?
+  organization_id String
+  campaigns       Campaigns[]
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+}
+
+model Tags {
+  id              Int            @id @default(autoincrement())
+  name            String
+  color           String?        @db.VarChar(255)
+  createdAt       DateTime?      @default(now())
+  updatedAt       DateTime?      @default(now())
+  createdBy       Int?
+  organization_id String
+  updatedBy       Int?
+  campaigntags    Campaigntags[]
+  organization    Organization   @relation(fields: [organization_id], references: [public_id])
 }
 
 enum Role {
