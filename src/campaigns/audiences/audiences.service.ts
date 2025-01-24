@@ -208,12 +208,12 @@ export class AudiencesService {
 
   //TODO FIND ALL AUDIENCE
   async findAll(params: {
-    page: number;
-    limit: number;
+    page?: number;
+    limit?: number;
     organization_id: string;
-    name: string;
-    statusId: number;
-    createdBy: number;
+    name?: string;
+    statusId?: number;
+    createdBy?: number;
   }) {
     const {
       page,
@@ -229,8 +229,8 @@ export class AudiencesService {
       AND: [
         organization_id ? { organization_id: organization_id } : {},
         name ? { name: name } : {},
-        statusId? { statusId: statusId } : {},
-        createdBy? { createdBy: createdBy } : {},
+        statusId ? { statusId: statusId } : {},
+        createdBy ? { createdBy: createdBy } : {},
       ]
     }
     try {
@@ -246,8 +246,8 @@ export class AudiencesService {
       return {
         data: audiences,
         total,
-        page:Number(page),
-        limit:Number(limit),
+        page: Number(page),
+        limit: Number(limit),
         totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
@@ -259,8 +259,8 @@ export class AudiencesService {
   //TODO FIND ALL CONTACTS OF CUSTOMER UNIFIED 
   async findAllSegmented(
     params: {
-      page: number;
-      limit: number;
+      page?: number;
+      limit?: number;
       organization_id: string;
       date_birth_start?: string[] | string;
       date_birth_end?: string[] | string;
@@ -409,8 +409,8 @@ export class AudiencesService {
       return {
         data: customerUnified,
         total,
-        page:Number(page),
-        limit:Number(limit),
+        page: Number(page),
+        limit: Number(limit),
         totalPages: Math.ceil(total / limit),
       };
     }
@@ -423,7 +423,10 @@ export class AudiencesService {
   }
 
   //TODO FIND ID AUDIENCE
-  async findOne(id: number, organization_id: string) {
+  async findOne(
+    id: number, 
+    organization_id: string
+  ) {
     try {
       //console.log(id,organization_id)
       const audience = await this.prisma.audiences.findFirst({
@@ -432,6 +435,9 @@ export class AudiencesService {
           organization_id: organization_id
         },
       })
+      if (!audience) {
+        throw new HttpException('Audiência nao existe', 404);
+      }
       return audience
     } catch (error) {
       console.log(`erro ao procurar id da audiência`, error)

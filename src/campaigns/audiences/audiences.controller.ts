@@ -101,7 +101,7 @@ export class AudiencesController {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
     } {
-      return this.audiencesService.findOne(+id, organization_id);
+      return this.audiencesService.findOne(id, organization_id);
     }
   }
 
