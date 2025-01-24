@@ -3,6 +3,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { Prisma } from '@prisma/client';
+import { promise } from 'zod';
 @Injectable()
 export class AudiencesService {
 
@@ -67,17 +68,17 @@ export class AudiencesService {
     date_birth_end?: string[] | string;
     gender?: String
     marital_status?: String
-    date_start?: Date;
-    date_end?: Date;
+    date_created_start?: Date;
+    date_created_end?: Date;
   }) {
     const {
-      organization_id, date_birth_start, date_birth_end, gender, marital_status, date_start, date_end, audiencia, statusId, createdBy
+      organization_id, date_birth_start, date_birth_end, gender, marital_status, date_created_start, date_created_end, audiencia, statusId, createdBy
     } = params;
     //console.log(params)
 
-    const startOfDay = new Date(date_start);
+    const startOfDay = new Date(date_created_start);
     startOfDay.setHours(0, 0, 0, 0); // Define para meia-noite do início do dia
-    const endOfDay = new Date(date_end);
+    const endOfDay = new Date(date_created_end);
     endOfDay.setHours(23, 59, 59, 999); // Define para o final do dia
     let dateBirthFilter = { OR: [] };
 
@@ -155,7 +156,7 @@ export class AudiencesService {
               //date_birth ? { date_birth: String(date_birth) } : {},
               gender ? { gender: String(gender) } : {},
               marital_status ? { marital_status: String(marital_status) } : {},
-              (date_start && date_end) ? { created_at: { gte: startOfDay, lte: endOfDay, } } : {},
+              (date_created_start && date_created_end) ? { created_at: { gte: startOfDay, lte: endOfDay, } } : {},
               dateBirthFilter.OR.length > 0 ? dateBirthFilter : {},  // Apenas adiciona o filtro de data se houver
             ]
           }
@@ -205,8 +206,58 @@ export class AudiencesService {
     // return 'This action adds a new audience';
   }
 
+  //TODO FIND ALL AUDIENCE
+  async findAll(params: {
+    page: number;
+    limit: number;
+    organization_id: string;
+    name: string;
+    statusId: number;
+    createdBy: number;
+  }) {
+    const {
+      page,
+      limit,
+      organization_id,
+      name,
+      statusId,
+      createdBy,
+    } = params;
+    const skip = (page - 1) * limit;
+
+    const filters = {
+      AND: [
+        organization_id ? { organization_id: organization_id } : {},
+        name ? { name: name } : {},
+        statusId? { statusId: statusId } : {},
+        createdBy? { createdBy: createdBy } : {},
+      ]
+    }
+    try {
+      const [audiences, total] = await Promise.all([
+        this.prisma.audiences.findMany({
+          skip,
+          take: Number(limit),
+          where: filters
+        }),
+        this.prisma.audiences.count({ where: filters })
+      ])
+
+      return {
+        data: audiences,
+        total,
+        page:Number(page),
+        limit:Number(limit),
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      console.log(`erro ao procurar audiência`, error)
+      throw new HttpException(error.message, error.status);
+    }
+  }
+
   //TODO FIND ALL CONTACTS OF CUSTOMER UNIFIED 
-  async findAll(
+  async findAllSegmented(
     params: {
       page: number;
       limit: number;
@@ -215,8 +266,8 @@ export class AudiencesService {
       date_birth_end?: string[] | string;
       gender?: String
       marital_status?: String
-      date_start?: Date;
-      date_end?: Date;
+      date_created_start?: Date;
+      date_created_end?: Date;
     }
   ) {
     const {
@@ -227,15 +278,15 @@ export class AudiencesService {
       date_birth_end,
       gender,
       marital_status,
-      date_start,
-      date_end
+      date_created_start,
+      date_created_end
     } = params;
     //console.log(params)
     const skip = (page - 1) * limit;
 
-    const startOfDay = new Date(date_start);
+    const startOfDay = new Date(date_created_start);
     startOfDay.setHours(0, 0, 0, 0); // Define para meia-noite do início do dia
-    const endOfDay = new Date(date_end);
+    const endOfDay = new Date(date_created_end);
     endOfDay.setHours(23, 59, 59, 999); // Define para o final do dia
 
     //data_aniversario_inicio = [01-01 - 2000, 01-03 - 2000]
@@ -323,7 +374,7 @@ export class AudiencesService {
         //date_birth ? { date_birth: String(date_birth) } : {},
         gender ? { gender: String(gender) } : {},
         marital_status ? { marital_status: String(marital_status) } : {},
-        (date_start && date_end) ? { created_at: { gte: startOfDay, lte: endOfDay, } } : {},
+        (date_created_start && date_created_end) ? { created_at: { gte: startOfDay, lte: endOfDay, } } : {},
         dateBirthFilter.OR.length > 0 ? dateBirthFilter : {},  // Apenas adiciona o filtro de data se houver
 
       ]
@@ -358,13 +409,13 @@ export class AudiencesService {
       return {
         data: customerUnified,
         total,
-        page,
-        limit,
+        page:Number(page),
+        limit:Number(limit),
         totalPages: Math.ceil(total / limit),
       };
     }
     catch (error) {
-      console.log(`erro ao procurar audiência`, error)
+      console.log(`erro ao procurar audiência segmentada`, error)
       throw new HttpException(error.message, error.status);
     }
 
@@ -372,20 +423,20 @@ export class AudiencesService {
   }
 
   //TODO FIND ID AUDIENCE
-  async findOne(id: number,organization_id:string) {
-     try {
+  async findOne(id: number, organization_id: string) {
+    try {
       //console.log(id,organization_id)
-       const audience = await this.prisma.audiences.findFirst({
-        where:{
-          id:id,
-          organization_id:organization_id
+      const audience = await this.prisma.audiences.findFirst({
+        where: {
+          id: id,
+          organization_id: organization_id
         },
-       })
-       return audience
-     } catch (error) {
+      })
+      return audience
+    } catch (error) {
       console.log(`erro ao procurar id da audiência`, error)
       throw new HttpException(error.message, error.status);
-     }
+    }
     //return `This action returns a #${id} audience`;
   }
 

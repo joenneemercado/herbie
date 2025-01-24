@@ -20,8 +20,8 @@ export class AudiencesController {
     @Query('date_birth_end') date_birth_end: string[],
     @Query('gender') gender: string,
     @Query('marital_status') marital_status: string,
-    @Query('date_start') date_start: Date,
-    @Query('date_end') date_end: Date,
+    @Query('date_created_start') date_created_start: Date,
+    @Query('date_created_end') date_created_end: Date,
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
@@ -33,26 +33,20 @@ export class AudiencesController {
         date_birth_end,
         gender,
         marital_status,
-        date_start,
-        date_end,
+        date_created_start,
+        date_created_end,
       })
     };
   }
-
-
 
   @Get('/all')
   findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
     @Query('organization_id') organization_id: string,
-    @Query('date_birth_start') date_birth_start: string[],
-    @Query('date_birth_end') date_birth_end: string[],
-    @Query('gender') gender: string,
-    @Query('marital_status') marital_status: string,
-    @Query('date_start') date_start: Date,
-    @Query('date_end') date_end: Date,
-
+    @Query('statusId') statusId: number,
+    @Query('createdBy') createdBy: number,
+    @Query('name') name: string,
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
@@ -61,12 +55,40 @@ export class AudiencesController {
         page,
         limit,
         organization_id,
+        statusId,
+        name,
+        createdBy,
+      })
+    };
+  }
+
+
+  @Get('/segment')
+  findAllSegmented(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('organization_id') organization_id: string,
+    @Query('date_birth_start') date_birth_start: string[],
+    @Query('date_birth_end') date_birth_end: string[],
+    @Query('gender') gender: string,
+    @Query('marital_status') marital_status: string,
+    @Query('date_created_start') date_created_start: Date,
+    @Query('date_created_end') date_created_end: Date,
+
+  ): Promise<any> {
+    if (!organization_id) {
+      throw new BadRequestException('Organization ID is required');
+    } {
+      return this.audiencesService.findAllSegmented({
+        page,
+        limit,
+        organization_id,
         date_birth_start,
         date_birth_end,
         gender,
         marital_status,
-        date_start,
-        date_end,
+        date_created_start,
+        date_created_end,
       })
     };
   }
