@@ -29,7 +29,6 @@ model Organization {
   Campaigndetailsstatus Campaigndetailsstatus[]
   Campaigns             Campaigns[]
   Campaignstatus        Campaignstatus[]
-  Campaigntags          Campaigntags[]
   categories            Category[]
   Channels              Channels[]
   customers             Customer[]
@@ -218,6 +217,7 @@ model Customer {
   customer_fields     CustomerField[]
   interactions        Interaction[]
   segments            SegmentCustomer[]
+  Associationtags     Associationtags[]
 
   @@unique([cnpj, source_id], map: "customer_cnpj_idx")
   @@unique([cpf, source_id], map: "customer_cpf_idx")
@@ -497,7 +497,7 @@ model Campaigns {
   channels         Channels?          @relation(fields: [idChannel], references: [id])
   organization     Organization       @relation(fields: [organization_id], references: [public_id])
   campaignstatus   Campaignstatus?    @relation(fields: [statusId], references: [id])
-  campaigntags     Campaigntags[]
+  Associationtags  Associationtags[]
 
   @@index([createdAt])
   @@index([dateStart, dateEnd])
@@ -523,19 +523,6 @@ model Campaignstatus {
   organization    Organization @relation(fields: [organization_id], references: [public_id])
 }
 
-model Campaigntags {
-  id              Int          @id @default(autoincrement())
-  idCampaign      Int?
-  idTag           Int?
-  organization_id String
-  campaigns       Campaigns?   @relation(fields: [idCampaign], references: [id])
-  tags            Tags?        @relation(fields: [idTag], references: [id])
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
-
-  @@index([idCampaign])
-  @@index([idTag])
-}
-
 model Channels {
   id              Int          @id @default(autoincrement())
   name            String       @db.VarChar(255)
@@ -552,16 +539,35 @@ model Channels {
 }
 
 model Tags {
-  id              Int            @id @default(autoincrement())
+  id              Int               @id @default(autoincrement())
   name            String
-  color           String?        @db.VarChar(255)
-  createdAt       DateTime?      @default(now())
-  updatedAt       DateTime?      @default(now())
+  color           String?           @db.VarChar(255)
+  createdAt       DateTime?         @default(now())
+  updatedAt       DateTime?         @default(now())
   createdBy       Int?
   organization_id String
   updatedBy       Int?
-  campaigntags    Campaigntags[]
-  organization    Organization   @relation(fields: [organization_id], references: [public_id])
+  organization    Organization      @relation(fields: [organization_id], references: [public_id])
+  Associationtags Associationtags[]
+}
+
+model Associationtags {
+  id              Int        @id @default(autoincrement())
+  idTag           Int
+  idCampaing      Int? 
+  idCustomer      Int? 
+  createdAt       DateTime?  @default(now())
+  updatedAt       DateTime?  @default(now())
+  createdBy       Int?
+  organization_id String
+  updatedBy       Int?
+  tags            Tags?      @relation(fields: [idTag], references: [id])
+  campaigns       Campaigns? @relation(fields: [idCampaing], references: [id])
+  customer        Customer?  @relation(fields: [idCustomer], references: [id])
+
+  @@index([idTag])
+  @@index([idCampaing])
+  @@index([idCustomer])
 }
 
 enum Role {

@@ -21,6 +21,7 @@ import { ConnectorsModule } from './connectors/connectors.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { AudiencesModule } from './campaigns/audiences/audiences.module';
+import { TagsModule } from './tags/tags.module';
 
 
 @Module({
@@ -45,7 +46,8 @@ import { AudiencesModule } from './campaigns/audiences/audiences.module';
     ConnectorsModule,
     DashboardModule,
     CampaignsModule,
-    AudiencesModule
+    AudiencesModule,
+    TagsModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

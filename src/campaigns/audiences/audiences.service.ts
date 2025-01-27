@@ -228,7 +228,7 @@ export class AudiencesService {
     const filters = {
       AND: [
         organization_id ? { organization_id: organization_id } : {},
-        name ? { name: name } : {},
+        name ? { name: { contains: name } } : {},
         statusId ? { statusId: statusId } : {},
         createdBy ? { createdBy: createdBy } : {},
       ]
