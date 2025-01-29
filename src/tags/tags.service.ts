@@ -12,13 +12,13 @@ export class TagsService {
   // create(createTagDto: CreateTagDto) {
   //   return 'This action adds a new tag';
   // }
-  async create(params: {
+  async create(body: {
     name: string;
     createdBy: number;
     organization_id: string;
   }) {
     const {
-      organization_id, name, createdBy } = params;
+      organization_id, name, createdBy } = body;
     try {
       const existingtag = await this.prisma.tags.findFirst({
         where: {
@@ -47,7 +47,7 @@ export class TagsService {
     //return 'This action adds a new tag';
   }
 
-  async createTagCustomer(params: {
+  async createTagCustomer(Body: {
     idTag: number;
     idCustomer?: number;
     idCampaing?: number;
@@ -55,7 +55,7 @@ export class TagsService {
     organization_id: string;
   }) {
     const {
-      organization_id, idTag, createdBy, idCustomer, idCampaing } = params;
+      organization_id, idTag, createdBy, idCustomer, idCampaing } = Body;
     try {
       const existingtag = await this.prisma.associationtags.findFirst({
         where: {

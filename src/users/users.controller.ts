@@ -6,12 +6,16 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@src/auth/jwt.guard';
 @ApiTags('Users')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

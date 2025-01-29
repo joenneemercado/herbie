@@ -25,6 +25,7 @@ import {
 import { AddressDto } from './dto/create-address.dto';
 import { AddressCreateSchema } from './dto/address.schema';
 import {
+  ApiBearerAuth,
   ApiExcludeEndpoint,
   ApiOperation,
   ApiQuery,
@@ -35,6 +36,8 @@ import { Roles } from '@src/auth/roles.decorator';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
 
 @ApiTags('Customers')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 @Controller('customers')
 //@UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 export class CustomersController {

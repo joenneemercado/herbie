@@ -13,6 +13,7 @@ async function bootstrap() {
     .setTitle('Hebie CDP API')
     .setDescription('API para gerenciar customer (CDP)')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);

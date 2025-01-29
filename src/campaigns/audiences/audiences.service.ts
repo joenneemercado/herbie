@@ -1,65 +1,27 @@
 
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, UnauthorizedException, Body } from '@nestjs/common';
 import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { Prisma } from '@prisma/client';
-import { promise } from 'zod';
+import { createAudienceSchema } from './dto/audience.schema';
 @Injectable()
 export class AudiencesService {
+  jwtService: any;
 
   constructor(
     private prisma: PrismaService,
   ) { }
 
-  // async create(createAudienceDto: CreateAudienceDto) {
+  // async create(createAudienceDto: createAudienceSchema) {
   //   console.log(createAudienceDto)
   //   const {
-  //     organization_id, date_birth_start, date_birth_end, gender, marital_status, date_start, date_end, name
+  //     organization_id, date_birth_start, date_birth_end, gender, marital_status, date_created_start, date_created_end, statusId, createdBy
   //   } = createAudienceDto;
-  //   console.log(createAudienceDto)
-
-  //   const existingAudience = this.prisma.audiences.findFirst({
-  //     where: {
-  //       name: name,
-  //     },
-  //   })
-  //   console.log('existingAudience', existingAudience)
-  //   if (existingAudience) {
-  //     throw new HttpException(
-  //       `Já existe uma audiência com o nome (${createAudienceDto.name})`,
-  //       409,
-  //     );
-  //   }
-
-  //   // const audiencie = await this.prisma.audiences.create({
-  //   //   data: {
-  //   //     name: createAudienceDto.name,
-  //   //     statusId: createAudienceDto.statusId ? createAudienceDto.statusId : 1,
-  //   //     createdBy: createAudienceDto.createdBy ? createAudienceDto.createdBy : 1,
-  //   //     organization_id: createAudienceDto.organization_id
-  //   //   },
-  //   // });
-
-  //   const filters = {
-  //     AND: [
-  //       organization_id ? { organization_id: organization_id } : {},
-  //       //date_birth ? { date_birth: String(date_birth) } : {},
-  //       gender ? { gender: String(gender) } : {},
-  //       marital_status ? { marital_status: String(marital_status) } : {},
-  //       // (date_start && date_end) ? { created_at: { gte: startOfDay, lte: endOfDay, } } : {},
-  //       // dateBirthFilter.OR.length > 0 ? dateBirthFilter : {},  // Apenas adiciona o filtro de data se houver
-  //     ]
-  //   }
-
-  //   const customerUnified = this.prisma.customerUnified.findMany({
-  //     where: filters
-  //   })
-  //   console.log('customerUnified', customerUnified)
-  //   // return 'This action adds a new audience';
+   
   // }
 
   //TODO CREATE AUDIENCE
-  async create(params: {
+  async create(Body: {
     audiencia: string;
     statusId?: number;
     createdBy?: number;
@@ -73,7 +35,7 @@ export class AudiencesService {
   }) {
     const {
       organization_id, date_birth_start, date_birth_end, gender, marital_status, date_created_start, date_created_end, audiencia, statusId, createdBy
-    } = params;
+    } = Body;
     //console.log(params)
 
     const startOfDay = new Date(date_created_start);
@@ -188,7 +150,7 @@ export class AudiencesService {
             }
           }
           return {
-            audiencia: audiencia,
+            audiencia: audiencie,
             customerUnified: customerUnified.map((id => id.id)),
             tamanho: tamanho
           }
@@ -266,8 +228,8 @@ export class AudiencesService {
       date_birth_end?: string[] | string;
       gender?: String
       marital_status?: String
-      date_created_start?: Date;
-      date_created_end?: Date;
+      date_created_start?: string;
+      date_created_end?: string;
     }
   ) {
     const {
@@ -424,7 +386,7 @@ export class AudiencesService {
 
   //TODO FIND ID AUDIENCE
   async findOne(
-    id: number, 
+    id: number,
     organization_id: string
   ) {
     try {
