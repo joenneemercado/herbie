@@ -32,7 +32,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Roles } from '@src/auth/roles.decorator';
+
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
 
 @ApiTags('Customers')

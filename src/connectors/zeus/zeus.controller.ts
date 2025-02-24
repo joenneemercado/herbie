@@ -11,7 +11,16 @@ import { ZeusService } from './zeus.service';
 import { CreateZeusDto } from './dto/create-zeus.dto';
 import { UpdateZeusDto } from './dto/update-zeus.dto';
 import { ApiExcludeEndpoint } from '@nestjs/swagger';
-
+//Cadastro de clientes
+// 1 - zeus
+// -- 
+// - Evento Zeus:
+// Cadastro ZEUS
+// Usar Pontos
+// Ganhar Pontos
+// 2 - Vtex
+// 3 - Wifi
+// 4 - Card
 @Controller('connectors/zeus')
 export class ZeusController {
   constructor(private readonly zeusService: ZeusService) {}

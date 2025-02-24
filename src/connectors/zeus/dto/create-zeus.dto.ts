@@ -1,1 +1,4 @@
-export class CreateZeusDto {}
+export class CreateZeusDto {
+  name: string;
+  email: string;
+}
