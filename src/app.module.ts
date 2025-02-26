@@ -22,10 +22,19 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { AudiencesModule } from './campaigns/audiences/audiences.module';
 import { TagsModule } from './tags/tags.module';
-
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 3,
+        },
+      ],
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     DatabaseModule.forRoot(),
@@ -47,9 +56,16 @@ import { TagsModule } from './tags/tags.module';
     DashboardModule,
     CampaignsModule,
     AudiencesModule,
-    TagsModule
+    TagsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [
+    AppService,
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard, // Aplica o rate limit globalmente
+    },
+  ],
 })
 export class AppModule {}
