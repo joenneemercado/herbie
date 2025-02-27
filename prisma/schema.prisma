@@ -212,12 +212,12 @@ model Customer {
   source_id           Int?
   is_unified          Boolean?
   addresses           Address[]
+  Associationtags     Associationtags[]
   organization        Organization      @relation(fields: [organization_id], references: [public_id])
   Source              Source?           @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_source_fk")
   customer_fields     CustomerField[]
   interactions        Interaction[]
   segments            SegmentCustomer[]
-  Associationtags     Associationtags[]
 
   @@unique([cnpj, source_id], map: "customer_cnpj_idx")
   @@unique([cpf, source_id], map: "customer_cpf_idx")
@@ -265,7 +265,7 @@ model Customer_CustomerUnified {
 
 model Address {
   id                Int              @id @default(autoincrement())
-  address_ref       String
+  address_ref       String?
   neighborhood      String?
   street            String?
   city              String?
@@ -277,6 +277,8 @@ model Address {
   organization_id   String
   customer_id       String
   customerUnifiedId Int?
+  complement        String?
+  number            String?
   CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
   customer          Customer         @relation(fields: [customer_id], references: [public_id])
   organization      Organization     @relation(fields: [organization_id], references: [public_id])
@@ -376,13 +378,13 @@ model Status {
 
 model Audiences {
   createdAt         DateTime?           @default(now())
-  createdBy         Int?
   id                Int                 @id @default(autoincrement())
   organization_id   String
   name              String              @db.VarChar(255)
   obs               String?
   statusId          Int?                @default(1)
   updatedAt         DateTime?
+  createdBy         Int?
   updatedBy         Int?
   organization      Organization        @relation(fields: [organization_id], references: [public_id])
   audiencescontacts Audiencescontacts[]
@@ -492,12 +494,12 @@ model Campaigns {
   jsonMeta         Json?
   subject          String?
   organization_id  String
+  Associationtags  Associationtags[]
   campaignaudience Campaignaudience[]
   campaigndetails  Campaigndetails[]
   channels         Channels?          @relation(fields: [idChannel], references: [id])
   organization     Organization       @relation(fields: [organization_id], references: [public_id])
   campaignstatus   Campaignstatus?    @relation(fields: [statusId], references: [id])
-  Associationtags  Associationtags[]
 
   @@index([createdAt])
   @@index([dateStart, dateEnd])
@@ -547,23 +549,23 @@ model Tags {
   createdBy       Int?
   organization_id String
   updatedBy       Int?
-  organization    Organization      @relation(fields: [organization_id], references: [public_id])
   Associationtags Associationtags[]
+  organization    Organization      @relation(fields: [organization_id], references: [public_id])
 }
 
 model Associationtags {
   id              Int        @id @default(autoincrement())
   idTag           Int
-  idCampaing      Int? 
-  idCustomer      Int? 
+  idCampaing      Int?
+  idCustomer      Int?
   createdAt       DateTime?  @default(now())
   updatedAt       DateTime?  @default(now())
   createdBy       Int?
   organization_id String
   updatedBy       Int?
-  tags            Tags?      @relation(fields: [idTag], references: [id])
   campaigns       Campaigns? @relation(fields: [idCampaing], references: [id])
   customer        Customer?  @relation(fields: [idCustomer], references: [id])
+  tags            Tags       @relation(fields: [idTag], references: [id])
 
   @@index([idTag])
   @@index([idCampaing])
