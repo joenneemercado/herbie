@@ -31,7 +31,7 @@ import { APP_GUARD } from '@nestjs/core';
       throttlers: [
         {
           ttl: 60000,
-          limit: 3,
+          limit: 60,
         },
       ],
     }),
