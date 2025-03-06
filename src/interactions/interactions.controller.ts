@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Request,
   Query,
 } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
@@ -17,9 +18,18 @@ import { ApiExcludeEndpoint } from '@nestjs/swagger';
 export class InteractionsController {
   constructor(private readonly interactionsService: InteractionsService) {}
   @ApiExcludeEndpoint()
-  @Post()
-  create(@Body() createInteractionDto: CreateInteractionDto) {
-    return this.interactionsService.create(createInteractionDto);
+  @Post('/create')
+  create(
+    @Body() createInteractionDto: CreateInteractionDto,
+    @Request() req: Request,
+  ) {
+    const parsed = createInteractionSchema.safeParse(createInteractionDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    //console.log('parsed.data',parsed.data);
+    return this.interactionsService.create(parsed.data, req);
+   // return this.interactionsService.create(createInteractionDto);
   }
   @ApiExcludeEndpoint()
   @Get()
