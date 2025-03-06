@@ -63,7 +63,7 @@ export class InteractionsService {
             type: type,
           }
         })
-        console.log('criando com customer unified', createInteraction)
+        //console.log('criando com customer unified', createInteraction)
       } else {
         const createInteraction = await this.prisma.interaction.create({
           data: {
@@ -75,7 +75,7 @@ export class InteractionsService {
             type: type,
           }
         })
-        console.log('cirando customer', createInteraction)
+        //console.log('cirando customer', createInteraction)
       }
 
       return {
