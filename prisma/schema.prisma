@@ -228,10 +228,10 @@ model Customer {
 }
 
 model CustomerUnified {
-  id                  Int                 @id @default(autoincrement())
-  email               String?             @unique(map: "customerunified_email_idx")
+  id                  Int                   @id @default(autoincrement())
+  email               String?               @unique(map: "customerunified_email_idx")
   phone               String?
-  cpf                 String?             @unique(map: "customerunified_cpf_idx")
+  cpf                 String?               @unique(map: "customerunified_cpf_idx")
   cnpj                String?
   company_name        String?
   trading_name        String?
@@ -239,14 +239,14 @@ model CustomerUnified {
   gender              String?
   marital_status      String?
   organization_id     String
-  public_id           String              @unique @default(cuid())
+  public_id           String                @unique @default(cuid())
   firstname           String?
   lastname            String?
   nickname            String?
-  created_at          DateTime?           @default(now())
+  created_at          DateTime?             @default(now())
   created_by          Int?
   last_updated_system String?
-  updated_at          DateTime?           @updatedAt
+  updated_at          DateTime?             @updatedAt
   updated_by          Int?
   has_child           Int?
   status_id           Int?
@@ -254,7 +254,8 @@ model CustomerUnified {
   audiencescontacts   Audiencescontacts[]
   campaigndetails     Campaigndetails[]
   customer_fields     CustomerField[]
-  organization        Organization        @relation(fields: [organization_id], references: [public_id])
+  organization        Organization          @relation(fields: [organization_id], references: [public_id])
+  CustomerUnifiedTags CustomerUnifiedTags[]
   Interaction         Interaction[]
   segments            SegmentCustomer[]
 }
@@ -544,16 +545,17 @@ model Channels {
 }
 
 model Tags {
-  id              Int               @id @default(autoincrement())
-  name            String
-  color           String?           @db.VarChar(255)
-  createdAt       DateTime?         @default(now())
-  updatedAt       DateTime?         @default(now())
-  createdBy       Int?
-  organization_id String
-  updatedBy       Int?
-  Associationtags Associationtags[]
-  organization    Organization      @relation(fields: [organization_id], references: [public_id])
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  color               String?               @db.VarChar(255)
+  createdAt           DateTime?             @default(now())
+  updatedAt           DateTime?             @default(now())
+  createdBy           Int?
+  organization_id     String
+  updatedBy           Int?
+  Associationtags     Associationtags[]
+  CustomerUnifiedTags CustomerUnifiedTags[]
+  organization        Organization          @relation(fields: [organization_id], references: [public_id])
 }
 
 model Associationtags {
@@ -573,6 +575,14 @@ model Associationtags {
   @@index([idTag])
   @@index([idCampaing])
   @@index([idCustomer])
+}
+
+model CustomerUnifiedTags {
+  id                  Int              @id(map: "customerunifiedtags_pk") @default(autoincrement())
+  customer_unified_id Int?
+  idtag               Int?
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_customerunified_fk")
+  Tags                Tags?            @relation(fields: [idtag], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_tags_fk")
 }
 
 enum Role {
