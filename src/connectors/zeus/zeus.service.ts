@@ -1,8 +1,9 @@
-import { CreateZeusArraySchema, CreateZeusSchema } from './dto/zeus-schema';
+
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UpdateZeusDto } from './dto/update-zeus.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { CreateZeusArraySchema, CreateZeusSchema } from './dto/create-zeus-schema';
 
 @Injectable()
 export class ZeusService {

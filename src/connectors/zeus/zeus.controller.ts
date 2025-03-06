@@ -17,8 +17,8 @@ import { CreateZeusDto } from './dto/create-zeus.dto';
 import { UpdateZeusDto } from './dto/update-zeus.dto';
 import { ApiBearerAuth, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
-import { createZeusArraySchema, createZeusSchema } from './dto/zeus-schema';
 import { } from '@src/campaigns/dto/create-campaign.dto';
+import { createZeusArraySchema, createZeusSchema } from './dto/create-zeus-schema';
 //Cadastro de clientes
 // 1 - zeus
 // -- 
