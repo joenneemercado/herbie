@@ -48,7 +48,11 @@ export class InteractionsService {
       });
 
       if (!findUser) {
-        throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+        return {
+          code:HttpStatus.NOT_FOUND,
+          message: 'User not found',
+        };
+        //throw new HttpException('User not found', HttpStatus.NOT_FOUND)
       }
       
       if (findCustomerUnified && findUser) {
@@ -57,7 +61,6 @@ export class InteractionsService {
             organization_id: organization_id,
             details: createInteractionDto,
             customer_unified_Id: findCustomerUnified.id,
-            customer_id: findUser.id,
             event_id: event_id,
             source_id: InteractionConstantes.SOURCE_ID_ZEUS,
             type: type,
