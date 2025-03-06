@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
 import { CreateInteractionDto } from './dto/create-interaction.dto';
@@ -22,8 +23,18 @@ export class InteractionsController {
   }
   @ApiExcludeEndpoint()
   @Get()
-  findAll() {
-    return this.interactionsService.findAll();
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('organization_id') organization_id: string,
+    @Query('customer_id') customer_id?: number,
+  ) {
+    return this.interactionsService.findAll({
+      page,
+      limit,
+      organization_id,
+      customer_id,
+    });
   }
   @ApiExcludeEndpoint()
   @Get(':id')

@@ -210,13 +210,17 @@ model Customer {
   updated_by          Int?
   has_child           Int?
   source_id           Int?
-  is_unified          Boolean?
+  is_unified          Boolean?          @default(false)
+  facebook            String?           @db.VarChar
+  instagram           String?           @db.VarChar
+  tiktok              String?           @db.VarChar
+  x                   String?           @db.VarChar
+  whatsapp            String?           @db.VarChar
   addresses           Address[]
   Associationtags     Associationtags[]
   organization        Organization      @relation(fields: [organization_id], references: [public_id])
   Source              Source?           @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_source_fk")
   customer_fields     CustomerField[]
-  interactions        Interaction[]
   segments            SegmentCustomer[]
 
   @@unique([cnpj, source_id], map: "customer_cnpj_idx")
@@ -251,7 +255,7 @@ model CustomerUnified {
   campaigndetails     Campaigndetails[]
   customer_fields     CustomerField[]
   organization        Organization        @relation(fields: [organization_id], references: [public_id])
-  interactions        Interaction[]
+  Interaction         Interaction[]
   segments            SegmentCustomer[]
 }
 
@@ -298,19 +302,18 @@ model CustomerField {
 }
 
 model Interaction {
-  id                Int              @id @default(autoincrement())
-  type              String?
-  details           Json?
-  organization_id   String
-  customer_id       String
-  source_id         Int
-  created_at        DateTime         @default(now())
-  event_id          Int
-  customerUnifiedId Int?
-  CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
-  customer          Customer         @relation(fields: [customer_id], references: [public_id])
-  event             Event            @relation(fields: [event_id], references: [id])
-  organization      Organization     @relation(fields: [organization_id], references: [public_id])
+  id                  Int              @id @default(autoincrement())
+  type                String?
+  details             Json
+  organization_id     String
+  source_id           Int
+  created_at          DateTime?        @default(now())
+  event_id            Int
+  customer_unified_Id Int?
+  customer_id         Int?
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_Id], references: [id], map: "Interaction_customerUnifiedId_fkey")
+  event               Event            @relation(fields: [event_id], references: [id])
+  organization        Organization     @relation(fields: [organization_id], references: [public_id])
 }
 
 model Segment {

@@ -15,6 +15,9 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
   "dependencies": {
+    "@ai-sdk/deepseek": "^0.1.12",
+    "@ai-sdk/openai": "^1.2.0",
+    "@ai-sdk/openai-compatible": "^0.1.12",
     "@bull-board/api": "^5.23.0",
     "@bull-board/express": "^5.23.0",
     "@nestjs/bull": "^10.2.3",
@@ -29,6 +32,7 @@
     "@nestjs/swagger": "^7.4.2",
     "@nestjs/throttler": "^6.4.0",
     "@prisma/client": "^6.0.1",
+    "ai": "^4.1.51",
     "bcrypt": "^5.1.1",
     "bull": "^4.16.4",
     "class-transformer": "^0.5.1",
