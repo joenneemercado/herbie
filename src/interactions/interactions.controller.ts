@@ -8,11 +8,13 @@ import {
   Delete,
   Request,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
 import { CreateInteractionDto } from './dto/create-interaction.dto';
 import { UpdateInteractionDto } from './dto/update-interaction.dto';
 import { ApiExcludeEndpoint } from '@nestjs/swagger';
+import { createInteractionSchema } from './dto/create-interaction-schema';
 
 @Controller('interactions')
 export class InteractionsController {
