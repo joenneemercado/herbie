@@ -1663,6 +1663,9 @@ export class CustomersService {
           id: Number(id),
           organization_id: String(organization),
         },
+        include:{
+          addresses:true,
+        }
       });
       const customersIds = await this.prisma.customer_CustomerUnified.findMany({
         where: {
@@ -1671,6 +1674,7 @@ export class CustomersService {
         select: {
           customer_id: true,
         },
+
       });
       const customerOriginal = await this.prisma.customer.findMany({
         where: {
@@ -1679,6 +1683,10 @@ export class CustomersService {
           },
           organization_id: String(organization),
         },
+        include:{
+          Source:true,
+          addresses:true,
+        }
       });
       return {
         CustomerUnified: customerUnified,
