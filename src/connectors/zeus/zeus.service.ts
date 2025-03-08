@@ -1,11 +1,12 @@
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
-import { UpdateZeusDto } from './dto/update-zeus.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import {
   CreateZeusArraySchema,
   CreateZeusSchema,
 } from './dto/create-zeus-schema';
+import { ZeusConstantes } from './zeus.constantes';
+import { CreateInteractionZeusSchema } from './dto/interaction-zeus.schema';
 
 @Injectable()
 export class ZeusService {
@@ -22,7 +23,7 @@ export class ZeusService {
     try {
       const token = reqToken.split(' ')[1];
       //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
-      const { sub, orgs } = await this.jwtService.decode(token);
+      const { sub } = await this.jwtService.decode(token);
       const {
         organization_id,
         name,
@@ -32,7 +33,6 @@ export class ZeusService {
         date_birth,
         marital_status,
         gender,
-        dataCadastroCompleto,
         dataInclusao,
         address: {
           postal_code,
@@ -50,7 +50,7 @@ export class ZeusService {
         where: {
           cpf: cpf,
           organization_id: organization_id,
-          source_id: 3, //Zeus
+          source_id: ZeusConstantes.SOURCE_ID_ZEUS,
         },
       });
       if (userCustumer) {
@@ -61,11 +61,14 @@ export class ZeusService {
         };
       }
 
+      const firstName = name?.split(' ')[0];
+      const lastName = name?.split(' ').slice(1).join(' ') || null;
+
       const customer = await this.prisma.customer.create({
         data: {
           organization_id: organization_id,
-          firstname: name,
-          lastname: null,
+          firstname: firstName,
+          lastname: lastName,
           nickname: null,
           email: email,
           phone: phone,
@@ -77,7 +80,7 @@ export class ZeusService {
           marital_status: marital_status,
           gender: gender,
           created_by: sub,
-          source_id: 3,
+          source_id: ZeusConstantes.SOURCE_ID_ZEUS,
           addresses: {
             create: {
               organization_id,
@@ -99,11 +102,13 @@ export class ZeusService {
           details: createZeusDto,
           organization_id: organization_id,
           customer_id: customer.id,
-          source_id: 3,
+          source_id: ZeusConstantes.SOURCE_ID_ZEUS,
           created_at: dataInclusao, //Utiliza a data do cadastro inical no ZEUS
-          event_id: 9, //cadastro
-          type: 'Cadastro',
+          event_id: ZeusConstantes.EVENT_ID_CADASTRO, //cadastro
+          type: ZeusConstantes.EVENT_TYPE_CADASTRO,
           total: null,
+          created_by: sub,
+          status_id: ZeusConstantes.STATUS_ID,
         },
       });
 
@@ -129,13 +134,15 @@ export class ZeusService {
     }
     try {
       const token = reqToken.split(' ')[1];
-      const { sub, orgs } = await this.jwtService.decode(token);
+      const { sub } = await this.jwtService.decode(token);
       const dados = [];
       for (const dto of createZeusDto) {
+        const firstName = dto.name?.split(' ')[0];
+        const lastName = dto.name?.split(' ').slice(1).join(' ') || null;
         const data = {
           organization_id: dto.organization_id,
-          firstname: dto.name,
-          lastname: null,
+          firstname: firstName,
+          lastname: lastName,
           nickname: null,
           email: dto.email,
           phone: dto.phone,
@@ -147,7 +154,7 @@ export class ZeusService {
           marital_status: dto.marital_status,
           gender: dto.gender,
           created_by: sub,
-          source_id: 3,
+          source_id: ZeusConstantes.SOURCE_ID_ZEUS,
         };
         dados.push(data);
       }
@@ -194,19 +201,227 @@ export class ZeusService {
     }
   }
 
-  findAll() {
-    return `This action returns all zeus`;
+  async interationAcumularPontos(
+    createInteractionDto: CreateInteractionZeusSchema,
+    req: Request,
+  ) {
+    //TODO JSON QUE EU ENVIEI
+    // {
+    //   "organization_id": "cm0l1u61r00003b6junq2pmbi",
+    //   "cpf": "02525273214",
+    //   "total": 250.75,
+    //   "details": {
+    //     "idVenda": "123456",
+    //     "vlCupom": 150.75,
+    //     "dataVenda": "2024-05-10T12:30:00.000Z",
+    //     "serie": "A1",
+    //     "loja": "Loja 1",
+    //     "celular": "5511912345678",
+    //     "dataIntegracao": "2024-05-11T10:15:00.000Z",
+    //     "tipoVlItem": "TOTAL",
+    //     "vlCash": 5.75,
+    //     "percCashPadrao": 3.5,
+    //     "idOperador": 101,
+    //     "dataMovHr": "2024-05-10T14:00:00.000Z",
+    //     "primeiraCompra": true,
+    //     "rede": "Rede 1",
+    //     "qtProd": 10,
+    //     "cashAtacac": 8.5,
+    //     "tipoPessoa": "F",
+    //     "qtUnidades": 20,
+    //     "vlTroco": 2.75
+    //   }
+    // }
+
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    try {
+      const token = reqToken.split(' ')[1];
+      //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
+      const { sub } = await this.jwtService.decode(token);
+
+      const findCustomer = await this.prisma.customer.findFirst({
+        where: {
+          cpf: createInteractionDto.cpf,
+          organization_id: createInteractionDto.organization_id,
+          source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+        },
+      });
+      if (!findCustomer) {
+        return {
+          code: 404,
+          success: false,
+          message: 'Customer not found',
+        };
+      }
+
+      const findCustomerUnified = await this.prisma.customerUnified.findFirst({
+        where: {
+          cpf: createInteractionDto.cpf,
+          organization_id: createInteractionDto.organization_id,
+        },
+      });
+
+      if (findCustomer && findCustomerUnified) {
+        await this.prisma.interaction.create({
+          data: {
+            details: createInteractionDto.details,
+            organization_id: createInteractionDto.organization_id,
+            customer_id: findCustomerUnified.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
+            type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
+            total: createInteractionDto.total,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+          },
+        });
+        //console.log('creatInteractionAcumular', creatInteractionAcumular);
+        return {
+          code: HttpStatus.CREATED,
+          success: true,
+          message: 'Event created successfully',
+          //message:"sucess"
+        };
+      } else {
+        await this.prisma.interaction.create({
+          data: {
+            details: createInteractionDto.details,
+            organization_id: createInteractionDto.organization_id,
+            customer_id: findCustomer.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
+            type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
+            total: createInteractionDto.total,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+          },
+        });
+        //console.log('creatInteractionAcumular', creatInteractionAcumular);
+        return {
+          code: HttpStatus.CREATED,
+          success: true,
+          message: 'Event created successfully',
+          //message:"sucess"
+        };
+      }
+    } catch (error) {
+      console.log(error.message);
+      throw error;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} zeus`;
-  }
+  async interationResgatarPontos(
+    createInteractionDto: CreateInteractionZeusSchema,
+    req: Request,
+  ) {
+    //TODO JSON QUE EU ENVIEI
+    // {
+    //   "organization_id": "cm0l1u61r00003b6junq2pmbi",
+    //   "cpf": "02525273214",
+    //   "total": 250.75,
+    //   "details": {
+    //     "idVenda": "123456",
+    //     "vlCupom": 150.75,
+    //     "dataVenda": "2024-05-10T12:30:00.000Z",
+    //     "serie": "A1",
+    //     "loja": "Loja 1",
+    //     "celular": "5511912345678",
+    //     "dataIntegracao": "2024-05-11T10:15:00.000Z",
+    //     "tipoVlItem": "TOTAL",
+    //     "vlCash": 5.75,
+    //     "percCashPadrao": 3.5,
+    //     "idOperador": 101,
+    //     "dataMovHr": "2024-05-10T14:00:00.000Z",
+    //     "primeiraCompra": true,
+    //     "rede": "Rede 1",
+    //     "qtProd": 10,
+    //     "cashAtacac": 8.5,
+    //     "tipoPessoa": "F",
+    //     "qtUnidades": 20,
+    //     "vlTroco": 2.75
+    //   }
+    // }
 
-  update(id: number, updateZeusDto: UpdateZeusDto) {
-    return `This action updates a #${id} zeus`;
-  }
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    try {
+      const token = reqToken.split(' ')[1];
+      //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
+      const { sub } = await this.jwtService.decode(token);
 
-  remove(id: number) {
-    return `This action removes a #${id} zeus`;
+      const findCustomer = await this.prisma.customer.findFirst({
+        where: {
+          cpf: createInteractionDto.cpf,
+          organization_id: createInteractionDto.organization_id,
+          source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+        },
+      });
+      if (!findCustomer) {
+        return {
+          code: 404,
+          success: false,
+          message: 'Customer not found',
+        };
+      }
+
+      const findCustomerUnified = await this.prisma.customerUnified.findFirst({
+        where: {
+          cpf: createInteractionDto.cpf,
+          organization_id: createInteractionDto.organization_id,
+        },
+      });
+
+      if (findCustomer && findCustomerUnified) {
+        await this.prisma.interaction.create({
+          data: {
+            details: createInteractionDto.details,
+            organization_id: createInteractionDto.organization_id,
+            customer_id: findCustomerUnified.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_RESGATAR,
+            type: ZeusConstantes.EVENT_TYPE_RESGATAR,
+            total: createInteractionDto.total,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+          },
+        });
+        //console.log('creatInteractionAcumular', creatInteractionAcumular);
+        return {
+          code: HttpStatus.CREATED,
+          success: true,
+          message: 'Event created successfully',
+          //message:"sucess"
+        };
+      } else {
+        await this.prisma.interaction.create({
+          data: {
+            details: createInteractionDto.details,
+            organization_id: createInteractionDto.organization_id,
+            customer_id: findCustomer.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
+            type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
+            total: createInteractionDto.total,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+          },
+        });
+        //console.log('creatInteractionAcumular', creatInteractionAcumular);
+        return {
+          code: HttpStatus.CREATED,
+          success: true,
+          message: 'Event created successfully',
+          //message:"sucess"
+        };
+      }
+    } catch (error) {
+      console.log(error.message);
+      throw error;
+    }
   }
 }

@@ -5,8 +5,8 @@ import { DatabaseModule } from '@src/database/database.module';
 import { JwtService } from '@nestjs/jwt';
 
 @Module({
-  imports:[DatabaseModule],
+  imports: [DatabaseModule],
   controllers: [ZeusController],
-  providers: [ZeusService,JwtService],
+  providers: [ZeusService, JwtService],
 })
 export class ZeusModule {}
