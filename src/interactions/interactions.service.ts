@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateInteractionDto } from './dto/create-interaction.dto';
 import { UpdateInteractionDto } from './dto/update-interaction.dto';
 import { PrismaService } from '@src/database/prisma.service';
@@ -15,7 +20,7 @@ export class InteractionsService {
   ) {}
 
   async create(createInteractionDto: CreateInteractionSchema, req: Request) {
-    console.log('createInteractionDto', createInteractionDto)
+    console.log('createInteractionDto', createInteractionDto);
     const reqToken = req.headers['authorization'];
     if (!reqToken) {
       throw new UnauthorizedException();
@@ -32,10 +37,9 @@ export class InteractionsService {
         type,
         details,
         total,
-      } = createInteractionDto
+      } = createInteractionDto;
 
-      console.log(details)
-
+      console.log(details);
 
       const findCustomerUnified = await this.prisma.customerUnified.findFirst({
         where: {
@@ -54,14 +58,14 @@ export class InteractionsService {
 
       if (!findUser) {
         return {
-          code:HttpStatus.NOT_FOUND,
+          code: HttpStatus.NOT_FOUND,
           message: 'User not found',
         };
         //throw new HttpException('User not found', HttpStatus.NOT_FOUND)
       }
-      
+
       if (findCustomerUnified && findUser) {
-         await this.prisma.interaction.create({
+        await this.prisma.interaction.create({
           data: {
             organization_id: organization_id,
             details: details.length > 0 ? details : createInteractionDto,
@@ -70,8 +74,8 @@ export class InteractionsService {
             source_id: InteractionConstantes.SOURCE_ID_ZEUS,
             type: type,
             total: total,
-          }
-        })
+          },
+        });
         //console.log('criando com customer unified', createInteraction)
       } else {
         await this.prisma.interaction.create({
@@ -83,15 +87,15 @@ export class InteractionsService {
             source_id: InteractionConstantes.SOURCE_ID_ZEUS,
             type: type,
             total: total,
-          }
-        })
+          },
+        });
         //console.log('cirando customer', createInteraction)
       }
 
       return {
         message: 'Interaction created successfully',
         code: HttpStatus.CREATED,
-      }
+      };
     } catch (error) {
       console.log(error.message);
     }

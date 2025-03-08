@@ -31,7 +31,7 @@ export class InteractionsController {
     }
     //console.log('parsed.data',parsed.data);
     return this.interactionsService.create(parsed.data, req);
-   // return this.interactionsService.create(createInteractionDto);
+    // return this.interactionsService.create(createInteractionDto);
   }
   @ApiExcludeEndpoint()
   @Get()
