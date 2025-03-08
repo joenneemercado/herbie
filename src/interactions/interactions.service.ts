@@ -15,7 +15,7 @@ export class InteractionsService {
   ) {}
 
   async create(createInteractionDto: CreateInteractionSchema, req: Request) {
-    //console.log('createInteractionDto', createInteractionDto)
+    console.log('createInteractionDto', createInteractionDto)
     const reqToken = req.headers['authorization'];
     if (!reqToken) {
       throw new UnauthorizedException();
@@ -29,8 +29,13 @@ export class InteractionsService {
         cpf,
         event_id,
         //source_id,
-        type
+        type,
+        details,
+        total,
       } = createInteractionDto
+
+      console.log(details)
+
 
       const findCustomerUnified = await this.prisma.customerUnified.findFirst({
         where: {
@@ -43,7 +48,7 @@ export class InteractionsService {
         where: {
           cpf: cpf,
           organization_id: organization_id,
-          source_id: InteractionConstantes.SOURCE_ID_ZEUS
+          source_id: InteractionConstantes.SOURCE_ID_ZEUS,
         },
       });
 
@@ -56,26 +61,28 @@ export class InteractionsService {
       }
       
       if (findCustomerUnified && findUser) {
-        const createInteraction = await this.prisma.interaction.create({
+         await this.prisma.interaction.create({
           data: {
             organization_id: organization_id,
-            details: createInteractionDto,
+            details: details.length > 0 ? details : createInteractionDto,
             customer_unified_Id: findCustomerUnified.id,
             event_id: event_id,
             source_id: InteractionConstantes.SOURCE_ID_ZEUS,
             type: type,
+            total: total,
           }
         })
         //console.log('criando com customer unified', createInteraction)
       } else {
-        const createInteraction = await this.prisma.interaction.create({
+        await this.prisma.interaction.create({
           data: {
             organization_id: organization_id,
-            details: createInteractionDto,
+            details: details.length > 0 ? details : createInteractionDto,
             customer_id: findUser.id,
             event_id: event_id,
             source_id: InteractionConstantes.SOURCE_ID_ZEUS,
             type: type,
+            total: total,
           }
         })
         //console.log('cirando customer', createInteraction)
