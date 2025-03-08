@@ -1,16 +1,18 @@
-
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UpdateZeusDto } from './dto/update-zeus.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { CreateZeusArraySchema, CreateZeusSchema } from './dto/create-zeus-schema';
+import {
+  CreateZeusArraySchema,
+  CreateZeusSchema,
+} from './dto/create-zeus-schema';
 
 @Injectable()
 export class ZeusService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   async create(createZeusDto: CreateZeusSchema, req: Request) {
     const reqToken = req.headers['authorization'];
@@ -30,6 +32,8 @@ export class ZeusService {
         date_birth,
         marital_status,
         gender,
+        dataCadastroCompleto,
+        dataInclusao,
         address: {
           postal_code,
           street,
@@ -39,25 +43,25 @@ export class ZeusService {
           number,
           state,
           country,
-        }
+        },
       } = createZeusDto;
 
       const userCustumer = await this.prisma.customer.findFirst({
         where: {
           cpf: cpf,
           organization_id: organization_id,
-          source_id: 3
+          source_id: 3, //Zeus
         },
       });
       if (userCustumer) {
         return {
           code: 409,
           success: false,
-          message: "Customer exists",
+          message: 'Customer exists',
         };
       }
 
-       await this.prisma.customer.create({
+      const customer = await this.prisma.customer.create({
         data: {
           organization_id: organization_id,
           firstname: name,
@@ -84,27 +88,41 @@ export class ZeusService {
               neighborhood,
               state,
               complement,
-              country
-            }
-          }
+              country,
+            },
+          },
         },
       });
 
-      return { 
-        code:HttpStatus.CREATED,
-        success: true,
-        message: "Cliente cadastrados com sucesso"
-        //message:"sucess"
-       }
+      await this.prisma.interaction.create({
+        data: {
+          details: createZeusDto,
+          organization_id: organization_id,
+          customer_id: customer.id,
+          source_id: 3,
+          created_at: dataInclusao, //Utiliza a data do cadastro inical no ZEUS
+          event_id: 9, //cadastro
+          type: 'Cadastro',
+          total: null,
+        },
+      });
 
+      return {
+        code: HttpStatus.CREATED,
+        success: true,
+        message: 'Cliente cadastrados com sucesso',
+        //message:"sucess"
+      };
     } catch (error) {
       console.log(error.message);
       throw error;
     }
   }
 
-
-  async createListCustumers(createZeusDto: CreateZeusArraySchema, req: Request) {
+  async createListCustumers(
+    createZeusDto: CreateZeusArraySchema,
+    req: Request,
+  ) {
     const reqToken = req.headers['authorization'];
     if (!reqToken) {
       throw new UnauthorizedException();
@@ -112,7 +130,7 @@ export class ZeusService {
     try {
       const token = reqToken.split(' ')[1];
       const { sub, orgs } = await this.jwtService.decode(token);
-      const dados = []
+      const dados = [];
       for (const dto of createZeusDto) {
         const data = {
           organization_id: dto.organization_id,
@@ -130,48 +148,46 @@ export class ZeusService {
           gender: dto.gender,
           created_by: sub,
           source_id: 3,
-        }
-        dados.push(data)
+        };
+        dados.push(data);
       }
-      const dadosEnderecos = []
-      await this.prisma.$transaction(
-       async (trx) =>{
-          const createCustomer = await trx.customer.createManyAndReturn({
-            select:{public_id:true,cpf:true},
-            data: dados,
-            skipDuplicates: true,
-          })
-          for (const dto of createZeusDto) {
-            const data = {
-              customer_id: createCustomer.find(c => c.cpf === dto.cpf)?.public_id,
-              organization_id: dto.organization_id,
-              postal_code: dto.address.postal_code,
-              street: dto.address.street,
-              number: dto.address.number,
-              city: dto.address.city,
-              neighborhood: dto.address.neighborhood,
-              state: dto.address.state,
-              complement: dto.address.complement,
-              country:dto.address.country
-            }
-            if(!data.customer_id){
-              continue
-            }
-            dadosEnderecos.push(data)
+      const dadosEnderecos = [];
+      await this.prisma.$transaction(async (trx) => {
+        const createCustomer = await trx.customer.createManyAndReturn({
+          select: { public_id: true, cpf: true },
+          data: dados,
+          skipDuplicates: true,
+        });
+        for (const dto of createZeusDto) {
+          const data = {
+            customer_id: createCustomer.find((c) => c.cpf === dto.cpf)
+              ?.public_id,
+            organization_id: dto.organization_id,
+            postal_code: dto.address.postal_code,
+            street: dto.address.street,
+            number: dto.address.number,
+            city: dto.address.city,
+            neighborhood: dto.address.neighborhood,
+            state: dto.address.state,
+            complement: dto.address.complement,
+            country: dto.address.country,
+          };
+          if (!data.customer_id) {
+            continue;
           }
-           await trx.address.createMany({
-            data: dadosEnderecos,
-            skipDuplicates: true,
-          });
+          dadosEnderecos.push(data);
         }
-      )
-       return { 
-        code:HttpStatus.CREATED,
+        await trx.address.createMany({
+          data: dadosEnderecos,
+          skipDuplicates: true,
+        });
+      });
+      return {
+        code: HttpStatus.CREATED,
         success: true,
-        message: "Clientes cadastrados com sucesso"
+        message: 'Clientes cadastrados com sucesso',
         //message:"sucess"
-       }
-
+      };
     } catch (error) {
       console.log(error.message);
       throw error;

@@ -87,6 +87,19 @@ export class CreateClienteZeusDto {
   })
   dataInclusao: string;
 
+  @IsDateString(
+    {},
+    {
+      message:
+        'A data que o cliente concluio o cadastro deve ser uma data válida',
+    },
+  )
+  @ApiProperty({
+    description: 'Data que concluio o cadastro cadastro',
+    example: '2024-01-10T00:00:00.000Z',
+  })
+  dataCadastroCompleto: string;
+
   @IsString({ message: 'O idClienteZeus deve ser unico' })
   @ApiProperty({
     description: 'Identificação única do cliente no banco de dados',
