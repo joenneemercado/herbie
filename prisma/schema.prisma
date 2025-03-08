@@ -314,9 +314,13 @@ model Interaction {
   customer_unified_Id Int?
   customer_id         Int?
   total               Float?
+  updated_at          DateTime?
+  created_by          Int?
+  status_id           Int?
   CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_Id], references: [id], map: "Interaction_customerUnifiedId_fkey")
   event               Event            @relation(fields: [event_id], references: [id])
   organization        Organization     @relation(fields: [organization_id], references: [public_id])
+  Status              Status?          @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_status_fk")
 }
 
 model Segment {
@@ -376,10 +380,11 @@ model TempCustomerIssues {
 }
 
 model Status {
-  id          Int     @id @default(autoincrement())
-  name        String? @db.VarChar
-  description String? @db.VarChar
-  color_code  String? @db.VarChar
+  id          Int           @id @default(autoincrement())
+  name        String?       @db.VarChar
+  description String?       @db.VarChar
+  color_code  String?       @db.VarChar
+  Interaction Interaction[]
 }
 
 model Audiences {
