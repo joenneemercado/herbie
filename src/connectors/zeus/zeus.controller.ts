@@ -1,11 +1,7 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   UseGuards,
   Request,
   BadRequestException,
@@ -13,11 +9,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ZeusService } from './zeus.service';
-import {
-  CreateClienteZeusDto,
-  CreateInteractionAcumularZeusDto,
-} from './dto/create-zeus.dto';
-import { UpdateZeusDto } from './dto/update-zeus.dto';
+import { CreateClienteZeusDto } from './dto/create-zeus.dto';
 import { ApiBearerAuth, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
 import {} from '@src/campaigns/dto/create-campaign.dto';
@@ -25,6 +17,8 @@ import {
   createZeusArraySchema,
   createZeusSchema,
 } from './dto/create-zeus-schema';
+import { createInteractionZeusSchema } from './dto/interaction-zeus.schema';
+import { CreateInteractionZeusDto } from './dto/interaction-zeus.dto';
 //Cadastro de clientes
 // 1 - zeus
 // --
@@ -84,49 +78,26 @@ export class ZeusController {
   }
 
   @Post('/interaction/acumular')
-  interationAcumular(
-    @Body() dados: CreateInteractionAcumularZeusDto,
+  interationAcumularPontos(
+    @Body() createInteractionDto: CreateInteractionZeusDto,
     @Request() req: Request,
   ) {
-    const parsed = createZeusSchema.safeParse(dados);
+    const parsed = createInteractionZeusSchema.safeParse(createInteractionDto);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors);
     }
-    return this.zeusService.create(parsed.data, req);
+    return this.zeusService.interationAcumularPontos(parsed.data, req);
   }
 
   @Post('/interaction/resgatar')
-  interationResgatar(
-    @Body() createZeusDto: CreateClienteZeusDto,
+  interationResgatarPontos(
+    @Body() createInteractionDto: CreateInteractionZeusDto,
     @Request() req: Request,
   ) {
-    const parsed = createZeusSchema.safeParse(createZeusDto);
+    const parsed = createInteractionZeusSchema.safeParse(createInteractionDto);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors);
     }
-    return this.zeusService.create(parsed.data, req);
-  }
-
-  @ApiExcludeEndpoint()
-  @Get()
-  findAll() {
-    return this.zeusService.findAll();
-  }
-  @ApiExcludeEndpoint()
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.zeusService.findOne(+id);
-  }
-
-  @ApiExcludeEndpoint()
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateZeusDto: UpdateZeusDto) {
-    return this.zeusService.update(+id, updateZeusDto);
-  }
-
-  @ApiExcludeEndpoint()
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.zeusService.remove(+id);
+    return this.zeusService.interationResgatarPontos(parsed.data, req);
   }
 }
