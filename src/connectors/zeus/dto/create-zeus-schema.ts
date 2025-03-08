@@ -1,10 +1,11 @@
+
 import { z } from 'zod';
 
   export const createZeusSchema = z
   .object({
     name: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres." }),
     email: z.string().email({ message: "E-mail inválido." }),
-    phone: z.string().optional().nullish(),
+    phone: z.string(),
     cpf: z
       .string()
       .min(11, { message: "CPF deve ter pelo menos 11 caracteres." })
@@ -15,21 +16,22 @@ import { z } from 'zod';
       .optional()
       .nullish()
       .refine((date) => !isNaN(date.getTime()), { message: "Data de nascimento inválida." }),
-    gender: z.string().optional().nullish(),
-    marital_status: z.string().optional().nullish(),
+    gender: z.string().optional(),
+    marital_status: z.string().optional(),
     organization_id: z.string().min(1, { message: "ID da organização é obrigatório." }),
     address: z.object({
-      street: z.string().optional().nullish(),
-      postal_code: z.string().optional().nullish(),
-      neighborhood: z.string().optional().nullish(),
-      number: z.string().optional().nullish(), // Mantive string para permitir números alfanuméricos
-      state: z.string().optional().nullish(),
-      city: z.string().optional().nullish(),
+      street: z.string(),
+      postal_code: z.string(),
+      neighborhood: z.string(),
+      number: z.string(), // Mantive string para permitir números alfanuméricos
+      state: z.string(),
+      city: z.string(),
       complement: z.string().optional().nullish(),
+      country: z.string().min(2, { message: "País é obrigatório." })
     }),
   })
   .refine((data) => /^\d{11}$|^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(data.cpf), {
-    message: "CPF inválido. Deve estar no formato correto (apenas números ou com pontuação).",
+    message: "CPF inválido. Deve estar no formato correto (apenas números).",
     path: ["cpf"],
   });
 

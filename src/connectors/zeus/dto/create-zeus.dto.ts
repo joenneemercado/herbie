@@ -2,45 +2,41 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsNumber, IsOptional, IsString, } from "class-validator";
 
 export class CreateEnderecoZeusDto {
-  @IsString({ message: 'O organization_id deve ser um UUID válido' })
-  @ApiProperty()
-  organization_id: string;
 
-  @IsOptional()
   @IsString({ message: 'O cep ser válido' })
   @ApiProperty()
-  postal_code?: string;
+  postal_code: string;
 
-  @IsOptional()
   @IsString({ message: 'O endereco deve do cliente' })
   @ApiProperty()
-  street?: string;
+  street: string;
 
-  @IsOptional()
   @IsString({ message: 'O bairro do cliente' })
   @ApiProperty()
-  neighborhood?: string;
+  neighborhood: string;
 
-  @IsOptional()
   @IsString({ message: 'O número da residência' })
   @ApiProperty()
-  number?: string;
+  number: string;
 
-  @IsOptional()
   @IsString({ message: 'A regiao UF do cliente' })
   @ApiProperty()
-  state?: string;
+  state: string;
 
-  @IsOptional()
   @IsString({ message: 'A cidade do cliente' })
   @ApiProperty()
-  city?: string;
+  city: string;
+
+  @IsString({ message: 'O  nome do pais' })
+  @ApiProperty()
+  country: string;
 
   @IsOptional()
   @IsString({ message: 'Complemento do cliente' })
   @ApiProperty()
   complemet?: string;
 }
+
 export class CreateZeusDto {
   @IsString({ message: 'O organization_id deve ser um UUID válido' })
   @ApiProperty()

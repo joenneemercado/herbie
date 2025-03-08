@@ -37,7 +37,8 @@ export class ZeusService {
           city,
           neighborhood,
           number,
-          state
+          state,
+          country,
         }
       } = createZeusDto;
 
@@ -75,14 +76,15 @@ export class ZeusService {
           source_id: 3,
           addresses: {
             create: {
-              organization_id: organization_id,
+              organization_id,
               postal_code,
               street,
               number,
               city,
               neighborhood,
               state,
-              complement
+              complement,
+              country
             }
           }
         },
@@ -91,6 +93,7 @@ export class ZeusService {
       return { 
         code:HttpStatus.CREATED,
         success: true,
+        message: "Cliente cadastrados com sucesso"
         //message:"sucess"
        }
 
@@ -148,10 +151,10 @@ export class ZeusService {
               city: dto.address.city,
               neighborhood: dto.address.neighborhood,
               state: dto.address.state,
-              complement: dto.address.complement
+              complement: dto.address.complement,
+              country:dto.address.country
             }
             if(!data.customer_id){
-              //console.log(data)
               continue
             }
             dadosEnderecos.push(data)
@@ -165,6 +168,7 @@ export class ZeusService {
        return { 
         code:HttpStatus.CREATED,
         success: true,
+        message: "Clientes cadastrados com sucesso"
         //message:"sucess"
        }
 

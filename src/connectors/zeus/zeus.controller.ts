@@ -39,7 +39,7 @@ export class ZeusController {
   @ApiExcludeEndpoint()
   @Post('/create/customer')
   create(
-    @Body() createZeusDto: CreateZeusDto[],
+    @Body() createZeusDto: CreateZeusDto,
     @Request() req: Request,
   ) {
     const parsed = createZeusSchema.safeParse(createZeusDto);
@@ -50,13 +50,13 @@ export class ZeusController {
   }
 
   @ApiExcludeEndpoint()
-  @Post('/create/list/customer')
+  @Post('/create/array/customer')
   createListCustumers(
     @Body() createZeusDto: CreateZeusDto[],
     @Request() req: Request,
   ) {
-    if (!(createZeusDto.length <= 1000)) {
-      throw new HttpException('Array size exceeded, limited to 1000', HttpStatus.PAYLOAD_TOO_LARGE);
+    if (!(createZeusDto.length <= 100)) {
+      throw new HttpException('Array size exceeded, limited to 100', HttpStatus.PAYLOAD_TOO_LARGE);
     }
     const parsed = createZeusArraySchema.safeParse(createZeusDto);
     if (!parsed.success) {
