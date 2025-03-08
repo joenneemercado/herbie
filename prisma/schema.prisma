@@ -121,6 +121,7 @@ model Order {
   user_id                 Int
   seller_id               Int
   organization_id         Int
+  customer_id             Int?
   organization            Organization @relation(fields: [organization_id], references: [id])
   seller                  Seller       @relation(fields: [seller_id], references: [id])
   user                    User         @relation(fields: [user_id], references: [id])
@@ -312,6 +313,7 @@ model Interaction {
   event_id            Int
   customer_unified_Id Int?
   customer_id         Int?
+  total               Float?
   CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_Id], references: [id], map: "Interaction_customerUnifiedId_fkey")
   event               Event            @relation(fields: [event_id], references: [id])
   organization        Organization     @relation(fields: [organization_id], references: [public_id])
