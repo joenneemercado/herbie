@@ -80,7 +80,7 @@ export class ZeusController {
     return this.zeusService.create(parsed.data, req);
   }
 
-  @Post('/interaction/acumular')
+  @Post('/interaction/accumulate')
   interationAcumularPontos(
     @Body() createInteractionDto: CreateInteractionZeusDto,
     @Request() req: Request,
@@ -93,7 +93,7 @@ export class ZeusController {
     return this.zeusService.interationAcumularPontos(parsed.data, req);
   }
 
-  @Post('/interaction/resgatar')
+  @Post('/interaction/reedem')
   interationResgatarPontos(
     @Body() createInteractionDto: CreateInteractionZeusDto,
     @Request() req: Request,
