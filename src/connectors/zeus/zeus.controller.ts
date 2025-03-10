@@ -93,7 +93,7 @@ export class ZeusController {
     return this.zeusService.interationAcumularPontos(parsed.data, req);
   }
 
-  @Post('/interaction/reedem')
+  @Post('/interaction/redeem')
   interationResgatarPontos(
     @Body() createInteractionDto: CreateInteractionZeusDto,
     @Request() req: Request,
