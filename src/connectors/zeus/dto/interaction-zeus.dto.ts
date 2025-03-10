@@ -41,41 +41,27 @@ export class InteractionDetailsZeusDto {
   })
   celular: string;
 
-  @IsDateString({}, { message: 'A dataIntegracao deve ser uma data válida' })
-  @ApiProperty({
-    description: 'Data de integração da venda',
-    example: '2024-05-11T10:15:00.000Z',
-  })
-  dataIntegracao: string;
-
-  @IsString({ message: 'O tipoVlItem deve ser uma string' })
-  @ApiProperty({
-    description: 'Tipo de valor do item deve ser TOTAL ou UNITARIO',
-    example: 'TOTAL',
-  })
-  tipoVlItem: string;
-
   @IsNumber({}, { message: 'O vlCash deve ser um número' })
   @ApiProperty({ description: 'Valor de cashback acumulado', example: 5.75 })
   vlCash: number;
 
-  @IsNumber({}, { message: 'O percCashPadrao deve ser um número' })
-  @ApiProperty({ description: 'Percentual de cashback padrão', example: 3.5 })
-  percCashPadrao: number;
+  // @IsNumber({}, { message: 'O percCashPadrao deve ser um número' })
+  // @ApiProperty({ description: 'Percentual de cashback padrão', example: 3.5 })
+  // percCashPadrao: number;
 
-  @IsNumber({}, { message: 'O idOperador deve ser um número' })
-  @ApiProperty({
-    description: 'Identificação do operador de caixa',
-    example: 101,
-  })
-  idOperador: number;
+  // @IsNumber({}, { message: 'O idOperador deve ser um número' })
+  // @ApiProperty({
+  //   description: 'Identificação do operador de caixa',
+  //   example: 101,
+  // })
+  // idOperador: number;
 
-  @IsDateString({}, { message: 'A dataMovHr deve ser uma data válida' })
-  @ApiProperty({
-    description: 'Data e hora do movimento de caixa',
-    example: '2024-05-10T14:00:00.000Z',
-  })
-  dataMovHr: string;
+  // @IsDateString({}, { message: 'A dataMovHr deve ser uma data válida' })
+  // @ApiProperty({
+  //   description: 'Data e hora do movimento de caixa',
+  //   example: '2024-05-10T14:00:00.000Z',
+  // })
+  // dataMovHr: string;
 
   @IsBoolean({ message: 'O primeiraCompra deve ser um booleano' })
   @ApiProperty({

@@ -17,7 +17,10 @@ import {
   createZeusArraySchema,
   createZeusSchema,
 } from './dto/create-zeus-schema';
-import { createInteractionZeusSchema } from './dto/interaction-zeus.schema';
+import {
+  createInteractionAcumularZeusSchema,
+  createInteractionResgatarZeusSchema,
+} from './dto/interaction-zeus.schema';
 import { CreateInteractionZeusDto } from './dto/interaction-zeus.dto';
 //Cadastro de clientes
 // 1 - zeus
@@ -82,7 +85,8 @@ export class ZeusController {
     @Body() createInteractionDto: CreateInteractionZeusDto,
     @Request() req: Request,
   ) {
-    const parsed = createInteractionZeusSchema.safeParse(createInteractionDto);
+    const parsed =
+      createInteractionAcumularZeusSchema.safeParse(createInteractionDto);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors);
     }
@@ -94,7 +98,8 @@ export class ZeusController {
     @Body() createInteractionDto: CreateInteractionZeusDto,
     @Request() req: Request,
   ) {
-    const parsed = createInteractionZeusSchema.safeParse(createInteractionDto);
+    const parsed =
+      createInteractionResgatarZeusSchema.safeParse(createInteractionDto);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors);
     }

@@ -6,7 +6,10 @@ import {
   CreateZeusSchema,
 } from './dto/create-zeus-schema';
 import { ZeusConstantes } from './zeus.constantes';
-import { CreateInteractionZeusSchema } from './dto/interaction-zeus.schema';
+import {
+  CreateInteractionAcumularZeusSchema,
+  CreateInteractionResgatarZeusSchema,
+} from './dto/interaction-zeus.schema';
 
 @Injectable()
 export class ZeusService {
@@ -202,7 +205,7 @@ export class ZeusService {
   }
 
   async interationAcumularPontos(
-    createInteractionDto: CreateInteractionZeusSchema,
+    createInteractionDto: CreateInteractionAcumularZeusSchema,
     req: Request,
   ) {
     //TODO JSON QUE EU ENVIEI
@@ -217,12 +220,7 @@ export class ZeusService {
     //     "serie": "A1",
     //     "loja": "Loja 1",
     //     "celular": "5511912345678",
-    //     "dataIntegracao": "2024-05-11T10:15:00.000Z",
-    //     "tipoVlItem": "TOTAL",
     //     "vlCash": 5.75,
-    //     "percCashPadrao": 3.5,
-    //     "idOperador": 101,
-    //     "dataMovHr": "2024-05-10T14:00:00.000Z",
     //     "primeiraCompra": true,
     //     "rede": "Rede 1",
     //     "qtProd": 10,
@@ -314,7 +312,7 @@ export class ZeusService {
   }
 
   async interationResgatarPontos(
-    createInteractionDto: CreateInteractionZeusSchema,
+    createInteractionDto: CreateInteractionResgatarZeusSchema,
     req: Request,
   ) {
     //TODO JSON QUE EU ENVIEI
@@ -323,25 +321,13 @@ export class ZeusService {
     //   "cpf": "02525273214",
     //   "total": 250.75,
     //   "details": {
-    //     "idVenda": "123456",
-    //     "vlCupom": 150.75,
+    //     "vlDisponivel": 1000,
     //     "dataVenda": "2024-05-10T12:30:00.000Z",
-    //     "serie": "A1",
     //     "loja": "Loja 1",
-    //     "celular": "5511912345678",
-    //     "dataIntegracao": "2024-05-11T10:15:00.000Z",
-    //     "tipoVlItem": "TOTAL",
-    //     "vlCash": 5.75,
-    //     "percCashPadrao": 3.5,
-    //     "idOperador": 101,
-    //     "dataMovHr": "2024-05-10T14:00:00.000Z",
+    //     "vlCash": 250.75,
     //     "primeiraCompra": true,
     //     "rede": "Rede 1",
-    //     "qtProd": 10,
-    //     "cashAtacac": 8.5,
-    //     "tipoPessoa": "F",
-    //     "qtUnidades": 20,
-    //     "vlTroco": 2.75
+    //     "tipoPessoa": "F"
     //   }
     // }
 
