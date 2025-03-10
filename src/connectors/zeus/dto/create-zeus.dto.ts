@@ -72,12 +72,12 @@ export class CreateClienteZeusDto {
   @ApiProperty()
   cpf: string;
 
-  @IsDateString({}, { message: 'A dataInclusao deve ser uma data válida' })
+  @IsDateString({}, { message: 'A date_of_inclusion deve ser uma data válida' })
   @ApiProperty({
     description: 'Data de inclusão do cadastro',
     example: '2024-01-10T00:00:00.000Z',
   })
-  dataInclusao: string | Date;
+  date_of_inclusion: string | Date;
 
   @IsDateString(
     {},
@@ -90,7 +90,7 @@ export class CreateClienteZeusDto {
     description: 'Data que concluio o cadastro cadastro',
     example: '2024-01-10T00:00:00.000Z',
   })
-  dataCadastroCompleto: string;
+  date_registration_full: string;
 
   // @IsString({ message: 'O idClienteZeus deve ser unico' })
   // @ApiProperty({

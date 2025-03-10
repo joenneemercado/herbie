@@ -36,7 +36,7 @@ export class ZeusService {
         date_birth,
         marital_status,
         gender,
-        dataInclusao,
+        date_of_inclusion,
         address: {
           postal_code,
           street,
@@ -106,7 +106,7 @@ export class ZeusService {
           organization_id: organization_id,
           customer_id: customer.id,
           source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-          created_at: dataInclusao, //Utiliza a data do cadastro inical no ZEUS
+          created_at: date_of_inclusion, //Utiliza a data do cadastro inical no ZEUS
           event_id: ZeusConstantes.EVENT_ID_CADASTRO, //cadastro
           type: ZeusConstantes.EVENT_TYPE_CADASTRO,
           total: null,

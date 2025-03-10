@@ -18,8 +18,8 @@ export const createZeusSchema = z
       .nullish(),
     gender: z.string().optional(),
     marital_status: z.string().optional(),
-    dataInclusao: z.string().transform((value) => new Date(value)),
-    dataCadastroCompleto: z.string().transform((value) => new Date(value)),
+    date_of_inclusion: z.string().transform((value) => new Date(value)),
+    date_registration_full: z.string().transform((value) => new Date(value)),
     organization_id: z
       .string()
       .min(1, { message: 'ID da organização é obrigatório.' }),
