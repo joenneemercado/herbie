@@ -208,6 +208,7 @@ export class ZeusService {
     createInteractionDto: CreateInteractionAcumularZeusSchema,
     req: Request,
   ) {
+    // console.log('createInteractionDto', createInteractionDto);
     //TODO JSON QUE EU ENVIEI
     // {
     //   "organization_id": "cm0l1u61r00003b6junq2pmbi",
@@ -227,7 +228,27 @@ export class ZeusService {
     //     "cashAtacac": 8.5,
     //     "tipoPessoa": "F",
     //     "qtUnidades": 20,
-    //     "vlTroco": 2.75
+    //     "vlTroco": 2.75,
+    //     "produtos": [
+    //       {
+    //         "valor_cashback": 10.5,
+    //         "valor": 50.0,
+    //         "codigoEAN": "7891234567890",
+    //         "codigo": "P001",
+    //         "unidade": "UN",
+    //         "quantidade": 2,
+    //         "descricao": "Smartphone XYZ"
+    //       },
+    //       {
+    //         "valor_cashback": 5.0,
+    //         "valor": 30.0,
+    //         "codigoEAN": "7899876543210",
+    //         "codigo": "P001",
+    //         "unidade": "UN",
+    //         "quantidade": 2,
+    //         "descricao": "Fone de ouvido Bluetooth"
+    //       }
+    //     ]
     //   }
     // }
 

@@ -22,63 +22,88 @@ export const createInteractionAcumularZeusSchema = z.object({
     }),
 
   // details (opcional)
-  details: z
-    .object({
-      // idVenda
-      idVenda: z.string().min(1, { message: 'O idVenda deve ser uma string.' }),
+  details: z.object({
+    // idVenda
+    idVenda: z.string().min(1, { message: 'O idVenda deve ser uma string.' }),
 
-      // vlCupom
-      vlCupom: z.number().min(0, { message: 'O vlCupom deve ser um número.' }),
+    // vlCupom
+    vlCupom: z.number().min(0, { message: 'O vlCupom deve ser um número.' }),
 
-      // dataVenda
-      dataVenda: z.string().refine((val) => !isNaN(Date.parse(val)), {
-        message: 'A dataVenda deve ser uma data válida.',
-      }),
+    // dataVenda
+    dataVenda: z.string().refine((val) => !isNaN(Date.parse(val)), {
+      message: 'A dataVenda deve ser uma data válida.',
+    }),
 
-      // serie
-      serie: z.string().min(1, { message: 'A serie deve ser uma string.' }),
+    // serie
+    serie: z.string().min(1, { message: 'A serie deve ser uma string.' }),
 
-      // loja
-      loja: z.string().min(1, { message: 'A loja deve ser uma string.' }),
+    // loja
+    loja: z.string().min(1, { message: 'A loja deve ser uma string.' }),
 
-      // celular
-      celular: z
-        .string()
-        .min(1, { message: 'O celular deve ser uma string válida.' }),
+    // celular
+    celular: z
+      .string()
+      .min(1, { message: 'O celular deve ser uma string válida.' }),
 
-      // vlCash
-      vlCash: z.number().min(0, { message: 'O vlCash deve ser um número.' }),
+    // vlCash
+    vlCash: z.number().min(0, { message: 'O vlCash deve ser um número.' }),
 
-      // primeiraCompra
-      primeiraCompra: z.boolean().refine((val) => typeof val === 'boolean', {
-        message: 'O primeiraCompra deve ser um booleano.',
-      }),
+    // primeiraCompra
+    primeiraCompra: z.boolean().refine((val) => typeof val === 'boolean', {
+      message: 'O primeiraCompra deve ser um booleano.',
+    }),
 
-      // rede
-      rede: z.string().min(1, { message: 'O idRede deve ser uma string.' }),
+    // rede
+    rede: z.string().min(1, { message: 'O idRede deve ser uma string.' }),
 
-      // qtProd
-      qtProd: z.number().min(0, { message: 'O qtProd deve ser um número.' }),
+    // qtProd
+    qtProd: z.number().min(0, { message: 'O qtProd deve ser um número.' }),
 
-      // cashAtacac
-      cashAtacac: z
-        .number()
-        .min(0, { message: 'O cashAtacac deve ser um número.' }),
+    // cashAtacac
+    cashAtacac: z
+      .number()
+      .min(0, { message: 'O cashAtacac deve ser um número.' }),
 
-      // tipoPessoa
-      tipoPessoa: z
-        .string()
-        .min(1, { message: 'O tipoPessoa deve ser uma string.' }),
+    // tipoPessoa
+    tipoPessoa: z
+      .string()
+      .min(1, { message: 'O tipoPessoa deve ser uma string.' }),
 
-      // qtUnidades
-      qtUnidades: z
-        .number()
-        .min(0, { message: 'O qtUnidades deve ser um número.' }),
+    // qtUnidades
+    qtUnidades: z
+      .number()
+      .min(0, { message: 'O qtUnidades deve ser um número.' }),
 
-      // vlTroco
-      vlTroco: z.number().min(0, { message: 'O vlTroco deve ser um número.' }),
-    })
-    .optional(),
+    // vlTroco
+    vlTroco: z.number().min(0, { message: 'O vlTroco deve ser um número.' }),
+
+    // produtos (array de objetos)
+    produtos: z
+      .array(
+        z.object({
+          valor_cashback: z
+            .number()
+            .min(0, { message: 'O  valor_cashback deve ser um número' }),
+          valor: z.number().min(0, { message: 'O valor deve ser um número' }),
+          codigoEAN: z
+            .string()
+            .min(1, { message: 'O codigoEAN deve ser uma string' }),
+          codigo: z
+            .string()
+            .min(1, { message: 'O código deve ser uma string' }),
+          unidade: z
+            .string()
+            .min(1, { message: 'A unidade deve ser uma string' }),
+          quantidade: z
+            .number()
+            .min(0, { message: 'A quantidade deve ser um número' }),
+          descricao: z
+            .string()
+            .min(1, { message: 'A descrição deve ser uma string' }),
+        }),
+      )
+      .optional(),
+  }),
 });
 
 export type CreateInteractionAcumularZeusSchema = z.infer<

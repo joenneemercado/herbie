@@ -1,11 +1,48 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsDateString,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
+
+export class ProductDetailsZeusDto {
+  @IsNumber({}, { message: 'O  valor_cashback deve ser um número' })
+  @ApiProperty({ description: 'Valor do cashback', example: 10.5 })
+  valor_cashback: number;
+
+  @IsNumber({}, { message: 'O valor deve ser um número' })
+  @ApiProperty({ description: 'Valor do produto', example: 50.0 })
+  valor: number;
+
+  @IsString({ message: 'O codigoEAN deve ser uma string' })
+  @ApiProperty({
+    description: 'Código EAN do produto',
+    example: '7891234567890',
+  })
+  codigoEAN: string;
+
+  @IsString({ message: 'O código deve ser uma string' })
+  @ApiProperty({ description: 'Código interno do produto', example: 'P001' })
+  codigo: string;
+
+  @IsString({ message: 'A unidade deve ser uma string' })
+  @ApiProperty({ description: 'Unidade de medida do produto', example: 'UN' })
+  unidade: string;
+
+  @IsNumber({}, { message: 'A quantidade deve ser um número' })
+  @ApiProperty({ description: 'Quantidade do produto', example: 2 })
+  quantidade: number;
+
+  @IsString({ message: 'A descrição deve ser uma string' })
+  @ApiProperty({
+    description: 'Descrição do produto',
+    example: 'Smartphone XYZ',
+  })
+  descricao: string;
+}
 
 export class InteractionDetailsZeusDto {
   @IsString({ message: 'O idVenda deve ser um string' })
@@ -102,6 +139,13 @@ export class InteractionDetailsZeusDto {
   @IsNumber({}, { message: 'O vlTroco deve ser um número' })
   @ApiProperty({ description: 'Valor do troco da compra', example: 2.75 })
   vlTroco: number;
+
+  @IsArray()
+  @ApiProperty({
+    description: 'Lista de produtos comprados',
+    type: [ProductDetailsZeusDto],
+  })
+  produtos: ProductDetailsZeusDto[];
 }
 
 export class CreateInteractionZeusDto {
