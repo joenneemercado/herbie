@@ -2,21 +2,28 @@ import { Injectable } from '@nestjs/common';
 import * as fastcsv from 'fast-csv';
 import * as xlsx from 'xlsx';
 import * as fs from 'fs';
-import { fixEncodingIssues, splitName } from '@src/app.utils';
+import { fixEncodingIssues } from '@src/app.utils';
 import { Customer } from '@prisma/client';
 import { PrismaService } from '@src/database/prisma.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import { parse, format } from 'date-fns';
+import { HttpService } from '@nestjs/axios';
+import { OrderVtexHook } from './vtex.dto';
 
 @Injectable()
 export class VtexService {
+  private http = new HttpService();
   private retryDelay = 500; // 500ms
 
   constructor(
     private prisma: PrismaService,
     @InjectQueue('vtex-queue') private vtexQueue: Queue,
   ) {}
+
+  async createFromHook(notificacaoMsg: OrderVtexHook) {
+    //Direcionar para Gestor
+    console.log(notificacaoMsg);
+  }
 
   async addFileToQueue(
     filePath: string,

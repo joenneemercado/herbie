@@ -4,7 +4,9 @@ import {
   Body,
   UseInterceptors,
   UploadedFile,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { VtexService } from './vtex.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -14,6 +16,18 @@ import { ApiExcludeEndpoint } from '@nestjs/swagger';
 @Controller('connectors/vtex')
 export class VtexController {
   constructor(private readonly vtexService: VtexService) {}
+
+  @Post('hook')
+  async createNewNotification(
+    @Res() res: Response,
+    @Body() msg: any,
+  ): Promise<any> {
+    //this.logger.warn(JSON.stringify(msg));
+    this.vtexService.createFromHook(msg);
+    res.status(200);
+    return res.json(msg);
+  }
+
   @ApiExcludeEndpoint()
   @Post('import/customer')
   @UseInterceptors(
