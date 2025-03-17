@@ -9,6 +9,8 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { HttpService } from '@nestjs/axios';
 import { OrderVtexHook } from './vtex.dto';
+import axios from 'axios';
+import { VtexConstantes } from './vtex.constantes';
 
 @Injectable()
 export class VtexService {
@@ -21,8 +23,230 @@ export class VtexService {
   ) {}
 
   async createFromHook(notificacaoMsg: OrderVtexHook) {
-    //Direcionar para Gestor
-    console.log(notificacaoMsg);
+    try {
+      //Direcionar para Gestor
+      console.log(notificacaoMsg);
+      const { OrderId } = notificacaoMsg;
+      await this.createCustomerInteraction(
+        'cm0l1u61r00003b6junq2pmbi',
+        OrderId,
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  /*
+  1- Receber os pedidos da vtex OK
+  2- Verificar se eu tenho esse usuario Unificado na base
+  3- Caso nao tenha, criar um cadastro e determinar que ele pode ser unificado
+  4- Criar um evento de compra pra esse cliente
+  */
+
+  async getOrderId(organization_id: string, orderId: string): Promise<any> {
+    try {
+      const API_URL = `${VtexConstantes.API_ORDER_URL}${orderId}`;
+      //console.log(API_URL);
+      const API_KEY = VtexConstantes.API_KEY;
+      const TOKEN = VtexConstantes.TOKEN;
+      const response = await axios.get(API_URL, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-VTEX-API-AppKey': API_KEY,
+          'X-VTEX-API-AppToken': TOKEN,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar pedido:', error);
+    }
+  }
+
+  async createCustomerInteraction(
+    organization_id: string,
+    orderId: string,
+  ): Promise<any> {
+    try {
+      //console.log(organization_id, orderId);
+      const pedido = await this.getOrderId(organization_id, orderId);
+      //console.log('Pedido:', pedido);
+      //TODO desestruturar o objeto de cliente
+      const { document, phone, firstName, lastName, email } =
+        pedido.data.clientProfileData;
+      //console.log(document, phone, firstName, lastName, email);
+      //TODO desestruturar o objeto de endereco
+      const {
+        addressType,
+        postalCode,
+        city,
+        state,
+        country,
+        street,
+        number,
+        neighborhood,
+        complement,
+        reference,
+      } = pedido.data.shippingData.address;
+      // console.log(
+      //   addressType,
+      //   receiverName,
+      //   postalCode,
+      //   city,
+      //   state,
+      //   country,
+      //   street,
+      //   number,
+      //   neighborhood,
+      //   complement,
+      //   reference,
+      // );
+      //TODO verificar se o cliente e unificado
+      const verifyCustomerUnified = await this.prisma.customerUnified.findFirst(
+        {
+          where: {
+            organization_id,
+            cpf: document,
+          },
+        },
+      );
+      //console.log('existe cliente unificado', verifyCustomerUnified);
+      const verifyCustomer = await this.prisma.customer.findFirst({
+        where: {
+          organization_id,
+          cpf: document,
+          source_id: VtexConstantes.SOURCE_ID_VTEX,
+        },
+      });
+      //console.log('existe cliente na base ', verifyCustomer);
+      if (verifyCustomerUnified) {
+        const findInteracao = await this.prisma.interaction.findFirst({
+          where: {
+            organization_id,
+            customer_unified_Id: verifyCustomerUnified.id,
+            event_id: VtexConstantes.EVENT_ID_COMPRA,
+            type: VtexConstantes.EVENT_TYPE_COMPRA,
+            source_id: VtexConstantes.SOURCE_ID_VTEX,
+            details: pedido.data,
+          },
+        });
+
+        if (!findInteracao) {
+          await this.prisma.interaction.create({
+            data: {
+              organization_id,
+              customer_unified_Id: verifyCustomerUnified.id,
+              details: pedido.data,
+              total: pedido.data.value,
+              event_id: VtexConstantes.EVENT_ID_COMPRA,
+              type: VtexConstantes.EVENT_TYPE_COMPRA,
+              source_id: VtexConstantes.SOURCE_ID_VTEX,
+            },
+          });
+          // console.log(
+          //   'criou interacao para cliente unificado',
+          //   createInteracaoUnified,
+          // );
+        }
+        console.log('Interacao de compra ja existe');
+        throw new Error('Interacao de compra ja existe');
+      } else if (!verifyCustomerUnified && verifyCustomer) {
+        const findInteracao = await this.prisma.interaction.findFirst({
+          where: {
+            organization_id,
+            customer_unified_Id: verifyCustomer.id,
+            event_id: VtexConstantes.EVENT_ID_COMPRA,
+            type: VtexConstantes.EVENT_TYPE_COMPRA,
+            source_id: VtexConstantes.SOURCE_ID_VTEX,
+            details: pedido.data,
+          },
+        });
+        if (!findInteracao) {
+          await this.prisma.interaction.create({
+            data: {
+              organization_id,
+              customer_id: verifyCustomer.id,
+              details: pedido.data,
+              total: pedido.data.value,
+              event_id: VtexConstantes.EVENT_ID_COMPRA,
+              type: VtexConstantes.EVENT_TYPE_COMPRA,
+              source_id: VtexConstantes.SOURCE_ID_VTEX,
+            },
+          });
+        }
+        throw new Error('Interacao de compra ja existe');
+      } else {
+        const createCustomer = await this.prisma.customer.create({
+          data: {
+            organization_id,
+            cpf: document,
+            phone,
+            firstname: firstName,
+            lastname: lastName,
+            email,
+            source_id: VtexConstantes.SOURCE_ID_VTEX,
+            created_by: VtexConstantes.SISTEM_USER,
+            // customerUnified: {
+            //   create: {
+            //     organization_id,
+            //     cpf: document,
+            //     phone,
+            //     firstname: firstName,
+            //     lastname: lastName,
+            //     email,
+            //   },
+            // },
+            addresses: {
+              create: {
+                organization_id,
+                postal_code: postalCode,
+                number,
+                city,
+                neighborhood,
+                state,
+                street,
+                complement,
+                country,
+                address_type: addressType,
+                address_ref: reference,
+              },
+            },
+          },
+        });
+        //console.log('criando usuario', createCustomer);
+        const creatCustomerUnified = await this.prisma.customerUnified.create({
+          data: {
+            organization_id,
+            cpf: document,
+            phone,
+            firstname: firstName,
+            lastname: lastName,
+            email,
+            created_by: VtexConstantes.SISTEM_USER,
+            status_id: VtexConstantes.CUSTOMER_UNIFIED,
+          },
+        });
+
+        await this.prisma.customer_CustomerUnified.create({
+          data: {
+            customer_id: createCustomer.id,
+            customer_unified_id: creatCustomerUnified.id,
+          },
+        });
+        await this.prisma.interaction.create({
+          data: {
+            organization_id,
+            customer_unified_Id: creatCustomerUnified.id,
+            details: pedido.data,
+            total: pedido.data.value,
+            event_id: VtexConstantes.EVENT_ID_COMPRA,
+            type: VtexConstantes.EVENT_TYPE_COMPRA,
+            source_id: VtexConstantes.SOURCE_ID_VTEX,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao obter o pedido:', error);
+    }
   }
 
   async addFileToQueue(

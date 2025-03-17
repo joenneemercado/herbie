@@ -5,6 +5,9 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  Get,
+  Param,
+  Query,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { VtexService } from './vtex.service';
@@ -26,6 +29,22 @@ export class VtexController {
     this.vtexService.createFromHook(msg);
     res.status(200);
     return res.json(msg);
+  }
+
+  @Get('order/:orderId')
+  getOrderId(
+    @Query('organization_id') organization_id: string,
+    @Param('orderId') orderId: string,
+  ): Promise<any> {
+    return this.vtexService.getOrderId(organization_id, orderId);
+  }
+
+  @Get('createCustumerInteraction/:orderId')
+  createCustomerInteraction(
+    @Query('organization_id') organization_id: string,
+    @Param('orderId') orderId: string,
+  ): Promise<any> {
+    return this.vtexService.createCustomerInteraction(organization_id, orderId);
   }
 
   @ApiExcludeEndpoint()
