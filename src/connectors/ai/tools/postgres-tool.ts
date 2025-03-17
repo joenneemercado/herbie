@@ -3,230 +3,612 @@ import { z } from 'zod';
 
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-
+/*
+1. Quantos contatos temos na base?
+2. Quantas pessoas estão sem comprar nos últimos 7 dias?
+3. O que os clientes estão mais comprando?
+4. Você consegue identificar algo de semelhante como perfil das pessoas ou produtos que tem coprado entre os clientes que compraram nos últimos 7 dias?
+*/
 export const postgresTool = tool({
   description: `
-      Realiza uma query no banco de dados para buscar informações sobre as tabelas do banco de dados.
-      
-      So pode realizar consultas(SELECT) no banco de dados. |
-      NÃO é permitido realizar nenhuma operação de escrita(INSERT, UPDATE, DELETE).
-      UTILIZE O Schema/Database: "herbie-novaera" E A TABELA COM AS ASPAS COMPOSTAS, exemplo: "herbie-novaera"."Customer"
-     SEMPRE que utilizar o customer_id, utilize o public_id do customer.
+      Realiza uma query no banco de dados para buscar informações sobre as tabelas do banco de dados EXCETO os pedidos e ordem.
+      se precisar pesquisar sobre pedidos use a ferramenta MYSQL_TOOL
+
+   ❌ NÃO é permitido realizar operações de escrita (INSERT, UPDATE, DELETE).
+   ✅ Apenas consultas (SELECT).
+   📌 Utilize o Schema/Database: "herbie-novaera" e sempre use aspas compostas, ex: "herbie-novaera"."Customer".
+   📌 Quando for mencionado "cliente" ou "usuário", entenda como "customer".
+   📌 Os produtos estão na tabela "OrderItem".
+   📌 "customer_id" não está em "OrderItem", ele está em "Order".
+   ⚠️ Cuidado ao usar SUM, COUNT, AVG, MIN, MAX.
+  📌 Máximo de 50 registros por consulta.
       Tables:
       """
-model Address {
-id                Int              @id @default(autoincrement())
-address_ref       String?
-neighborhood      String?
-street            String?
-city              String?
-state             String?
-country           String?
-postal_code       String?
-address_type      String?
-is_default        Boolean?
-organization_id   String
-customer_id       String // utiliza o public_id do customer
-customerUnifiedId Int?
-complement        String?
-number            String?
-CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
-customer          Customer         @relation(fields: [customer_id], references: [public_id])
-organization      Organization     @relation(fields: [organization_id], references: [public_id])
+model Order {
+  id                      Int          @id @default(autoincrement())
+  order_ref               String
+  order_date              DateTime
+  total                   Float
+  subtotal                Float
+  total_with_discounts    Float
+  shipping_total          Float
+  percent_discount_total  Float
+  absolute_discount_total Float
+  coupon_code             String?
+  coupon_description      String?
+  user_id                 Int
+  seller_id               Int
+  organization_id         Int
+  customer_id             Int?
+  organization            Organization @relation(fields: [organization_id], references: [id])
+  seller                  Seller       @relation(fields: [seller_id], references: [id])
+  user                    User         @relation(fields: [user_id], references: [id])
+  order_items             OrderItem[]
 }
-      model TypeEvent {
-          id              Int           @id @default(autoincrement())
-          name            String
-          description     String?
-          organization_id String?
-          events          Event[]
-          organization    Organization? @relation(fields: [organization_id], references: [public_id], onDelete: Restrict)
-        }
-        
-        model Seller {
-          id              Int          @id @default(autoincrement())
-          name            String
-          seller_ref      String
-          address_ref     String?
-          neighborhood    String?
-          street          String?
-          city            String?
-          state           String?
-          country         String?
-          postal_code     String?
-          created_at      DateTime     @default(now())
-          updated_at      DateTime     @updatedAt
-          from_channel    String?
-          organization_id String
-          orders          Order[]
-          organization    Organization @relation(fields: [organization_id], references: [public_id])
-        }
-        
-        model Event {
-          id            Int           @id @default(autoincrement())
-          name          String
-          type_event_id Int
-          type_event    TypeEvent     @relation(fields: [type_event_id], references: [id])
-          Interaction   Interaction[]
-        }
-        
-        model Order {
-          id                      Int          @id @default(autoincrement())
-          order_ref               String
-          order_date              DateTime
-          total                   Float
-          subtotal                Float
-          total_with_discounts    Float
-          shipping_total          Float
-          percent_discount_total  Float
-          absolute_discount_total Float
-          coupon_code             String?
-          coupon_description      String?
-          user_id                 Int
-          seller_id               Int
-          organization_id         Int
-          organization            Organization @relation(fields: [organization_id], references: [id])
-          seller                  Seller       @relation(fields: [seller_id], references: [id])
-          user                    User         @relation(fields: [user_id], references: [id])
-          order_items             OrderItem[]
-        }
-        
-        model OrderItem {
-          id         Int     @id @default(autoincrement())
-          quantity   Int
-          price      Float
-          discount   Float
-          total      Float
-          order_id   Int
-          product_id Int
-          order      Order   @relation(fields: [order_id], references: [id])
-          product    Product @relation(fields: [product_id], references: [id])
-        }
-        
-        model Category {
-          id                 Int          @id @default(autoincrement())
-          name               String
-          parent_category_id Int?
-          organization_id    Int
-          organization       Organization @relation(fields: [organization_id], references: [id])
-          parent_category    Category?    @relation("CategoryToCategory", fields: [parent_category_id], references: [id])
-          sub_categories     Category[]   @relation("CategoryToCategory")
-          products           Product[]
-        }
-        
-        model Product {
-          id              Int          @id @default(autoincrement())
-          name            String
-          category_id     Int
-          brand_id        Int?
-          organization_id String
-          order_items     OrderItem[]
-          brand           Brand?       @relation(fields: [brand_id], references: [id])
-          category        Category     @relation(fields: [category_id], references: [id])
-          organization    Organization @relation(fields: [organization_id], references: [public_id])
-          skus            Sku[]
-        }
-        
-        model Brand {
-          id              Int          @id @default(autoincrement())
-          name            String
-          ref_id          String
-          from_channel    String?
-          created_at      DateTime     @default(now())
-          updated_at      DateTime     @updatedAt
-          organization_id String
-          organization    Organization @relation(fields: [organization_id], references: [public_id])
-          products        Product[]
-        }
-        
-        model Sku {
-          id              Int          @id @default(autoincrement())
-          sku_ref         String
-          name            String
-          product_id      Int
-          created_at      DateTime     @default(now())
-          updated_at      DateTime     @updatedAt
-          organization_id String
-          organization    Organization @relation(fields: [organization_id], references: [public_id])
-          product         Product      @relation(fields: [product_id], references: [id])
-        }
-        
 
- model Customer {
-id                  Int               @id @default(autoincrement())
-email               String?
-phone               String?
-cpf                 String?
-cnpj                String?
-company_name        String?
-trading_name        String?
-date_birth          DateTime?
-gender              String?
-marital_status      String?
-organization_id     String
-public_id           String            @unique @default(cuid())
-firstname           String
-lastname            String?
-nickname            String?
-created_at          DateTime?         @default(now())
-created_by          Int?
-last_updated_system String?
-updated_at          DateTime?         @updatedAt
-updated_by          Int?
-has_child           Int?
-source_id           Int?
-is_unified          Boolean?   // Pode ser que o campo esteja como NULL pois nao é obrigatorio
-addresses           Address[]
-Associationtags     Associationtags[]
-organization        Organization      @relation(fields: [organization_id], references: [public_id])
-Source              Source?           @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_source_fk")
-customer_fields     CustomerField[]
-interactions        Interaction[]
-segments            SegmentCustomer[]
+model OrderItem {
+  id         Int     @id @default(autoincrement())
+  quantity   Int
+  price      Float
+  discount   Float
+  total      Float
+  order_id   Int
+  product_id Int
+  order      Order   @relation(fields: [order_id], references: [id])
+  product    Product @relation(fields: [product_id], references: [id])
+}
+     model Organization {
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  slug                  String?
+  domain                String?
+  created_at            DateTime?               @default(now())
+  updated_at            DateTime?               @updatedAt
+  user_id               Int?
+  public_id             String?                 @unique @default(cuid())
+  avatar_url            String?
+  updated_by            Int?
+  addresses             Address[]
+  Audiences             Audiences[]
+  Audiencescontacts     Audiencescontacts[]
+  Audiencestatus        Audiencestatus[]
+  Brand                 Brand[]
+  Campaignaudience      Campaignaudience[]
+  Campaigndetails       Campaigndetails[]
+  Campaigndetailsstatus Campaigndetailsstatus[]
+  Campaigns             Campaigns[]
+  Campaignstatus        Campaignstatus[]
+  categories            Category[]
+  Channels              Channels[]
+  customers             Customer[]
+  CustomerField         CustomerField[]
+  CustomerUnified       CustomerUnified[]
+  interactions          Interaction[]
+  members               Member[]
+  orders                Order[]
+  products              Product[]
+  segments              Segment[]
+  sellers               Seller[]
+  Sku                   Sku[]
+  Tags                  Tags[]
+  events                TypeEvent[]
+  users                 User[]
+}
 
-@@unique([cnpj, source_id], map: "customer_cnpj_idx")
-@@unique([cpf, source_id], map: "customer_cpf_idx")
+model Member {
+  role            Role         @default(MEMBER)
+  id              Int          @id @default(autoincrement())
+  organization_id String
+  user_id         Int
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+  user            User         @relation(fields: [user_id], references: [id])
+}
+
+model User {
+  id              Int          @id @default(autoincrement())
+  email           String       @unique
+  password        String
+  name            String
+  role            String
+  last_access     DateTime?
+  created_at      DateTime?    @default(now())
+  updated_at      DateTime?    @updatedAt
+  organization_id String
+  members         Member[]
+  orders          Order[]
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+}
+
+model TypeEvent {
+  id              Int           @id @default(autoincrement())
+  name            String
+  description     String?
+  organization_id String?
+  events          Event[]
+  organization    Organization? @relation(fields: [organization_id], references: [public_id], onDelete: Restrict)
+}
+
+model Seller {
+  id              Int          @id @default(autoincrement())
+  name            String
+  seller_ref      String
+  address_ref     String?
+  neighborhood    String?
+  street          String?
+  city            String?
+  state           String?
+  country         String?
+  postal_code     String?
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  from_channel    String?
+  organization_id String
+  orders          Order[]
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+}
+
+model Event {
+  id            Int           @id @default(autoincrement())
+  name          String
+  type_event_id Int
+  type_event    TypeEvent     @relation(fields: [type_event_id], references: [id])
+  Interaction   Interaction[]
+}
+
+
+
+model Category {
+  id                 Int          @id @default(autoincrement())
+  name               String
+  parent_category_id Int?
+  organization_id    Int
+  organization       Organization @relation(fields: [organization_id], references: [id])
+  parent_category    Category?    @relation("CategoryToCategory", fields: [parent_category_id], references: [id])
+  sub_categories     Category[]   @relation("CategoryToCategory")
+  products           Product[]
+}
+
+model Product {
+  id              Int          @id @default(autoincrement())
+  name            String
+  category_id     Int
+  brand_id        Int?
+  organization_id String
+  order_items     OrderItem[]
+  brand           Brand?       @relation(fields: [brand_id], references: [id])
+  category        Category     @relation(fields: [category_id], references: [id])
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+  skus            Sku[]
+}
+
+model Brand {
+  id              Int          @id @default(autoincrement())
+  name            String
+  ref_id          String
+  from_channel    String?
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  organization_id String
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+  products        Product[]
+}
+
+model Sku {
+  id              Int          @id @default(autoincrement())
+  sku_ref         String
+  name            String
+  product_id      Int
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  organization_id String
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+  product         Product      @relation(fields: [product_id], references: [id])
+}
+
+model Customer {
+  id                  Int               @id @default(autoincrement())
+  email               String?
+  phone               String?
+  cpf                 String?
+  cnpj                String?
+  company_name        String?
+  trading_name        String?
+  date_birth          DateTime?
+  gender              String?
+  marital_status      String?
+  organization_id     String
+  public_id           String            @unique @default(cuid())
+  firstname           String
+  lastname            String?
+  nickname            String?
+  created_at          DateTime?         @default(now())
+  created_by          Int?
+  last_updated_system String?
+  updated_at          DateTime?         @updatedAt
+  updated_by          Int?
+  has_child           Int?
+  source_id           Int?
+  is_unified          Boolean?          @default(false)
+  facebook            String?           @db.VarChar
+  instagram           String?           @db.VarChar
+  tiktok              String?           @db.VarChar
+  x                   String?           @db.VarChar
+  whatsapp            String?           @db.VarChar
+  addresses           Address[]
+  Associationtags     Associationtags[]
+  organization        Organization      @relation(fields: [organization_id], references: [public_id])
+  Source              Source?           @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_source_fk")
+  customer_fields     CustomerField[]
+  segments            SegmentCustomer[]
+
+  @@unique([cnpj, source_id], map: "customer_cnpj_idx")
+  @@unique([cpf, source_id], map: "customer_cpf_idx")
 }
 
 model CustomerUnified {
-id                  Int                 @id @default(autoincrement())
-email               String?             @unique(map: "customerunified_email_idx")
-phone               String?
-cpf                 String?             @unique(map: "customerunified_cpf_idx")
-cnpj                String?
-company_name        String?
-trading_name        String?
-date_birth          DateTime?
-gender              String?
-marital_status      String?
-organization_id     String
-public_id           String              @unique @default(cuid())
-firstname           String?
-lastname            String?
-nickname            String?
-created_at          DateTime?           @default(now())
-created_by          Int?
-last_updated_system String?
-updated_at          DateTime?           @updatedAt
-updated_by          Int?
-has_child           Int?
-status_id           Int?
-addresses           Address[]
-audiencescontacts   Audiencescontacts[]
-campaigndetails     Campaigndetails[]
-customer_fields     CustomerField[]
-organization        Organization        @relation(fields: [organization_id], references: [public_id])
-interactions        Interaction[]
-segments            SegmentCustomer[]
+  id                  Int                   @id @default(autoincrement())
+  email               String?               @unique(map: "customerunified_email_idx")
+  phone               String?
+  cpf                 String?               @unique(map: "customerunified_cpf_idx")
+  cnpj                String?
+  company_name        String?
+  trading_name        String?
+  date_birth          DateTime?
+  gender              String?
+  marital_status      String?
+  organization_id     String
+  public_id           String                @unique @default(cuid())
+  firstname           String?
+  lastname            String?
+  nickname            String?
+  created_at          DateTime?             @default(now())
+  created_by          Int?
+  last_updated_system String?
+  updated_at          DateTime?             @updatedAt
+  updated_by          Int?
+  has_child           Int?
+  status_id           Int?
+  addresses           Address[]
+  audiencescontacts   Audiencescontacts[]
+  campaigndetails     Campaigndetails[]
+  customer_fields     CustomerField[]
+  organization        Organization          @relation(fields: [organization_id], references: [public_id])
+  CustomerUnifiedTags CustomerUnifiedTags[]
+  Interaction         Interaction[]
+  segments            SegmentCustomer[]
 }
 
 model Customer_CustomerUnified {
-id                  Int       @id @default(autoincrement())
-customer_id         Int
-customer_unified_id Int
-created_at          DateTime? @default(now())
-updated_at          DateTime? @updatedAt
+  id                  Int       @id @default(autoincrement())
+  customer_id         Int
+  customer_unified_id Int
+  created_at          DateTime? @default(now())
+  updated_at          DateTime? @updatedAt
 }
+
+model Address {
+  id                Int              @id @default(autoincrement())
+  address_ref       String?
+  neighborhood      String?
+  street            String?
+  city              String?
+  state             String?
+  country           String?
+  postal_code       String?
+  address_type      String?
+  is_default        Boolean?
+  organization_id   String
+  customer_id       String
+  customerUnifiedId Int?
+  complement        String?
+  number            String?
+  CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
+  customer          Customer         @relation(fields: [customer_id], references: [public_id])
+  organization      Organization     @relation(fields: [organization_id], references: [public_id])
+}
+
+model CustomerField {
+  id                Int              @id @default(autoincrement())
+  customer_id       String
+  type              String
+  description       String?
+  value             String?
+  organization_id   String
+  customerUnifiedId Int?
+  CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
+  customer          Customer         @relation(fields: [customer_id], references: [public_id])
+  organization      Organization     @relation(fields: [organization_id], references: [public_id])
+}
+
+model Interaction {
+  id                  Int              @id @default(autoincrement())
+  type                String?
+  details             Json
+  organization_id     String
+  source_id           Int
+  created_at          DateTime?        @default(now())
+  event_id            Int
+  customer_unified_Id Int?
+  customer_id         Int?
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_Id], references: [id], map: "Interaction_customerUnifiedId_fkey")
+  event               Event            @relation(fields: [event_id], references: [id])
+  organization        Organization     @relation(fields: [organization_id], references: [public_id])
+}
+
+model Segment {
+  id              Int               @id @default(autoincrement())
+  name            String
+  criteria        Json
+  organization_id String
+  organization    Organization      @relation(fields: [organization_id], references: [public_id])
+  customers       SegmentCustomer[]
+}
+
+model SegmentCustomer {
+  segment_id        Int
+  customer_id       String
+  customerUnifiedId Int?
+  CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
+  customer          Customer         @relation(fields: [customer_id], references: [public_id])
+  segment           Segment          @relation(fields: [segment_id], references: [id])
+
+  @@id([segment_id, customer_id])
+}
+
+model Source {
+  id          Int        @id @default(autoincrement())
+  name        String?    @db.VarChar
+  description String?    @db.VarChar
+  color_code  String?    @db.VarChar
+  statusid    Int?
+  Customer    Customer[]
+}
+
+model TempCustomerIssues {
+  id                  Int       @id(map: "Customer_pkey_1") @default(autoincrement())
+  email               String?
+  phone               String?
+  cpf                 String?
+  cnpj                String?
+  company_name        String?
+  trading_name        String?
+  date_birth          DateTime?
+  gender              String?
+  marital_status      String?
+  organization_id     String?
+  public_id           String?
+  firstname           String?
+  lastname            String?
+  nickname            String?
+  created_at          DateTime? @default(now())
+  created_by          Int?
+  last_updated_system String?
+  updated_at          DateTime?
+  updated_by          Int?
+  has_child           Int?
+  source_id           Int?
+  issue_description   String?
+}
+
+model Status {
+  id          Int     @id @default(autoincrement())
+  name        String? @db.VarChar
+  description String? @db.VarChar
+  color_code  String? @db.VarChar
+}
+
+model Audiences {
+  createdAt         DateTime?           @default(now())
+  id                Int                 @id @default(autoincrement())
+  organization_id   String
+  name              String              @db.VarChar(255)
+  obs               String?
+  statusId          Int?                @default(1)
+  updatedAt         DateTime?
+  createdBy         Int?
+  updatedBy         Int?
+  organization      Organization        @relation(fields: [organization_id], references: [public_id])
+  audiencescontacts Audiencescontacts[]
+  campaignaudience  Campaignaudience[]
+}
+
+model Audiencescontacts {
+  id              Int             @id @default(autoincrement())
+  idContact       Int
+  organization_id String
+  idAudience      Int
+  statusId        Int?
+  createdAt       DateTime?       @default(now())
+  updatedAt       DateTime?       @default(now())
+  createdBy       Int?
+  updatedBy       Int?
+  audiences       Audiences       @relation(fields: [idAudience], references: [id])
+  CustomerUnified CustomerUnified @relation(fields: [idContact], references: [id])
+  organization    Organization    @relation(fields: [organization_id], references: [public_id])
+  audiencestatus  Audiencestatus? @relation(fields: [statusId], references: [id])
+
+  @@index([idAudience])
+  @@index([idContact])
+  @@index([statusId])
+}
+
+model Audiencestatus {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(255)
+  createdAt         DateTime?           @default(now())
+  createdBy         Int?
+  organization_id   String
+  updatedAt         DateTime?
+  updatedBy         Int?
+  audiencescontacts Audiencescontacts[]
+  organization      Organization        @relation(fields: [organization_id], references: [public_id])
+}
+
+model Campaignaudience {
+  id              Int          @id @default(autoincrement())
+  idCampaign      Int?
+  idAudience      Int?
+  organization_id String
+  audiences       Audiences?   @relation(fields: [idAudience], references: [id])
+  campaigns       Campaigns?   @relation(fields: [idCampaign], references: [id])
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+
+  @@index([idAudience])
+  @@index([idCampaign])
+}
+
+model Campaigndetails {
+  id                    Int                   @id @default(autoincrement())
+  idContact             Int
+  idCampaign            Int
+  sender                String?               @db.VarChar(100)
+  sentAt                DateTime?
+  statusId              Int
+  createdAt             DateTime?             @default(now())
+  updatedAt             DateTime?             @default(now()) @db.Timestamp(0)
+  idSender              String?               @db.VarChar(100)
+  organization_id       String
+  campaigns             Campaigns             @relation(fields: [idCampaign], references: [id])
+  CustomerUnified       CustomerUnified       @relation(fields: [idContact], references: [id])
+  organization          Organization          @relation(fields: [organization_id], references: [public_id])
+  campaigndetailsstatus Campaigndetailsstatus @relation(fields: [statusId], references: [id])
+
+  @@index([createdAt, statusId])
+  @@index([idCampaign, sender, statusId])
+  @@index([idCampaign, statusId])
+  @@index([idCampaign, updatedAt])
+  @@index([idContact])
+  @@index([sender])
+  @@index([sender, sentAt])
+  @@index([statusId])
+  @@index([updatedAt])
+}
+
+model Campaigndetailsstatus {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  createdAt       DateTime?         @default(now())
+  createdBy       Int?
+  updatedAt       DateTime?
+  updatedBy       Int?
+  organization_id String
+  campaigndetails Campaigndetails[]
+  organization    Organization      @relation(fields: [organization_id], references: [public_id])
+}
+
+model Campaigns {
+  id               Int                @id @default(autoincrement())
+  name             String
+  message          String
+  file             String?
+  typeMessage      Int
+  sendingBy        String?            @db.VarChar(255)
+  statusId         Int?
+  createdAt        DateTime?          @default(now())
+  updatedAt        DateTime?          @default(now())
+  createdBy        Int?               @default(1)
+  priority         Int?               @default(0)
+  updatedBy        Int?
+  idChannel        Int?
+  dateStart        DateTime?          @default(now())
+  dateEnd          DateTime?
+  jsonMeta         Json?
+  subject          String?
+  organization_id  String
+  Associationtags  Associationtags[]
+  campaignaudience Campaignaudience[]
+  campaigndetails  Campaigndetails[]
+  channels         Channels?          @relation(fields: [idChannel], references: [id])
+  organization     Organization       @relation(fields: [organization_id], references: [public_id])
+  campaignstatus   Campaignstatus?    @relation(fields: [statusId], references: [id])
+
+  @@index([createdAt])
+  @@index([dateStart, dateEnd])
+  @@index([idChannel, statusId, createdAt])
+  @@index([sendingBy])
+  @@index([sendingBy, statusId, createdAt])
+  @@index([statusId, idChannel, createdAt, typeMessage, dateStart, dateEnd])
+  @@index([statusId])
+  @@index([statusId, updatedAt])
+  @@index([updatedAt])
+}
+
+model Campaignstatus {
+  id              Int          @id @default(autoincrement())
+  name            String       @db.VarChar(255)
+  description     String?      @db.VarChar(255)
+  createdAt       DateTime?    @default(now())
+  createdBy       Int?
+  updatedAt       DateTime?    @default(now())
+  updatedBy       Int?
+  organization_id String
+  campaigns       Campaigns[]
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+}
+
+model Channels {
+  id              Int          @id @default(autoincrement())
+  name            String       @db.VarChar(255)
+  type            String?      @db.VarChar(255)
+  colorCode       String?
+  statusId        Int
+  createdAt       DateTime?    @default(now())
+  updatedAt       DateTime?    @default(now())
+  createdBy       Int?
+  updatedBy       Int?
+  organization_id String
+  campaigns       Campaigns[]
+  organization    Organization @relation(fields: [organization_id], references: [public_id])
+}
+
+model Tags {
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  color               String?               @db.VarChar(255)
+  createdAt           DateTime?             @default(now())
+  updatedAt           DateTime?             @default(now())
+  createdBy           Int?
+  organization_id     String
+  updatedBy           Int?
+  Associationtags     Associationtags[]
+  CustomerUnifiedTags CustomerUnifiedTags[]
+  organization        Organization          @relation(fields: [organization_id], references: [public_id])
+}
+
+model Associationtags {
+  id              Int        @id @default(autoincrement())
+  idTag           Int
+  idCampaing      Int?
+  idCustomer      Int?
+  createdAt       DateTime?  @default(now())
+  updatedAt       DateTime?  @default(now())
+  createdBy       Int?
+  organization_id String
+  updatedBy       Int?
+  campaigns       Campaigns? @relation(fields: [idCampaing], references: [id])
+  customer        Customer?  @relation(fields: [idCustomer], references: [id])
+  tags            Tags       @relation(fields: [idTag], references: [id])
+
+  @@index([idTag])
+  @@index([idCampaing])
+  @@index([idCustomer])
+}
+
+model CustomerUnifiedTags {
+  id                  Int              @id(map: "customerunifiedtags_pk") @default(autoincrement())
+  customer_unified_id Int?
+  idtag               Int?
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_customerunified_fk")
+  Tags                Tags?            @relation(fields: [idtag], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_tags_fk")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+  BILLING
+  SUPER
+}
+
 """
 exemlos de como deve ser feito as consultas: SELECT COUNT(*) FROM "herbie-novaera"."Customer" . deve seguir essa logica.
 Nao pode em hipotese alguma fornecer senhas ou informações sensíveis. informe que nao pode ser usado para fins de segurança.
@@ -240,7 +622,13 @@ todas as operacoes devem retornar o maxiomo de 50 itens.
       .optional()
       .describe('array de parametros para a query.'),
   }),
+
   execute: async ({ query, params = [] }) => {
+    if (!query.includes('herbie-novaera')) {
+      throw new Error(
+        'A query deve referenciar explicitamente o schema "herbie-novaera".',
+      );
+    }
     console.log({ query, params });
     try {
       const result = await prisma.$queryRawUnsafe(query, ...(params || []));
@@ -254,3 +642,85 @@ todas as operacoes devem retornar o maxiomo de 50 itens.
     }
   },
 });
+
+///###
+// export const postgresTool = tool({
+//   description: `
+//   Realiza uma query no banco de dados para buscar informações sobre as tabelas do banco de dados.
+
+//   ❌ NÃO é permitido realizar operações de escrita (INSERT, UPDATE, DELETE).
+//   ✅ Apenas consultas (SELECT).
+//   📌 Utilize o Schema/Database: "herbie-novaera" e sempre use aspas compostas, ex: "herbie-novaera"."Customer".
+//   📌 Quando for mencionado "cliente" ou "usuário", entenda como "customer".
+//   📌 Os produtos estão na tabela "OrderItem".
+//   📌 "customer_id" não está em "OrderItem", ele está em "Order".
+//   ⚠️ Cuidado ao usar SUM, COUNT, AVG, MIN, MAX.
+//   📌 Máximo de 50 registros por consulta.
+
+//   Exemplo de consulta válida:
+//   """sql
+//   SELECT COUNT(*) FROM "herbie-novaera"."Customer";
+//   """
+
+//   ⚠️ O tool **não deve** ser usado para obter senhas ou informações sensíveis.
+// `.trim(),
+
+//   parameters: z.object({
+//     query: z.string().describe('Query para ser executada.'),
+//     params: z
+//       .array(z.string())
+//       .optional()
+//       .describe('Array de parâmetros para a query.'),
+//   }),
+
+//   execute: async ({ query, params = [] }) => {
+//     console.log('Executando query segura no PostgreSQL...');
+// console.log({ query, params });
+//     // 🚨 Prevenção contra SQL Injection e garantias de segurança
+//     if (!query.trim().toUpperCase().startsWith('SELECT')) {
+//       throw new Error('Apenas consultas SELECT são permitidas.');
+//     }
+
+//     if (!query.includes('herbie-novaera')) {
+//       throw new Error(
+//         'A query deve referenciar explicitamente o schema "herbie-novaera".',
+//       );
+//     }
+
+//     // Garantia de limite de registros
+//     if (!query.toUpperCase().includes('LIMIT')) {
+//       query += ' LIMIT 50';
+//     }
+
+//     // ⚠️ Checagem para evitar erros comuns como colunas erradas
+//     const invalidColumns = [
+//       'customer_id',
+//       'product_name',
+//       'order_id',
+//       'product_id',
+//     ];
+
+//     for (const col of invalidColumns) {
+//       if (query.includes(col)) {
+//         throw new Error(
+//           `Erro: A coluna "${col}" não existe. Verifique o esquema correto.`,
+//         );
+//       }
+//     }
+
+//     try {
+//       const result = await prisma.$queryRawUnsafe(query, ...params);
+
+//       // Conversão de BigInt para evitar problemas com JSON
+//       const safeResult = JSON.stringify(result, (_, value) =>
+//         typeof value === 'bigint' ? value.toString() : value,
+//       );
+
+//       console.log('Query executada com sucesso.');
+//       return safeResult;
+//     } catch (error) {
+//       console.error('Erro ao executar a query:', error.message);
+//       throw new Error('Erro ao consultar o banco de dados.');
+//     }
+//   },
+// });

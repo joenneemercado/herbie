@@ -7,6 +7,7 @@ import { LojaModule } from './loja/loja.module';
 import { WifiModule } from './wifi/wifi.module';
 import { ConnectorsController } from './connectors.controller';
 import { DatabaseModule } from '@src/database/database.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   controllers: [ConnectorsController],
@@ -18,6 +19,7 @@ import { DatabaseModule } from '@src/database/database.module';
     LojaModule,
     WifiModule,
     DatabaseModule,
+    AiModule,
   ],
 })
 export class ConnectorsModule {}
