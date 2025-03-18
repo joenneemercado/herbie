@@ -10,4 +10,5 @@ export class VtexConstantes {
   public static EVENT_TYPE_COMPRA = 'Compra';
   public static SISTEM_USER = 1;
   public static CUSTOMER_UNIFIED = 1;
+  public static STATUS_ID_CONCLUIDO = 17;
 }

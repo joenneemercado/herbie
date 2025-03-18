@@ -70,10 +70,13 @@ export class VtexService {
       //console.log(organization_id, orderId);
       const pedido = await this.getOrderId(organization_id, orderId);
       //console.log('Pedido:', pedido);
+      if (!pedido) {
+        return;
+      }
       //TODO desestruturar o objeto de cliente
       const { document, phone, firstName, lastName, email } =
-        pedido.data.clientProfileData;
-      //console.log(document, phone, firstName, lastName, email);
+        pedido.clientProfileData;
+
       //TODO desestruturar o objeto de endereco
       const {
         addressType,
@@ -86,20 +89,8 @@ export class VtexService {
         neighborhood,
         complement,
         reference,
-      } = pedido.data.shippingData.address;
-      // console.log(
-      //   addressType,
-      //   receiverName,
-      //   postalCode,
-      //   city,
-      //   state,
-      //   country,
-      //   street,
-      //   number,
-      //   neighborhood,
-      //   complement,
-      //   reference,
-      // );
+      } = pedido.shippingData.address;
+
       //TODO verificar se o cliente e unificado
       const verifyCustomerUnified = await this.prisma.customerUnified.findFirst(
         {
@@ -126,29 +117,32 @@ export class VtexService {
             event_id: VtexConstantes.EVENT_ID_COMPRA,
             type: VtexConstantes.EVENT_TYPE_COMPRA,
             source_id: VtexConstantes.SOURCE_ID_VTEX,
-            details: pedido.data,
+            created_by: VtexConstantes.SISTEM_USER,
+            status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
+            //details:pedido
+            details: {
+              path: ['orderId'], // Caminho dentro do JSON
+              equals: pedido.orderId, // Comparação exata
+            },
           },
         });
-
-        if (!findInteracao) {
-          await this.prisma.interaction.create({
-            data: {
-              organization_id,
-              customer_unified_Id: verifyCustomerUnified.id,
-              details: pedido.data,
-              total: pedido.data.value,
-              event_id: VtexConstantes.EVENT_ID_COMPRA,
-              type: VtexConstantes.EVENT_TYPE_COMPRA,
-              source_id: VtexConstantes.SOURCE_ID_VTEX,
-            },
-          });
-          // console.log(
-          //   'criou interacao para cliente unificado',
-          //   createInteracaoUnified,
-          // );
+        //console.log('encontrou interacao', findInteracao);
+        if (findInteracao) {
+          throw new Error('Interacao de compra já existe');
         }
-        console.log('Interacao de compra ja existe');
-        throw new Error('Interacao de compra ja existe');
+        await this.prisma.interaction.create({
+          data: {
+            organization_id,
+            customer_unified_Id: verifyCustomerUnified.id,
+            details: pedido,
+            total: pedido.value,
+            event_id: VtexConstantes.EVENT_ID_COMPRA,
+            type: VtexConstantes.EVENT_TYPE_COMPRA,
+            source_id: VtexConstantes.SOURCE_ID_VTEX,
+            created_by: VtexConstantes.SISTEM_USER,
+            status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
+          },
+        });
       } else if (!verifyCustomerUnified && verifyCustomer) {
         const findInteracao = await this.prisma.interaction.findFirst({
           where: {
@@ -156,24 +150,32 @@ export class VtexService {
             customer_unified_Id: verifyCustomer.id,
             event_id: VtexConstantes.EVENT_ID_COMPRA,
             type: VtexConstantes.EVENT_TYPE_COMPRA,
+            created_by: VtexConstantes.SISTEM_USER,
             source_id: VtexConstantes.SOURCE_ID_VTEX,
-            details: pedido.data,
+            status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
+            //details:pedido
+            details: {
+              path: ['orderId'], // Caminho dentro do JSON
+              equals: pedido.orderId, // Comparação exata
+            },
           },
         });
-        if (!findInteracao) {
-          await this.prisma.interaction.create({
-            data: {
-              organization_id,
-              customer_id: verifyCustomer.id,
-              details: pedido.data,
-              total: pedido.data.value,
-              event_id: VtexConstantes.EVENT_ID_COMPRA,
-              type: VtexConstantes.EVENT_TYPE_COMPRA,
-              source_id: VtexConstantes.SOURCE_ID_VTEX,
-            },
-          });
+        if (findInteracao) {
+          throw new Error('Interacao de compra já existe');
         }
-        throw new Error('Interacao de compra ja existe');
+        await this.prisma.interaction.create({
+          data: {
+            organization_id,
+            customer_id: verifyCustomer.id,
+            details: pedido,
+            total: pedido.value,
+            event_id: VtexConstantes.EVENT_ID_COMPRA,
+            type: VtexConstantes.EVENT_TYPE_COMPRA,
+            source_id: VtexConstantes.SOURCE_ID_VTEX,
+            created_by: VtexConstantes.SISTEM_USER,
+            status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
+          },
+        });
       } else {
         const createCustomer = await this.prisma.customer.create({
           data: {
@@ -185,16 +187,6 @@ export class VtexService {
             email,
             source_id: VtexConstantes.SOURCE_ID_VTEX,
             created_by: VtexConstantes.SISTEM_USER,
-            // customerUnified: {
-            //   create: {
-            //     organization_id,
-            //     cpf: document,
-            //     phone,
-            //     firstname: firstName,
-            //     lastname: lastName,
-            //     email,
-            //   },
-            // },
             addresses: {
               create: {
                 organization_id,
@@ -236,11 +228,13 @@ export class VtexService {
           data: {
             organization_id,
             customer_unified_Id: creatCustomerUnified.id,
-            details: pedido.data,
-            total: pedido.data.value,
+            details: pedido,
+            total: pedido.value,
             event_id: VtexConstantes.EVENT_ID_COMPRA,
             type: VtexConstantes.EVENT_TYPE_COMPRA,
+            created_by: VtexConstantes.SISTEM_USER,
             source_id: VtexConstantes.SOURCE_ID_VTEX,
+            status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
           },
         });
       }
