@@ -32,6 +32,7 @@ export class ZeusService {
         name,
         phone,
         cpf,
+        cnpj,
         email,
         date_birth,
         marital_status,
@@ -51,7 +52,7 @@ export class ZeusService {
 
       const userCustumer = await this.prisma.customer.findFirst({
         where: {
-          cpf: cpf,
+          OR: [{ cpf: cpf }, { cnpj: cnpj }],
           organization_id: organization_id,
           source_id: ZeusConstantes.SOURCE_ID_ZEUS,
         },
@@ -76,7 +77,7 @@ export class ZeusService {
           email: email,
           phone: phone,
           cpf: cpf,
-          cnpj: null,
+          cnpj: cnpj,
           company_name: null,
           trading_name: null,
           date_birth: date_birth,
@@ -208,7 +209,7 @@ export class ZeusService {
     createInteractionDto: CreateInteractionAcumularZeusSchema,
     req: Request,
   ) {
-    // console.log('createInteractionDto', createInteractionDto);
+    //console.log('createInteractionDto', createInteractionDto);
     //TODO JSON QUE EU ENVIEI
     // {
     //   "organization_id": "cm0l1u61r00003b6junq2pmbi",
@@ -263,11 +264,15 @@ export class ZeusService {
 
       const findCustomer = await this.prisma.customer.findFirst({
         where: {
-          cpf: createInteractionDto.cpf,
+          OR: [
+            { cpf: createInteractionDto.cpf },
+            { cnpj: createInteractionDto.cnpj },
+          ],
           organization_id: createInteractionDto.organization_id,
           source_id: ZeusConstantes.SOURCE_ID_ZEUS,
         },
       });
+      //console.log(findCustomer);
       if (!findCustomer) {
         return {
           code: 404,
@@ -278,7 +283,10 @@ export class ZeusService {
 
       const findCustomerUnified = await this.prisma.customerUnified.findFirst({
         where: {
-          cpf: createInteractionDto.cpf,
+          OR: [
+            { cpf: createInteractionDto.cpf },
+            { cnpj: createInteractionDto.cnpj },
+          ],
           organization_id: createInteractionDto.organization_id,
         },
       });
@@ -363,11 +371,15 @@ export class ZeusService {
 
       const findCustomer = await this.prisma.customer.findFirst({
         where: {
-          cpf: createInteractionDto.cpf,
+          OR: [
+            { cpf: createInteractionDto.cpf },
+            { cnpj: createInteractionDto.cnpj },
+          ],
           organization_id: createInteractionDto.organization_id,
           source_id: ZeusConstantes.SOURCE_ID_ZEUS,
         },
       });
+      // console.log(findCustomer);
       if (!findCustomer) {
         return {
           code: 404,
@@ -378,7 +390,10 @@ export class ZeusService {
 
       const findCustomerUnified = await this.prisma.customerUnified.findFirst({
         where: {
-          cpf: createInteractionDto.cpf,
+          OR: [
+            { cpf: createInteractionDto.cpf },
+            { cnpj: createInteractionDto.cnpj },
+          ],
           organization_id: createInteractionDto.organization_id,
         },
       });
