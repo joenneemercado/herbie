@@ -107,13 +107,16 @@ export class InteractionsService {
     limit: number;
     organization_id: string;
     customer_id?: number;
+    customer_unified_id?: number;
   }) {
-    const { page, limit, organization_id, customer_id } = params;
+    const { page, limit, organization_id, customer_id, customer_unified_id } =
+      params;
     const skip = (page - 1) * limit;
 
     const filters: Prisma.InteractionWhereInput = {
       AND: [
         customer_id ? { customer_id: customer_id } : {},
+        customer_unified_id ? { customer_unified_Id: customer_unified_id } : {},
         organization_id
           ? { organization_id: organization_id }
           : { organization_id: organization_id },
