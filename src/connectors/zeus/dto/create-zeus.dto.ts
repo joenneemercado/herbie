@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsDateString, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class CreateEnderecoZeusDto {
@@ -68,9 +69,15 @@ export class CreateClienteZeusDto {
   @ApiProperty()
   date_birth?: string;
 
+  @IsOptional()
   @IsString({ message: 'O cpf deve ser válido' })
   @ApiProperty()
-  cpf: string;
+  cpf?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O cnpj deve ser válido' })
+  @ApiProperty()
+  cnpj?: string;
 
   @IsDateString({}, { message: 'A date_of_inclusion deve ser uma data válida' })
   @ApiProperty({
@@ -79,18 +86,20 @@ export class CreateClienteZeusDto {
   })
   date_of_inclusion: string | Date;
 
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsOptional()
   @IsDateString(
     {},
     {
       message:
-        'A data que o cliente concluio o cadastro deve ser uma data válida',
+        'A data que o cliente concluiu o cadastro deve ser uma data válida',
     },
   )
   @ApiProperty({
-    description: 'Data que concluio o cadastro cadastro',
+    description: 'Data que concluiu o cadastro',
     example: '2024-01-10T00:00:00.000Z',
   })
-  date_registration_full: string;
+  date_registration_full?: string;
 
   // @IsString({ message: 'O idClienteZeus deve ser unico' })
   // @ApiProperty({

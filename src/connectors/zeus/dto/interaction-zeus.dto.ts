@@ -118,9 +118,12 @@ export class InteractionDetailsZeusDto {
   @ApiProperty({ description: 'Quantidade de produtos na compra', example: 10 })
   qtProd: number;
 
-  @IsNumber({}, { message: 'O cashAtacac deve ser um número' })
-  @ApiProperty({ description: 'Cashback em atacado', example: 8.5 })
-  cashAtacac: number;
+  @IsString({ message: 'cashAtacac deve ser uma string válida.' })
+  @ApiProperty({
+    description: 'Cashback em atacado',
+    example: 'S',
+  })
+  cashAtacac: string;
 
   @IsString({ message: 'O tipoPessoa deve ser uma string' })
   @ApiProperty({
@@ -161,9 +164,15 @@ export class CreateInteractionZeusDto {
   //   @ApiProperty()
   //   event_id: number;
 
+  @IsOptional()
   @IsString({ message: 'O cpf deve ser válido' })
   @ApiProperty()
-  cpf: string;
+  cpf?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O cnpj deve ser válido' })
+  @ApiProperty()
+  cnpj?: string;
 
   @IsOptional({ message: 'O total do cliente é opcional' })
   @ApiProperty()

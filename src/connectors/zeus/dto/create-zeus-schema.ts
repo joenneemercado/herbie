@@ -9,8 +9,23 @@ export const createZeusSchema = z
     phone: z.string(),
     cpf: z
       .string()
-      .min(11, { message: 'CPF deve ter pelo menos 11 caracteres.' })
-      .max(14, { message: 'CPF deve ter no máximo 14 caracteres.' }),
+      .trim()
+      .transform((value) => (value === '' ? undefined : value)) // Converte "" para undefined
+      .optional()
+      .refine((value) => value === undefined || /^\d{11}$/.test(value), {
+        message: 'CPF inválido. Deve conter exatamente 11 números.',
+        path: ['cpf'],
+      }),
+
+    cnpj: z
+      .string()
+      .trim()
+      .transform((value) => (value === '' ? undefined : value))
+      .optional()
+      .refine((value) => value === undefined || /^\d{14}$/.test(value), {
+        message: 'CNPJ inválido. Deve conter exatamente 14 números.',
+        path: ['cnpj'],
+      }),
     date_birth: z
       .string()
       .transform((value) => new Date(value))
@@ -19,7 +34,16 @@ export const createZeusSchema = z
     gender: z.string().optional(),
     marital_status: z.string().optional(),
     date_of_inclusion: z.string().transform((value) => new Date(value)),
-    date_registration_full: z.string().transform((value) => new Date(value)),
+    date_registration_full: z
+      .string()
+      .trim()
+      .transform((value) => (value === '' ? undefined : value))
+      .optional()
+      .refine((value) => value === undefined || !isNaN(Date.parse(value)), {
+        message:
+          'A data que o cliente concluiu o cadastro deve ser uma data válida.',
+        path: ['date_registration_full'],
+      }),
     organization_id: z
       .string()
       .min(1, { message: 'ID da organização é obrigatório.' }),
@@ -34,10 +58,14 @@ export const createZeusSchema = z
       country: z.string().min(2, { message: 'País é obrigatório.' }),
     }),
   })
-  .refine((data) => /^\d{11}$|^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(data.cpf), {
-    message: 'CPF inválido. Deve estar no formato correto (apenas números).',
-    path: ['cpf'],
+  .refine((data) => data.cpf || data.cnpj, {
+    message: 'É necessário informar CPF ou CNPJ.',
+    path: ['cpf', 'cnpj'],
   });
+// .refine((data) => /^\d{11}$|^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(data.cpf), {
+//   message: 'CPF inválido. Deve estar no formato correto (apenas números).',
+//   path: ['cpf'],
+// });
 
 export type CreateZeusSchema = z.infer<typeof createZeusSchema>;
 
