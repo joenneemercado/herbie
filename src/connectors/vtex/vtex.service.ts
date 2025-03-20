@@ -45,10 +45,10 @@ export class VtexService {
 
   async getOrderId(organization_id: string, orderId: string): Promise<any> {
     try {
-      const API_URL = `${VtexConstantes.API_ORDER_URL}${orderId}`;
-      //console.log(API_URL);
-      const API_KEY = VtexConstantes.API_KEY;
-      const TOKEN = VtexConstantes.TOKEN;
+      const orderTratado = orderId.slice(4); // Remove os primeiros 4 caracteres
+      const API_URL = `${VtexConstantes.API_PRINCIPAL_ORDER_URL}${orderTratado}`;
+      const API_KEY = VtexConstantes.API_KEY_PRINCIPAL_VTEX;
+      const TOKEN = VtexConstantes.TOKEN_PRINCIPAL_VTEX;
       const response = await axios.get(API_URL, {
         headers: {
           'Content-Type': 'application/json',
@@ -56,6 +56,27 @@ export class VtexService {
           'X-VTEX-API-AppToken': TOKEN,
         },
       });
+
+      //get Email Oficial
+      const idProfile = response.data.clientProfileData.userProfileId;
+      try {
+        const API_URL_CRM = `${VtexConstantes.GET_EMAIL_CRM}=${idProfile}`;
+        const vtexResult = await axios.get(API_URL_CRM, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-VTEX-API-AppKey': API_KEY,
+            'X-VTEX-API-AppToken': TOKEN,
+          },
+        });
+        if (vtexResult.status == 200) {
+          let emailVtex = response.data.clientProfileData.email;
+          emailVtex = vtexResult.data[0].email;
+          response.data.clientProfileData.email = emailVtex;
+        }
+      } catch (error) {
+        console.error('Erro ao buscar pedido:', error);
+      }
+      //console.log(response.data);
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar pedido:', error);
