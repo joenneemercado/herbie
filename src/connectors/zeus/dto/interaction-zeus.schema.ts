@@ -38,88 +38,95 @@ export const createInteractionAcumularZeusSchema = z
       }),
 
     // details (opcional)
-    details: z.object({
-      // idVenda
-      idVenda: z.string().min(1, { message: 'O idVenda deve ser uma string.' }),
-
-      // vlCupom
-      vlCupom: z.number().min(0, { message: 'O vlCupom deve ser um número.' }),
-
-      // dataVenda
-      dataVenda: z.string().refine((val) => !isNaN(Date.parse(val)), {
-        message: 'A dataVenda deve ser uma data válida.',
-      }),
-
-      // serie
-      serie: z.string().min(1, { message: 'A serie deve ser uma string.' }),
-
-      // loja
-      loja: z.string().min(1, { message: 'A loja deve ser uma string.' }),
-
-      // celular
-      celular: z
-        .string()
-        .min(1, { message: 'O celular deve ser uma string válida.' }),
-
-      // vlCash
-      vlCash: z.number().min(0, { message: 'O vlCash deve ser um número.' }),
-
-      // primeiraCompra
-      primeiraCompra: z.boolean().refine((val) => typeof val === 'boolean', {
-        message: 'O primeiraCompra deve ser um booleano.',
-      }),
-
-      // rede
-      rede: z.string().min(1, { message: 'O idRede deve ser uma string.' }),
-
-      // qtProd
-      qtProd: z.number().min(0, { message: 'O qtProd deve ser um número.' }),
-
-      // cashAtacac
-      cashAtacac: z
-        .string()
-        .min(1, { message: 'cashAtacac deve ser uma string válida.' }),
-
-      // tipoPessoa
-      tipoPessoa: z
-        .string()
-        .min(1, { message: 'O tipoPessoa deve ser uma string.' }),
-
-      // qtUnidades
-      qtUnidades: z
-        .number()
-        .min(0, { message: 'O qtUnidades deve ser um número.' }),
-
-      // vlTroco
-      vlTroco: z.number().min(0, { message: 'O vlTroco deve ser um número.' }),
-
-      // produtos (array de objetos)
-      produtos: z
-        .array(
-          z.object({
-            valor_cashback: z
-              .number()
-              .min(0, { message: 'O  valor_cashback deve ser um número' }),
-            valor: z.number().min(0, { message: 'O valor deve ser um número' }),
-            codigoEAN: z
-              .string()
-              .min(1, { message: 'O codigoEAN deve ser uma string' }),
-            codigo: z
-              .string()
-              .min(1, { message: 'O código deve ser uma string' }),
-            unidade: z
-              .string()
-              .min(1, { message: 'A unidade deve ser uma string' }),
-            quantidade: z
-              .number()
-              .min(0, { message: 'A quantidade deve ser um número' }),
-            descricao: z
-              .string()
-              .min(1, { message: 'A descrição deve ser uma string' }),
-          }),
-        )
-        .optional(),
-    }),
+    details: z
+      .object({
+        idVenda: z
+          .string()
+          .min(1, { message: 'O idVenda deve ser uma string.' })
+          .optional(),
+        vlCupom: z
+          .number()
+          .min(0, { message: 'O vlCupom deve ser um número.' })
+          .optional(),
+        dataVenda: z
+          .string()
+          .refine((val) => !isNaN(Date.parse(val)), {
+            message: 'A dataVenda deve ser uma data válida.',
+          })
+          .optional(),
+        serie: z
+          .string()
+          .min(1, { message: 'A serie deve ser uma string.' })
+          .optional(),
+        loja: z
+          .string()
+          .min(1, { message: 'A loja deve ser uma string.' })
+          .optional(),
+        celular: z
+          .string()
+          .min(1, { message: 'O celular deve ser uma string válida.' })
+          .optional(),
+        vlCash: z
+          .number()
+          .min(0, { message: 'O vlCash deve ser um número.' })
+          .optional(),
+        primeiraCompra: z
+          .string()
+          .min(1, { message: 'A primeira e deve ser uma string.' })
+          .optional(),
+        rede: z
+          .string()
+          .min(1, { message: 'O idRede deve ser uma string.' })
+          .optional(),
+        qtdProd: z
+          .number()
+          .min(0, { message: 'O qtProd deve ser um número.' })
+          .optional(),
+        cashAtacac: z
+          .string()
+          .min(1, { message: 'cashAtacac deve ser uma string válida.' })
+          .optional(),
+        tipoPessoa: z
+          .string()
+          .min(1, { message: 'O tipoPessoa deve ser uma string.' })
+          .optional(),
+        qtUnidades: z
+          .number()
+          .min(0, { message: 'O qtUnidades deve ser um número.' })
+          .optional(),
+        vlTroco: z
+          .number()
+          .min(0, { message: 'O vlTroco deve ser um número.' })
+          .optional(),
+        produtos: z
+          .array(
+            z.object({
+              valor_cashback: z
+                .number()
+                .min(0, { message: 'O valor_cashback deve ser um número' }),
+              valor: z
+                .number()
+                .min(0, { message: 'O valor deve ser um número' }),
+              codigoEAN: z
+                .string()
+                .min(1, { message: 'O codigoEAN deve ser uma string' }),
+              codigo: z
+                .string()
+                .min(1, { message: 'O código deve ser uma string' }),
+              unidade: z
+                .string()
+                .min(1, { message: 'A unidade deve ser uma string' }),
+              quantidade: z
+                .number()
+                .min(0, { message: 'A quantidade deve ser um número' }),
+              descricao: z
+                .string()
+                .min(1, { message: 'A descrição deve ser uma string' }),
+            }),
+          )
+          .optional(),
+      })
+      .optional(),
   })
   .refine((data) => data.cpf || data.cnpj, {
     message: 'É necessário informar CPF ou CNPJ.',
@@ -173,31 +180,46 @@ export const createInteractionResgatarZeusSchema = z
         // vlCash
         vlDisponivel: z
           .number()
-          .min(0, { message: 'O valor vlDisponivel deve ser um número.' }),
+          .min(0, { message: 'O valor vlDisponivel deve ser um número.' })
+          .optional(),
 
         // dataVenda
-        dataVenda: z.string().refine((val) => !isNaN(Date.parse(val)), {
-          message: 'A dataVenda deve ser uma data válida.',
-        }),
+        dataVenda: z
+          .string()
+          .refine((val) => !isNaN(Date.parse(val)), {
+            message: 'A dataVenda deve ser uma data válida.',
+          })
+          .optional(),
 
         // loja
-        loja: z.string().min(1, { message: 'A loja deve ser uma string.' }),
+        loja: z
+          .string()
+          .min(1, { message: 'A loja deve ser uma string.' })
+          .optional(),
 
         // vlCash
-        vlCash: z.number().min(0, { message: 'O vlCash deve ser um número.' }),
+        vlCash: z
+          .number()
+          .min(0, { message: 'O vlCash deve ser um número.' })
+          .optional(),
 
         // primeiraCompra
-        primeiraCompra: z.boolean().refine((val) => typeof val === 'boolean', {
-          message: 'O primeiraCompra deve ser um booleano.',
-        }),
+        primeiraCompra: z
+          .string()
+          .min(1, { message: 'A primeira e deve ser uma string.' })
+          .optional(),
 
         // rede
-        rede: z.string().min(1, { message: 'O idRede deve ser uma string.' }),
+        rede: z
+          .string()
+          .min(1, { message: 'O idRede deve ser uma string.' })
+          .optional(),
 
         // tipoPessoa
         tipoPessoa: z
           .string()
-          .min(1, { message: 'O tipoPessoa deve ser uma string.' }),
+          .min(1, { message: 'O tipoPessoa deve ser uma string.' })
+          .optional(),
       })
       .optional(),
   })
