@@ -168,7 +168,7 @@ export class VtexService {
         const findInteracao = await this.prisma.interaction.findFirst({
           where: {
             organization_id,
-            customer_unified_Id: verifyCustomer.id,
+            customer_id: verifyCustomer.id,
             event_id: VtexConstantes.EVENT_ID_COMPRA,
             type: VtexConstantes.EVENT_TYPE_COMPRA,
             created_by: VtexConstantes.SISTEM_USER,
@@ -226,29 +226,39 @@ export class VtexService {
           },
         });
         //console.log('criando usuario', createCustomer);
-        const creatCustomerUnified = await this.prisma.customerUnified.create({
-          data: {
-            organization_id,
-            cpf: document,
-            phone,
-            firstname: firstName,
-            lastname: lastName,
-            email,
-            created_by: VtexConstantes.SISTEM_USER,
-            status_id: VtexConstantes.CUSTOMER_UNIFIED,
-          },
-        });
+        // const creatCustomerUnified = await this.prisma.customerUnified.create({
+        //   data: {
+        //     organization_id,
+        //     cpf: document,
+        //     phone,
+        //     firstname: firstName,
+        //     lastname: lastName,
+        //     email,
+        //     created_by: VtexConstantes.SISTEM_USER,
+        //     status_id: VtexConstantes.CUSTOMER_UNIFIED,
+        //   },
+        // });
 
-        await this.prisma.customer_CustomerUnified.create({
-          data: {
-            customer_id: createCustomer.id,
-            customer_unified_id: creatCustomerUnified.id,
-          },
-        });
+        // await this.prisma.customer_CustomerUnified.create({
+        //   data: {
+        //     customer_id: createCustomer.id,
+        //     customer_unified_id: creatCustomerUnified.id,
+        //   },
+        // });
+
+        // await this.prisma.customer.update({
+        //   where: {
+        //     id: createCustomer.id,
+        //   },
+        //   data: {
+        //     is_unified: true,
+        //   },
+        // });
+
         await this.prisma.interaction.create({
           data: {
             organization_id,
-            customer_unified_Id: creatCustomerUnified.id,
+            customer_id: createCustomer.id,
             details: pedido,
             total: pedido.value,
             event_id: VtexConstantes.EVENT_ID_COMPRA,
@@ -258,6 +268,7 @@ export class VtexService {
             status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
           },
         });
+        //console.log(criando);
       }
     } catch (error) {
       console.error('Erro ao obter o pedido:', error);
