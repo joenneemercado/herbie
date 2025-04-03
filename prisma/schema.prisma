@@ -189,84 +189,89 @@ model Sku {
 }
 
 model Customer {
-  id                  Int               @id @default(autoincrement())
-  email               String?
-  phone               String?
-  cpf                 String?
-  cnpj                String?
-  company_name        String?
-  trading_name        String?
-  date_birth          DateTime?
-  gender              String?
-  marital_status      String?
-  organization_id     String
-  public_id           String            @unique @default(cuid())
-  firstname           String
-  lastname            String?
-  nickname            String?
-  created_at          DateTime?         @default(now())
-  created_by          Int?
-  last_updated_system String?
-  updated_at          DateTime?         @updatedAt
-  updated_by          Int?
-  has_child           Int?
-  source_id           Int?
-  is_unified          Boolean?          @default(false)
-  facebook            String?           @db.VarChar
-  instagram           String?           @db.VarChar
-  tiktok              String?           @db.VarChar
-  x                   String?           @db.VarChar
-  whatsapp            String?           @db.VarChar
-  addresses           Address[]
-  Associationtags     Associationtags[]
-  organization        Organization      @relation(fields: [organization_id], references: [public_id])
-  Source              Source?           @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_source_fk")
-  customer_fields     CustomerField[]
-  segments            SegmentCustomer[]
+  id                       Int                        @id @default(autoincrement())
+  email                    String?
+  phone                    String?
+  cpf                      String?
+  cnpj                     String?
+  company_name             String?
+  trading_name             String?
+  date_birth               DateTime?
+  gender                   String?
+  marital_status           String?
+  organization_id          String
+  public_id                String                     @unique @default(cuid())
+  firstname                String
+  lastname                 String?
+  nickname                 String?
+  created_at               DateTime?                  @default(now())
+  created_by               Int?
+  last_updated_system      String?
+  updated_at               DateTime?                  @updatedAt
+  updated_by               Int?
+  has_child                Int?
+  source_id                Int?
+  is_unified               Boolean?                   @default(false)
+  facebook                 String?                    @db.VarChar
+  instagram                String?                    @db.VarChar
+  tiktok                   String?                    @db.VarChar
+  x                        String?                    @db.VarChar
+  whatsapp                 String?                    @db.VarChar
+  addresses                Address[]
+  Associationtags          Associationtags[]
+  organization             Organization               @relation(fields: [organization_id], references: [public_id])
+  Source                   Source?                    @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_source_fk")
+  customer_fields          CustomerField[]
+  Customer_CustomerUnified Customer_CustomerUnified[]
+  Interaction              Interaction[]
+  segments                 SegmentCustomer[]
 
   @@unique([cnpj, source_id], map: "customer_cnpj_idx")
   @@unique([cpf, source_id], map: "customer_cpf_idx")
 }
 
 model CustomerUnified {
-  id                  Int                   @id @default(autoincrement())
-  email               String?               @unique(map: "customerunified_email_idx")
-  phone               String?
-  cpf                 String?               @unique(map: "customerunified_cpf_idx")
-  cnpj                String?
-  company_name        String?
-  trading_name        String?
-  date_birth          DateTime?
-  gender              String?
-  marital_status      String?
-  organization_id     String
-  public_id           String                @unique @default(cuid())
-  firstname           String?
-  lastname            String?
-  nickname            String?
-  created_at          DateTime?             @default(now())
-  created_by          Int?
-  last_updated_system String?
-  updated_at          DateTime?             @updatedAt
-  updated_by          Int?
-  has_child           Int?
-  status_id           Int?
-  addresses           Address[]
-  audiencescontacts   Audiencescontacts[]
-  campaigndetails     Campaigndetails[]
-  customer_fields     CustomerField[]
-  organization        Organization          @relation(fields: [organization_id], references: [public_id])
-  CustomerUnifiedTags CustomerUnifiedTags[]
-  Interaction         Interaction[]
-  segments            SegmentCustomer[]
+  id                       Int                        @id @default(autoincrement())
+  email                    String?                    @unique(map: "customerunified_email_idx")
+  phone                    String?
+  cpf                      String?                    @unique(map: "customerunified_cpf_idx")
+  cnpj                     String?
+  company_name             String?
+  trading_name             String?
+  date_birth               DateTime?
+  gender                   String?
+  marital_status           String?
+  organization_id          String
+  public_id                String                     @unique @default(cuid())
+  firstname                String?
+  lastname                 String?
+  nickname                 String?
+  created_at               DateTime?                  @default(now())
+  created_by               Int?
+  last_updated_system      String?
+  updated_at               DateTime?                  @updatedAt
+  updated_by               Int?
+  has_child                Int?
+  status_id                Int?
+  addresses                Address[]
+  audiencescontacts        Audiencescontacts[]
+  campaigndetails          Campaigndetails[]
+  customer_fields          CustomerField[]
+  organization             Organization               @relation(fields: [organization_id], references: [public_id])
+  CustomerUnifiedTags      CustomerUnifiedTags[]
+  Customer_CustomerUnified Customer_CustomerUnified[]
+  Interaction              Interaction[]
+  segments                 SegmentCustomer[]
 }
 
 model Customer_CustomerUnified {
-  id                  Int       @id @default(autoincrement())
+  id                  Int             @id @default(autoincrement())
   customer_id         Int
   customer_unified_id Int
-  created_at          DateTime? @default(now())
-  updated_at          DateTime? @updatedAt
+  created_at          DateTime?       @default(now())
+  updated_at          DateTime?       @updatedAt
+  Customer            Customer        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_customerunified_customer_fk")
+  CustomerUnified     CustomerUnified @relation(fields: [customer_unified_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_customerunified_customerunified_fk")
 }
 
 model Address {
@@ -320,6 +325,8 @@ model Interaction {
   CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_Id], references: [id], map: "Interaction_customerUnifiedId_fkey")
   event               Event            @relation(fields: [event_id], references: [id])
   organization        Organization     @relation(fields: [organization_id], references: [public_id])
+  Customer            Customer?        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_customer_fk")
+  Source              Source           @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_source_fk")
   Status              Status?          @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_status_fk")
 }
 
@@ -345,12 +352,13 @@ model SegmentCustomer {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model Source {
-  id          Int        @id @default(autoincrement())
-  name        String?    @db.VarChar
-  description String?    @db.VarChar
-  color_code  String?    @db.VarChar
+  id          Int           @id @default(autoincrement())
+  name        String?       @db.VarChar
+  description String?       @db.VarChar
+  color_code  String?       @db.VarChar
   statusid    Int?
   Customer    Customer[]
+  Interaction Interaction[]
 }
 
 model TempCustomerIssues {

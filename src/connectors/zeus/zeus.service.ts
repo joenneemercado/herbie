@@ -292,11 +292,31 @@ export class ZeusService {
       });
 
       if (findCustomer && findCustomerUnified) {
+        const findInteraction = await this.prisma.interaction.findFirst({
+          where: {
+            organization_id: createInteractionDto.organization_id,
+            customer_unified_Id: findCustomerUnified.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
+            type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
+            total: createInteractionDto.total,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+            //details:procurando pelo id da venda para saber se já existe
+            details: {
+              path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
+              equals: createInteractionDto.details.idVenda,
+            },
+          },
+        });
+        if (findInteraction) {
+          throw new Error('Interacao de acumular já existe');
+        }
         await this.prisma.interaction.create({
           data: {
-            details: createInteractionDto.details,
+            details: createInteractionDto,
             organization_id: createInteractionDto.organization_id,
-            customer_id: findCustomerUnified.id,
+            customer_unified_Id: findCustomerUnified.id,
             source_id: ZeusConstantes.SOURCE_ID_ZEUS,
             event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
             type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
@@ -313,9 +333,29 @@ export class ZeusService {
           //message:"sucess"
         };
       } else {
+        const findInteraction = await this.prisma.interaction.findFirst({
+          where: {
+            organization_id: createInteractionDto.organization_id,
+            customer_id: findCustomer.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
+            type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
+            total: createInteractionDto.total,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+            details: {
+              path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
+              equals: createInteractionDto.details.idVenda,
+            },
+          },
+        });
+        //console.log(findInteraction);
+        if (findInteraction) {
+          throw new Error('Interacao de acumular já existe');
+        }
         await this.prisma.interaction.create({
           data: {
-            details: createInteractionDto.details,
+            details: createInteractionDto,
             organization_id: createInteractionDto.organization_id,
             customer_id: findCustomer.id,
             source_id: ZeusConstantes.SOURCE_ID_ZEUS,
@@ -399,11 +439,72 @@ export class ZeusService {
       });
 
       if (findCustomer && findCustomerUnified) {
+        const findInteraction = await this.prisma.interaction.findFirst({
+          where: {
+            organization_id: createInteractionDto.organization_id,
+            customer_unified_Id: findCustomerUnified.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_RESGATAR,
+            type: ZeusConstantes.EVENT_TYPE_RESGATAR,
+            total: createInteractionDto.total,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+            //details:procurando pelo id da venda para saber se já existe
+            // details: {
+            //   path: ['details', 'vlDisponivel'], // Caminho correto para acessar "loja" dentro de "details"
+            //   equals: createInteractionDto.details.vlDisponivel,
+            // },
+            OR: [
+              {
+                details: {
+                  path: ['cpf'], // Caminho correto dentro do JSON
+                  equals: createInteractionDto.cnpj,
+                },
+              },
+              {
+                details: {
+                  path: ['cnpj'], // Caminho correto dentro do JSON
+                  equals: createInteractionDto.cnpj,
+                },
+              },
+            ],
+            AND: [
+              {
+                details: {
+                  path: ['details', 'vlDisponivel'], // Caminho correto dentro do JSON
+                  equals: createInteractionDto.details.vlDisponivel,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'loja'],
+                  equals: createInteractionDto.details.loja,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'vlCash'],
+                  equals: createInteractionDto.details.vlCash,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'rede'],
+                  equals: createInteractionDto.details.rede,
+                },
+              },
+            ],
+          },
+        });
+        //console.log(findInteraction);
+        if (findInteraction) {
+          throw new Error('Interacao de resgatar já existe');
+        }
         await this.prisma.interaction.create({
           data: {
-            details: createInteractionDto.details,
+            details: createInteractionDto,
             organization_id: createInteractionDto.organization_id,
-            customer_id: findCustomerUnified.id,
+            customer_unified_Id: findCustomerUnified.id,
             source_id: ZeusConstantes.SOURCE_ID_ZEUS,
             event_id: ZeusConstantes.EVENT_ID_RESGATAR,
             type: ZeusConstantes.EVENT_TYPE_RESGATAR,
@@ -420,14 +521,72 @@ export class ZeusService {
           //message:"sucess"
         };
       } else {
-        await this.prisma.interaction.create({
-          data: {
-            details: createInteractionDto.details,
+        const findInteraction = await this.prisma.interaction.findFirst({
+          where: {
             organization_id: createInteractionDto.organization_id,
             customer_id: findCustomer.id,
             source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-            event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
-            type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
+            event_id: ZeusConstantes.EVENT_ID_RESGATAR,
+            type: ZeusConstantes.EVENT_TYPE_RESGATAR,
+            total: createInteractionDto.total,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+            // Ajuste do OR: Agora cada condição está separada corretamente
+            OR: [
+              {
+                details: {
+                  path: ['cpf'], // Caminho correto dentro do JSON
+                  equals: createInteractionDto.cnpj,
+                },
+              },
+              {
+                details: {
+                  path: ['cnpj'], // Caminho correto dentro do JSON
+                  equals: createInteractionDto.cnpj,
+                },
+              },
+            ],
+            AND: [
+              {
+                details: {
+                  path: ['details', 'vlDisponivel'], // Caminho correto dentro do JSON
+                  equals: createInteractionDto.details.vlDisponivel,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'loja'],
+                  equals: createInteractionDto.details.loja,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'vlCash'],
+                  equals: createInteractionDto.details.vlCash,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'rede'],
+                  equals: createInteractionDto.details.rede,
+                },
+              },
+            ],
+          },
+        });
+        // console.log(findInteraction);
+        if (findInteraction) {
+          throw new Error('Interacao de resgatar já existe');
+        }
+
+        await this.prisma.interaction.create({
+          data: {
+            details: createInteractionDto,
+            organization_id: createInteractionDto.organization_id,
+            customer_id: findCustomer.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_RESGATAR,
+            type: ZeusConstantes.EVENT_TYPE_RESGATAR,
             total: createInteractionDto.total,
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
