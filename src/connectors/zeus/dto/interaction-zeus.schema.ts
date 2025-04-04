@@ -115,7 +115,7 @@ export const createInteractionAcumularZeusSchema = z
                 .min(1, { message: 'O código deve ser uma string' }),
               unidade: z
                 .string()
-                .min(1, { message: 'A unidade deve ser uma string' }),
+                .min(0, { message: 'A unidade deve ser uma string' }),
               quantidade: z
                 .number()
                 .min(0, { message: 'A quantidade deve ser um número' }),
