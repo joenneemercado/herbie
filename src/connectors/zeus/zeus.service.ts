@@ -312,7 +312,7 @@ export class ZeusService {
         if (findInteraction) {
           throw new Error('Interacao de acumular já existe');
         }
-        const creatInteractionAcumular = await this.prisma.interaction.create({
+        await this.prisma.interaction.create({
           data: {
             details: createInteractionDto,
             organization_id: createInteractionDto.organization_id,
