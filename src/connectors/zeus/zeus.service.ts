@@ -312,7 +312,7 @@ export class ZeusService {
         if (findInteraction) {
           throw new Error('Interacao de acumular já existe');
         }
-        await this.prisma.interaction.create({
+        const creatInteractionAcumular = await this.prisma.interaction.create({
           data: {
             details: createInteractionDto,
             organization_id: createInteractionDto.organization_id,
@@ -437,6 +437,7 @@ export class ZeusService {
           organization_id: createInteractionDto.organization_id,
         },
       });
+      //console.log(findCustomerUnified);
 
       if (findCustomer && findCustomerUnified) {
         const findInteraction = await this.prisma.interaction.findFirst({
@@ -449,42 +450,23 @@ export class ZeusService {
             total: createInteractionDto.total,
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
-            //details:procurando pelo id da venda para saber se já existe
-            // details: {
-            //   path: ['details', 'vlDisponivel'], // Caminho correto para acessar "loja" dentro de "details"
-            //   equals: createInteractionDto.details.vlDisponivel,
-            // },
-            OR: [
-              {
-                details: {
-                  path: ['cpf'], // Caminho correto dentro do JSON
-                  equals: createInteractionDto.cnpj,
-                },
-              },
-              {
-                details: {
-                  path: ['cnpj'], // Caminho correto dentro do JSON
-                  equals: createInteractionDto.cnpj,
-                },
-              },
-            ],
             AND: [
               {
                 details: {
-                  path: ['details', 'vlDisponivel'], // Caminho correto dentro do JSON
-                  equals: createInteractionDto.details.vlDisponivel,
-                },
-              },
-              {
-                details: {
-                  path: ['details', 'loja'],
-                  equals: createInteractionDto.details.loja,
+                  path: ['details', 'dataVenda'],
+                  equals: createInteractionDto.details.dataVenda,
                 },
               },
               {
                 details: {
                   path: ['details', 'vlCash'],
                   equals: createInteractionDto.details.vlCash,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'loja'],
+                  equals: createInteractionDto.details.loja,
                 },
               },
               {
@@ -531,38 +513,23 @@ export class ZeusService {
             total: createInteractionDto.total,
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
-            // Ajuste do OR: Agora cada condição está separada corretamente
-            OR: [
-              {
-                details: {
-                  path: ['cpf'], // Caminho correto dentro do JSON
-                  equals: createInteractionDto.cnpj,
-                },
-              },
-              {
-                details: {
-                  path: ['cnpj'], // Caminho correto dentro do JSON
-                  equals: createInteractionDto.cnpj,
-                },
-              },
-            ],
             AND: [
               {
                 details: {
-                  path: ['details', 'vlDisponivel'], // Caminho correto dentro do JSON
-                  equals: createInteractionDto.details.vlDisponivel,
-                },
-              },
-              {
-                details: {
-                  path: ['details', 'loja'],
-                  equals: createInteractionDto.details.loja,
+                  path: ['details', 'dataVenda'],
+                  equals: createInteractionDto.details.dataVenda,
                 },
               },
               {
                 details: {
                   path: ['details', 'vlCash'],
                   equals: createInteractionDto.details.vlCash,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'loja'],
+                  equals: createInteractionDto.details.loja,
                 },
               },
               {
