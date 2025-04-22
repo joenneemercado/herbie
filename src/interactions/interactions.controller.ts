@@ -3,16 +3,13 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   Request,
   Query,
   BadRequestException,
 } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
 import { CreateInteractionDto } from './dto/create-interaction.dto';
-import { UpdateInteractionDto } from './dto/update-interaction.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -21,6 +18,10 @@ import {
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { createInteractionSchema } from './dto/create-interaction-schema';
+import {
+  FindInteractionSchema,
+  findInteractionSchema,
+} from './dto/interation.dto';
 
 @ApiTags('Interactions')
 @Controller('interactions')
@@ -102,4 +103,65 @@ export class InteractionsController {
   findOne(@Param('id') id: string) {
     return this.interactionsService.findOne(+id);
   }
+
+  // @Get('find/interaction')
+  // findInteraction() {
+  //   return this.interactionsService.findInteraction();
+  // }
+  // @Get('find/interaction')
+  // findInteraction(
+  //   @Query('seller') seller: string,
+  //   @Query('date_start') date_start: string,
+  //   @Query('date_end') date_end: string,
+  //   @Query('ean') ean: string,
+  // ) {
+  //   return this.interactionsService.findInteraction(
+  //     seller,
+  //     date_start,
+  //     date_end,
+  //     ean,
+  //   );
+  // }
+
+  // @Get('find/interaction')
+  // findInteraction(
+  //   @Query('seller') seller: string,
+  //   @Query('dateBegin') dateBegin: string,
+  //   @Query('dateEnd') dateEnd: string,
+  //   @Query('ean') ean: string,
+  //   @Query('organization_id') organization_id: string,
+  //   @Query('refId') refId: string,
+  //   @Query('status_order') status_order: string,
+  // ) {
+  //   return this.interactionsService.findInteraction(
+  //     seller,
+  //     dateBegin,
+  //     dateEnd,
+  //     ean,
+  //     organization_id,
+  //     refId,
+  //     status_order,
+  //   );
+  // }
+
+  @Get('find/interaction/vtex')
+  findInteraction(
+    @Query() findInteraction: FindInteractionSchema,
+    @Request() req: Request,
+  ) {
+    const parsed = findInteractionSchema.safeParse(findInteraction);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.interactionsService.findInteraction(parsed.data, req);
+  }
+
+  // @Post('/create/customer')
+  // create(@Body() createZeusDto: CreateClienteZeusDto, @Request() req: Request) {
+  //   const parsed = createZeusSchema.safeParse(createZeusDto);
+  //   if (!parsed.success) {
+  //     throw new BadRequestException(parsed.error.errors);
+  //   }
+  //   return this.zeusService.create(parsed.data, req);
+  // }
 }

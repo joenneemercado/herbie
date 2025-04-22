@@ -1,16 +1,12 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { CreateInteractionDto } from './dto/create-interaction.dto';
-import { UpdateInteractionDto } from './dto/update-interaction.dto';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+
 import { PrismaService } from '@src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import { InteractionConstantes } from './interactions.constantes';
 import { CreateInteractionSchema } from './dto/create-interaction-schema';
+import { FindInteractionSchema } from './dto/interation.dto';
+import { last } from 'rxjs';
 
 @Injectable()
 export class InteractionsService {
@@ -153,11 +149,260 @@ export class InteractionsService {
     return `This action returns a #${id} interaction`;
   }
 
-  update(id: number, updateInteractionDto: UpdateInteractionDto) {
-    return `This action updates a #${id} interaction`;
-  }
-
   remove(id: number) {
     return `This action removes a #${id} interaction`;
   }
+
+  // async findInteraction() {
+  //   const find = await this.prisma.interaction.findMany({
+  //     where: {
+  //       event_id: 6,
+  //       source_id: 2,
+  //       AND: [
+  //         // {
+  //         //   details: {
+  //         //     path: ['items'],
+  //         //     array_contains: [{ refId: '193506' }],
+  //         //   },
+  //         // },
+  //         // {
+  //         //   details: {
+  //         //     path: ['items'],
+  //         //     array_contains: [{ ean: '7894900709926' }],
+  //         //   },
+  //         // },
+  //         // {
+  //         //   details: {
+  //         //     path: ['items'],
+  //         //     array_contains: [{ quantity: 8 }],
+  //         //   },
+  //         // },
+  //         {
+  //           details: {
+  //             path: ['creationDate'],
+  //             gte: '2025-03-30T00:00:00.000Z',
+  //             lte: '2025-03-31T23:59:59.999Z',
+  //           },
+  //         },
+  //         {
+  //           details: {
+  //             path: ['items'],
+  //             array_contains: [{ seller: 'mercantilnovaeraloja10' }],
+  //           },
+  //         },
+  //         {
+  //           details: {
+  //             path: ['status'],
+  //             equals: 'invoiced',
+  //           },
+  //         },
+  //       ],
+  //     },
+  //   });
+
+  //   console.log(find);
+  //   return find;
+  // }
+
+  async findInteraction(findInteraction: FindInteractionSchema, req: Request) {
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException('Token not provided');
+    }
+
+    const startDate = findInteraction.dateBegin
+      ? new Date(findInteraction.dateBegin)
+      : null;
+    const endDate = findInteraction.dateEnd
+      ? new Date(findInteraction.dateEnd)
+      : null;
+
+    const startDateUTC = startDate
+      ? new Date(
+          Date.UTC(
+            startDate.getUTCFullYear(),
+            startDate.getUTCMonth(),
+            startDate.getUTCDate(),
+            0,
+            0,
+            0,
+          ),
+        )
+      : null;
+
+    const endDateUTC = endDate
+      ? new Date(
+          Date.UTC(
+            endDate.getUTCFullYear(),
+            endDate.getUTCMonth(),
+            endDate.getUTCDate(),
+            23,
+            59,
+            59,
+          ),
+        )
+      : null;
+
+    const filters = [];
+
+    if (startDateUTC && endDateUTC) {
+      filters.push({
+        details: {
+          path: ['creationDate'],
+          gte: startDateUTC,
+          lte: endDateUTC,
+        },
+      });
+    }
+
+    if (findInteraction.seller) {
+      filters.push({
+        details: {
+          path: ['items'],
+          array_contains: [{ seller: findInteraction.seller }],
+        },
+      });
+    }
+
+    if (findInteraction.ean) {
+      filters.push({
+        details: {
+          path: ['items'],
+          array_contains: [{ ean: findInteraction.ean }],
+        },
+      });
+    }
+
+    if (findInteraction.refId) {
+      filters.push({
+        details: {
+          path: ['items'],
+          array_contains: [{ refId: findInteraction.refId }],
+        },
+      });
+    }
+
+    if (findInteraction.status_order) {
+      filters.push({
+        details: {
+          path: ['status'],
+          equals: findInteraction.status_order,
+        },
+      });
+    }
+
+    const whereCondition = filters.length > 0 ? { AND: filters } : {};
+
+    const limit = Number(findInteraction.limit) || 10;
+    const cursor = findInteraction.cursor
+      ? Number(findInteraction.cursor)
+      : undefined;
+
+    const interactions = await this.prisma.interaction.findMany({
+      where: {
+        organization_id: findInteraction.organization_id,
+        event_id: 6,
+        source_id: 2,
+        ...whereCondition,
+      },
+      include: {
+        CustomerUnified: true,
+      },
+      take: limit,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: {
+        id: 'asc',
+      },
+    });
+
+    const itemsOnPage = interactions.length;
+
+    const total = await this.prisma.interaction.count({
+      where: {
+        organization_id: findInteraction.organization_id,
+        event_id: 6,
+        source_id: 2,
+        ...whereCondition,
+      },
+    });
+
+    const nextCursor =
+      interactions.length === limit
+        ? interactions[interactions.length - 1].id
+        : null;
+
+    const totalPages = Math.ceil(total / limit);
+
+    const customerUnified = interactions.map((item) => ({
+      id: item.CustomerUnified.id,
+      firstName: item.CustomerUnified.firstname,
+      lastName: item.CustomerUnified.lastname,
+      phone: item.CustomerUnified.phone,
+      email: item.CustomerUnified.email,
+      cpf: item.CustomerUnified.cpf,
+      cnpj: item.CustomerUnified.cnpj,
+      birthDate: item.CustomerUnified.date_birth,
+      gender: item.CustomerUnified.gender,
+      maritalStatus: item.CustomerUnified.marital_status,
+      statusId: item.CustomerUnified.status_id,
+    }));
+
+    return {
+      customerUnified, // Dados da consulta
+      pagination: {
+        total, // Total de itens no banco
+        itemsOnPage, // Itens retornados na página atual
+        nextCursor, // ID do próximo cursor
+        totalPages, // Total de páginas
+      },
+    };
+  }
+
+  // async findInteraction(
+  //   seller: string,
+  //   date_start: string,
+  //   date_end: string,
+  //   ean: string,
+  // ) {
+  //   // console.log(seller, date_start, date_end);
+  //   // const result = await this.prisma.$queryRawUnsafe(`
+  //   //   SELECT *
+  //   //   FROM "herbie-novaera"."Interaction" i
+  //   //   WHERE
+  //   //      i.details->'items' @> '[{"seller": "${seller}"}]'
+  //   //   AND (i.details->>'creationDate')::timestamp::date BETWEEN '${date_start}' AND '${date_end}'
+  //   // `);
+  //   // console.log(result);
+
+  //   const whereClauses: string[] = [];
+
+  //   // Se tiver seller, adiciona a cláusula
+  //   if (seller) {
+  //     whereClauses.push(`i.details->'items' @> '[{"seller": "${seller}"}]'`);
+  //   }
+
+  //   // Se tiver intervalo de data
+  //   if (date_start && date_end) {
+  //     whereClauses.push(
+  //       `(i.details->>'creationDate')::timestamp::date BETWEEN '${date_start}' AND '${date_end}'`,
+  //     );
+  //   }
+  //   if (ean) {
+  //     whereClauses.push(`i.details->'items' @> '[{"ean": "${ean}"}]'`);
+  //   }
+
+  //   const where = whereClauses.length
+  //     ? `WHERE ${whereClauses.join(' AND ')}`
+  //     : '';
+
+  //   const query = `
+  //   SELECT *
+  //   FROM "herbie-novaera"."Interaction" i
+  //   ${where}
+  // `;
+
+  //   const result = await this.prisma.$queryRawUnsafe(query);
+
+  //   return result;
+  // }
 }
