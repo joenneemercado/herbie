@@ -280,6 +280,26 @@ export class ZeusService {
         };
       }
 
+      const orFilters = [];
+
+      if (createInteractionDto.cpf) {
+        orFilters.push({
+          details: {
+            path: ['cpf'],
+            equals: createInteractionDto.cpf,
+          },
+        });
+      }
+
+      if (createInteractionDto.cnpj) {
+        orFilters.push({
+          details: {
+            path: ['cnpj'],
+            equals: createInteractionDto.cnpj,
+          },
+        });
+      }
+
       const findCustomerUnified = await this.prisma.customerUnified.findFirst({
         where: {
           OR: [
@@ -302,10 +322,37 @@ export class ZeusService {
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
             //details:procurando pelo id da venda para saber se já existe
-            details: {
-              path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
-              equals: createInteractionDto.details.idVenda,
-            },
+            // details: {
+            //   path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
+            //   equals: createInteractionDto.details.idVenda,
+            // },
+            OR: orFilters,
+            AND: [
+              {
+                details: {
+                  path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
+                  equals: createInteractionDto.details.idVenda,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'dataVenda'], // Caminho correto para acessar "dataVenda" dentro de "details"
+                  equals: createInteractionDto.details.dataVenda,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'loja'], // Caminho correto para acessar "loja" dentro de "details"
+                  equals: createInteractionDto.details.loja,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'rede'], // Caminho correto para acessar "rede" dentro de "details"
+                  equals: createInteractionDto.details.rede,
+                },
+              },
+            ],
           },
         });
         if (findInteraction) {
@@ -342,10 +389,37 @@ export class ZeusService {
             total: createInteractionDto.total,
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
-            details: {
-              path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
-              equals: createInteractionDto.details.idVenda,
-            },
+            // details: {
+            //   path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
+            //   equals: createInteractionDto.details.idVenda,
+            // },
+            OR: orFilters,
+            AND: [
+              {
+                details: {
+                  path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
+                  equals: createInteractionDto.details.idVenda,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'dataVenda'], // Caminho correto para acessar "dataVenda" dentro de "details"
+                  equals: createInteractionDto.details.dataVenda,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'loja'], // Caminho correto para acessar "loja" dentro de "details"
+                  equals: createInteractionDto.details.loja,
+                },
+              },
+              {
+                details: {
+                  path: ['details', 'rede'], // Caminho correto para acessar "rede" dentro de "details"
+                  equals: createInteractionDto.details.rede,
+                },
+              },
+            ],
           },
         });
         //console.log(findInteraction);
@@ -427,6 +501,26 @@ export class ZeusService {
         };
       }
 
+      const orFilters = [];
+
+      if (createInteractionDto.cpf) {
+        orFilters.push({
+          details: {
+            path: ['cpf'],
+            equals: createInteractionDto.cpf,
+          },
+        });
+      }
+
+      if (createInteractionDto.cnpj) {
+        orFilters.push({
+          details: {
+            path: ['cnpj'],
+            equals: createInteractionDto.cnpj,
+          },
+        });
+      }
+
       const findCustomerUnified = await this.prisma.customerUnified.findFirst({
         where: {
           OR: [
@@ -449,6 +543,7 @@ export class ZeusService {
             total: createInteractionDto.total,
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
+            OR: orFilters,
             AND: [
               {
                 details: {
@@ -512,6 +607,7 @@ export class ZeusService {
             total: createInteractionDto.total,
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
+            OR: orFilters,
             AND: [
               {
                 details: {
