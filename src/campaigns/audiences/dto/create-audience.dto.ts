@@ -1,75 +1,100 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, IsOptional, IsString, IsArray } from 'class-validator';
 
 export class CreateAudienceDto {
-    @ApiProperty()
-    id?: number;
+  @IsOptional()
+  @IsNumber({}, { message: 'O id deve ser um número' })
+  @ApiProperty({
+    description: 'Identificação única da audiência',
+    example: 123456,
+  })
+  id?: number;
 
-    @ApiProperty()
-    name: string;
+  @IsString({ message: 'O audiencia deve ser uma string' })
+  @ApiProperty({ description: 'Nome da audiência', example: 'Nova audiência' })
+  name: string;
 
-    @ApiProperty()
-    statusId?: number;
+  @IsOptional()
+  @IsString({ message: 'O audiencia deve ser uma string' })
+  @ApiProperty({
+    description: 'Nome do seller',
+    example: 'mercantilnovaera',
+  })
+  sellerName?: string;
 
-    @ApiProperty()
-    createdBy?: number;
+  @IsOptional()
+  @IsNumber({}, { message: 'O statusId deve ser um número' })
+  @ApiProperty({ description: 'ID do status', example: 1 })
+  statusId?: number;
 
-    @ApiProperty()
-    organization_id: string;
+  @IsOptional()
+  @IsNumber({}, { message: 'O createdBy deve ser um número' })
+  @ApiProperty({ description: 'Usuário que criou a audiência', example: 101 })
+  createdBy?: number;
 
-    @ApiProperty()
-    date_birth_start?: string[] 
+  @IsString({ message: 'O organization_id deve ser uma string' })
+  @ApiProperty({ description: 'ID da organização', example: 'org-abc123' })
+  organization_id: string;
 
-    @ApiProperty()
-    date_birth_end?: string[]
-    
-    @ApiProperty()
-    gender?: String
+  @IsOptional()
+  @IsArray({ message: 'O date_birth_start deve ser um array de strings' })
+  @ApiProperty({
+    description: 'Datas de nascimento início',
+    type: [String],
+    example: ['1990-01-01'],
+  })
+  date_birth_start?: string[];
 
-    @ApiProperty()
-    marital_status?: String
+  @IsOptional()
+  @IsArray({ message: 'O date_birth_end deve ser um array de strings' })
+  @ApiProperty({
+    description: 'Datas de nascimento fim',
+    type: [String],
+    example: ['2000-12-31'],
+  })
+  date_birth_end?: string[];
 
-    @ApiProperty()
-    date_start?: Date;
+  @IsOptional()
+  @IsString({ message: 'O gender deve ser uma string' })
+  @ApiProperty({ description: 'Gênero', example: 'male' })
+  gender?: string;
 
-    @ApiProperty()
-    date_end?: Date;
+  @IsOptional()
+  @IsString({ message: 'O marital_status deve ser uma string' })
+  @ApiProperty({ description: 'Estado civil', example: 'single' })
+  marital_status?: string;
 
-    @ApiProperty()
-    page?: number;
+  @IsOptional()
+  @IsString({ message: 'O dateBegin deve ser uma string' })
+  @ApiProperty({
+    description: 'Data de início',
+    example: '2024-01-01T00:00:00.000Z',
+  })
+  dateBegin?: string;
 
-    @ApiProperty()
-    limit?: number;
+  @IsOptional()
+  @IsString({ message: 'O dateEnd deve ser uma string' })
+  @ApiProperty({
+    description: 'Data de término',
+    example: '2024-12-31T23:59:59.999Z',
+  })
+  dateEnd?: string;
 
+  @IsOptional()
+  @IsString({ message: 'O ean deve ser uma string' })
+  @ApiProperty({
+    description: 'Código EAN do produto',
+    example: '7891234567890',
+  })
+  ean?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O refId deve ser uma string' })
+  @ApiProperty({ description: 'Referência do pedido', example: 'REF123456' })
+  refId?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O status_order deve ser uma string' })
+  @ApiProperty({ description: 'Status do pedido', example: 'delivered' })
+  status_order?: string;
 }
-
-// export class PaginatedAudiencesDto {
-//     @ApiProperty({
-//         description: 'List all Audiences',
-//         isArray: true,
-//         type: [CreateAudienceDto],
-//         example: {
-//             id: 1,
-//             name: "audience eMercado",
-//             createdAt: "2025-01-24T18:54:20.199Z",
-//             createdBy: 1,
-//             obs: null,
-//             statusId: 1,
-//             updatedAt: null,
-//             updatedBy: null,
-//             organization_id: "cm0l1u61r00003b6junq2pmbi",
-//         },
-//     })
-//     data: PaginatedAudiencesDto[];
-
-//     @ApiProperty({ description: 'Total number of customers' })
-//     total: number;
-
-//     @ApiProperty({ description: 'Current page number' })
-//     page: number;
-
-//     @ApiProperty({ description: 'Number of items per page' })
-//     limit: number;
-
-//     @ApiProperty({ description: 'Total number of pages' })
-//     totalPages: number;
-// }

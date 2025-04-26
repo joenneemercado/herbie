@@ -1,24 +1,28 @@
-
-import { HttpException, Injectable, UnauthorizedException, Body } from '@nestjs/common';
+import { Interaction } from './../../interactions/entities/interaction.entity';
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+  Body,
+  HttpStatus,
+} from '@nestjs/common';
 import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { Prisma } from '@prisma/client';
-import { createAudienceSchema } from './dto/audience.schema';
+import {
+  CreateAudienceSchema,
+  createAudienceSchema,
+} from './dto/audience.schema';
+import { InteractionsService } from '@src/interactions/interactions.service';
+import { AudienceConstantes } from './audience.constantes';
 @Injectable()
 export class AudiencesService {
   jwtService: any;
 
   constructor(
     private prisma: PrismaService,
-  ) { }
-
-  // async create(createAudienceDto: createAudienceSchema) {
-  //   console.log(createAudienceDto)
-  //   const {
-  //     organization_id, date_birth_start, date_birth_end, gender, marital_status, date_created_start, date_created_end, statusId, createdBy
-  //   } = createAudienceDto;
-   
-  // }
+    private interaction: InteractionsService,
+  ) {}
 
   //TODO CREATE AUDIENCE
   async create(Body: {
@@ -28,13 +32,22 @@ export class AudiencesService {
     organization_id: string;
     date_birth_start?: string[] | string;
     date_birth_end?: string[] | string;
-    gender?: String
-    marital_status?: String
+    gender?: string;
+    marital_status?: string;
     date_created_start?: Date;
     date_created_end?: Date;
   }) {
     const {
-      organization_id, date_birth_start, date_birth_end, gender, marital_status, date_created_start, date_created_end, audiencia, statusId, createdBy
+      organization_id,
+      date_birth_start,
+      date_birth_end,
+      gender,
+      marital_status,
+      date_created_start,
+      date_created_end,
+      audiencia,
+      statusId,
+      createdBy,
     } = Body;
     //console.log(params)
 
@@ -42,19 +55,19 @@ export class AudiencesService {
     startOfDay.setHours(0, 0, 0, 0); // Define para meia-noite do início do dia
     const endOfDay = new Date(date_created_end);
     endOfDay.setHours(23, 59, 59, 999); // Define para o final do dia
-    let dateBirthFilter = { OR: [] };
+    const dateBirthFilter = { OR: [] };
 
     // Garantindo que os inputs sejam arrays ou lidando com undefined
     const dates1 = date_birth_start
-      ? (Array.isArray(date_birth_start)
+      ? Array.isArray(date_birth_start)
         ? date_birth_start
-        : date_birth_start.replace(/[^\d, -]/g, '').split(','))
+        : date_birth_start.replace(/[^\d, -]/g, '').split(',')
       : []; // Caso date_birth_start seja undefined, retorna um array vazio
 
     const datesEnd = date_birth_end
-      ? (Array.isArray(date_birth_end)
+      ? Array.isArray(date_birth_end)
         ? date_birth_end
-        : date_birth_end.replace(/[^\d, -]/g, '').split(','))
+        : date_birth_end.replace(/[^\d, -]/g, '').split(',')
       : []; // Caso date_birth_end seja undefined, retorna um array vazio
 
     // console.log('dates1 (start dates):', dates1); // Verifique o array processado de start dates
@@ -88,14 +101,18 @@ export class AudiencesService {
     try {
       return await this.prisma.$transaction(
         async (trxAudi) => {
-          if (audiencia === '' || audiencia === undefined || audiencia === null) {
-            throw new HttpException(`Nome da audiência vazio`, 400,);
+          if (
+            audiencia === '' ||
+            audiencia === undefined ||
+            audiencia === null
+          ) {
+            throw new HttpException(`Nome da audiência vazio`, 400);
           }
 
           const existingAudience = await trxAudi.audiences.findFirst({
             where: {
               name: audiencia,
-              organization_id: organization_id
+              organization_id: organization_id,
             },
           });
 
@@ -108,7 +125,7 @@ export class AudiencesService {
               name: audiencia,
               statusId: statusId ? statusId : 1,
               createdBy: createdBy ? createdBy : 1,
-              organization_id: organization_id
+              organization_id: organization_id,
             },
           });
 
@@ -118,51 +135,54 @@ export class AudiencesService {
               //date_birth ? { date_birth: String(date_birth) } : {},
               gender ? { gender: String(gender) } : {},
               marital_status ? { marital_status: String(marital_status) } : {},
-              (date_created_start && date_created_end) ? { created_at: { gte: startOfDay, lte: endOfDay, } } : {},
-              dateBirthFilter.OR.length > 0 ? dateBirthFilter : {},  // Apenas adiciona o filtro de data se houver
-            ]
-          }
+              date_created_start && date_created_end
+                ? { created_at: { gte: startOfDay, lte: endOfDay } }
+                : {},
+              dateBirthFilter.OR.length > 0 ? dateBirthFilter : {}, // Apenas adiciona o filtro de data se houver
+            ],
+          };
           //console.log(filters)
           const customerUnified = await trxAudi.customerUnified.findMany({
-            where: filters
-          })
+            where: filters,
+          });
           //console.log('customerUnified', customerUnified)
-          const tamanho = customerUnified.length
+          const tamanho = customerUnified.length;
           if (tamanho > 0) {
-            const lista: number[] = customerUnified.map((id => id.id))
+            const lista: number[] = customerUnified.map((id) => id.id);
             //console.log(lista)
             for (const id of lista) {
               try {
-                const createAudienceContacts = await trxAudi.audiencescontacts.create({
-                  data: {
-                    idAudience: audiencie.id,
-                    idContact: id,
-                    organization_id: organization_id,
-                    statusId: statusId ? statusId : 1,
-                    createdBy: createdBy ? createdBy : 1,
-                  }
-                })
+                const createAudienceContacts =
+                  await trxAudi.audiencescontacts.create({
+                    data: {
+                      idAudience: audiencie.id,
+                      idContact: id,
+                      organization_id: organization_id,
+                      statusId: statusId ? statusId : 1,
+                      createdBy: createdBy ? createdBy : 1,
+                    },
+                  });
                 //console.log(createAudienceContacts)
               } catch (error) {
-                console.log(`erro ao criar os contatos`, error)
+                console.log(`erro ao criar os contatos`, error);
                 throw new HttpException(error.message, error.status);
               }
             }
           }
           return {
             audiencia: audiencie,
-            customerUnified: customerUnified.map((id => id.id)),
-            tamanho: tamanho
-          }
+            customerUnified: customerUnified.map((id) => id.id),
+            tamanho: tamanho,
+          };
         },
         {
           maxWait: 5000,
           timeout: 500000,
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         },
-      )
+      );
     } catch (error) {
-      console.log(`erro ao criar audiência`, error)
+      console.log(`erro ao criar audiência`, error);
       throw new HttpException(error.message, error.status);
     }
     // return 'This action adds a new audience';
@@ -177,14 +197,7 @@ export class AudiencesService {
     statusId?: number;
     createdBy?: number;
   }) {
-    const {
-      page,
-      limit,
-      organization_id,
-      name,
-      statusId,
-      createdBy,
-    } = params;
+    const { page, limit, organization_id, name, statusId, createdBy } = params;
     const skip = (page - 1) * limit;
 
     const filters = {
@@ -193,17 +206,17 @@ export class AudiencesService {
         name ? { name: { contains: name } } : {},
         statusId ? { statusId: statusId } : {},
         createdBy ? { createdBy: createdBy } : {},
-      ]
-    }
+      ],
+    };
     try {
       const [audiences, total] = await Promise.all([
         this.prisma.audiences.findMany({
           skip,
           take: Number(limit),
-          where: filters
+          where: filters,
         }),
-        this.prisma.audiences.count({ where: filters })
-      ])
+        this.prisma.audiences.count({ where: filters }),
+      ]);
 
       return {
         data: audiences,
@@ -213,25 +226,23 @@ export class AudiencesService {
         totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
-      console.log(`erro ao procurar audiência`, error)
+      console.log(`erro ao procurar audiência`, error);
       throw new HttpException(error.message, error.status);
     }
   }
 
-  //TODO FIND ALL CONTACTS OF CUSTOMER UNIFIED 
-  async findAllSegmented(
-    params: {
-      page?: number;
-      limit?: number;
-      organization_id: string;
-      date_birth_start?: string[] | string;
-      date_birth_end?: string[] | string;
-      gender?: String
-      marital_status?: String
-      date_created_start?: string;
-      date_created_end?: string;
-    }
-  ) {
+  //TODO FIND ALL CONTACTS OF CUSTOMER UNIFIED
+  async findAllSegmented(params: {
+    page?: number;
+    limit?: number;
+    organization_id: string;
+    date_birth_start?: string[] | string;
+    date_birth_end?: string[] | string;
+    gender?: string;
+    marital_status?: string;
+    date_created_start?: string;
+    date_created_end?: string;
+  }) {
     const {
       page,
       limit,
@@ -241,7 +252,7 @@ export class AudiencesService {
       gender,
       marital_status,
       date_created_start,
-      date_created_end
+      date_created_end,
     } = params;
     //console.log(params)
     const skip = (page - 1) * limit;
@@ -286,19 +297,19 @@ export class AudiencesService {
     //   });
     // }
 
-    let dateBirthFilter = { OR: [] };
+    const dateBirthFilter = { OR: [] };
 
     // Garantindo que os inputs sejam arrays ou lidando com undefined
     const dates1 = date_birth_start
-      ? (Array.isArray(date_birth_start)
+      ? Array.isArray(date_birth_start)
         ? date_birth_start
-        : date_birth_start.replace(/[^\d, -]/g, '').split(','))
+        : date_birth_start.replace(/[^\d, -]/g, '').split(',')
       : []; // Caso date_birth_start seja undefined, retorna um array vazio
 
     const datesEnd = date_birth_end
-      ? (Array.isArray(date_birth_end)
+      ? Array.isArray(date_birth_end)
         ? date_birth_end
-        : date_birth_end.replace(/[^\d, -]/g, '').split(','))
+        : date_birth_end.replace(/[^\d, -]/g, '').split(',')
       : []; // Caso date_birth_end seja undefined, retorna um array vazio
 
     // console.log('dates1 (start dates):', dates1); // Verifique o array processado de start dates
@@ -336,11 +347,12 @@ export class AudiencesService {
         //date_birth ? { date_birth: String(date_birth) } : {},
         gender ? { gender: String(gender) } : {},
         marital_status ? { marital_status: String(marital_status) } : {},
-        (date_created_start && date_created_end) ? { created_at: { gte: startOfDay, lte: endOfDay, } } : {},
-        dateBirthFilter.OR.length > 0 ? dateBirthFilter : {},  // Apenas adiciona o filtro de data se houver
-
-      ]
-    }
+        date_created_start && date_created_end
+          ? { created_at: { gte: startOfDay, lte: endOfDay } }
+          : {},
+        dateBirthFilter.OR.length > 0 ? dateBirthFilter : {}, // Apenas adiciona o filtro de data se houver
+      ],
+    };
     // console.log(filters)
     // console.log('Filters:', JSON.stringify(filters, null, 2));
     try {
@@ -348,7 +360,7 @@ export class AudiencesService {
         this.prisma.customerUnified.findMany({
           skip,
           take: Number(limit),
-          where: filters
+          where: filters,
           // where: {
           //   organization_id: organization_id,
           // date_birth: {
@@ -365,8 +377,8 @@ export class AudiencesService {
           // }
           // }
         }),
-        this.prisma.customerUnified.count({ where: filters })
-      ])
+        this.prisma.customerUnified.count({ where: filters }),
+      ]);
 
       return {
         data: customerUnified,
@@ -375,9 +387,8 @@ export class AudiencesService {
         limit: Number(limit),
         totalPages: Math.ceil(total / limit),
       };
-    }
-    catch (error) {
-      console.log(`erro ao procurar audiência segmentada`, error)
+    } catch (error) {
+      console.log(`erro ao procurar audiência segmentada`, error);
       throw new HttpException(error.message, error.status);
     }
 
@@ -385,34 +396,126 @@ export class AudiencesService {
   }
 
   //TODO FIND ID AUDIENCE
-  async findOne(
-    id: number,
-    organization_id: string
-  ) {
+  async findOne(id: number, organization_id: string) {
     try {
       //console.log(id,organization_id)
       const audience = await this.prisma.audiences.findFirst({
         where: {
           id: id,
-          organization_id: organization_id
+          organization_id: organization_id,
         },
-      })
+      });
       if (!audience) {
         throw new HttpException('Audiência nao existe', 404);
       }
-      return audience
+      return audience;
     } catch (error) {
-      console.log(`erro ao procurar id da audiência`, error)
+      console.log(`erro ao procurar id da audiência`, error);
       throw new HttpException(error.message, error.status);
     }
     //return `This action returns a #${id} audience`;
   }
 
-  update(id: number, updateAudienceDto: UpdateAudienceDto) {
-    return `This action updates a #${id} audience`;
+  //TODO CREATE PROCESSO AUDIENCIA
+  async creatAudienceProcesso(audienceDto: CreateAudienceSchema, req: Request) {
+    try {
+      const reqToken = req.headers['authorization'];
+      if (!reqToken) {
+        throw new UnauthorizedException();
+      }
+      // const token = reqToken.split(' ')[1];
+      // //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
+      // const { sub } = await this.jwtService.decode(token);
+      // console.log('decodedToken', sub);
+      // console.log('reqToken', token);
+      // console.log('creatAudienceProcesso', audienceDto);
+      if (
+        audienceDto.name === '' ||
+        audienceDto.name === undefined ||
+        audienceDto.name === null
+      ) {
+        throw new HttpException(`Nome da audiência vazio`, 400);
+      }
+      const existingAudience = await this.prisma.audiences.findFirst({
+        where: {
+          name: audienceDto.name,
+          organization_id: audienceDto.organization_id,
+        },
+      });
+      if (existingAudience) {
+        throw new HttpException('Audiência já existe', HttpStatus.CONFLICT);
+      }
+      const createAudience = await this.prisma.audiences.create({
+        data: {
+          name: String(audienceDto.name),
+          statusId: Number(AudienceConstantes.AUDIENCE_STATUS_PROCESSANDO),
+          createdBy: 1,
+          organization_id: String(audienceDto.organization_id),
+        },
+      });
+      //console.log('Created Audience:', createAudience);
+      return createAudience;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} audience`;
+  //TODO PROCESSA OS DADOS DA AUDIENCIA EM SEGUNDO PLANO
+  async createAudienceInteration(
+    audience,
+    audienceDto: CreateAudienceSchema,
+    req: Request,
+  ) {
+    //console.log('interationVtex2', audienceDto);
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    try {
+      if (!audience) {
+        throw new HttpException('Não existe audience', HttpStatus.BAD_REQUEST);
+      }
+
+      const Interaction = await this.interaction.findInteraction(
+        audienceDto,
+        req,
+        true,
+      );
+      //console.log('InteractionCustomerUnified', Interaction.customerUnified);
+      const idCustomerUnified = Interaction.customerUnified.map(
+        (item) => item.id,
+      );
+      //console.log('idCustomerUnified', idCustomerUnified);
+
+      const tamanho = idCustomerUnified.length;
+      if (tamanho > 0) {
+        const lista: number[] = idCustomerUnified;
+        //console.log(lista)
+        for (const id of lista) {
+          try {
+            await this.prisma.audiencescontacts.create({
+              data: {
+                idAudience: audience.id,
+                idContact: id,
+                organization_id: audienceDto.organization_id,
+                statusId: audienceDto.statusId ? audienceDto.statusId : 1,
+                createdBy: audienceDto.createdBy ? audienceDto.createdBy : 1,
+              },
+            });
+            //console.log(createAudienceContacts)
+          } catch (error) {
+            console.log(`erro ao criar os contatos`, error);
+            throw new HttpException(error.message, error.status);
+          }
+        }
+      }
+      return {
+        audiencia: audience,
+        customerUnified: idCustomerUnified.map((id) => id),
+        tamanho: tamanho,
+      };
+    } catch (error) {
+      console.log('Error decoding token', error);
+    }
   }
 }

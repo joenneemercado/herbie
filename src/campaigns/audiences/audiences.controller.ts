@@ -1,10 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Request,
+  BadRequestException,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AudiencesService } from './audiences.service';
 import { CreateAudienceDto } from './dto/create-audience.dto';
-import { UpdateAudienceDto } from './dto/update-audience.dto';
-import { ApiBearerAuth, ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
-import { string } from 'zod';
 import { createAudienceSchema } from './dto/audience.schema';
 
 @ApiTags('Audiences')
@@ -12,7 +26,7 @@ import { createAudienceSchema } from './dto/audience.schema';
 @UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 @Controller('campaigns/audiences')
 export class AudiencesController {
-  constructor(private readonly audiencesService: AudiencesService) { }
+  constructor(private readonly audiencesService: AudiencesService) {}
 
   // @Post()
   // create(
@@ -87,7 +101,8 @@ export class AudiencesController {
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.audiencesService.create({
         audiencia,
         organization_id,
@@ -97,8 +112,8 @@ export class AudiencesController {
         marital_status,
         date_created_start,
         date_created_end,
-      })
-    };
+      });
+    }
   }
 
   @ApiQuery({
@@ -154,7 +169,8 @@ export class AudiencesController {
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.audiencesService.findAll({
         page,
         limit,
@@ -162,10 +178,9 @@ export class AudiencesController {
         statusId,
         name,
         createdBy,
-      })
-    };
+      });
+    }
   }
-
 
   @ApiQuery({
     name: 'organization_id',
@@ -181,7 +196,6 @@ export class AudiencesController {
     example: '["1984-02-10","1984-07-15"]',
     type: [String],
   })
-
   @ApiQuery({
     name: 'date_birth_end',
     required: false,
@@ -229,7 +243,6 @@ export class AudiencesController {
     description: 'Page numbe',
     example: 1,
   })
-
   @Get('/segment')
   findAllSegmented(
     @Query('page') page = 1,
@@ -241,11 +254,11 @@ export class AudiencesController {
     @Query('marital_status') marital_status?: string,
     @Query('date_created_start') date_created_start?: string,
     @Query('date_created_end') date_created_end?: string,
-
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.audiencesService.findAllSegmented({
         page,
         limit,
@@ -256,8 +269,8 @@ export class AudiencesController {
         marital_status,
         date_created_start,
         date_created_end,
-      })
-    };
+      });
+    }
   }
 
   @ApiQuery({
@@ -277,22 +290,30 @@ export class AudiencesController {
   @Get(':id')
   findOne(
     @Param('id') id: number,
-    @Query('organization_id') organization_id: string
+    @Query('organization_id') organization_id: string,
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.audiencesService.findOne(id, organization_id);
     }
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateAudienceDto: UpdateAudienceDto) {
-  //   return this.audiencesService.update(+id, updateAudienceDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.audiencesService.remove(+id);
-  // }
+  @Post('/interation')
+  async interationVtex2(
+    @Body() audienceDto: CreateAudienceDto,
+    @Request() req: Request,
+  ) {
+    const audience = await this.audiencesService.creatAudienceProcesso(
+      audienceDto,
+      req,
+    );
+    const parsed = createAudienceSchema.safeParse(audienceDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    this.audiencesService.createAudienceInteration(audience, parsed.data, req);
+    return audience;
+  }
 }
