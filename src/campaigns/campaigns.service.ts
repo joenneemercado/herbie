@@ -1,4 +1,3 @@
-
 import { HttpException, Injectable, Query } from '@nestjs/common';
 import { UpdateCampaignDto } from './dto/update-campaign.dto';
 import { PrismaService } from '@src/database/prisma.service';
@@ -7,9 +6,7 @@ import { CampaignContantes } from './campaign.constantes';
 
 @Injectable()
 export class CampaignsService {
-  constructor(
-    private prisma: PrismaService,
-  ) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(body: {
     idAudience?: number[];
@@ -45,9 +42,9 @@ export class CampaignsService {
       idAudience,
       name,
       priority,
-      tags
+      tags,
     } = body;
-    console.log(body)
+    // console.log(body);
     try {
       const beginDate = dateStart ? new Date(dateStart + 'Z') : null;
       const finalDate = dateEnd ? new Date(dateEnd + 'Z') : null;
@@ -58,13 +55,13 @@ export class CampaignsService {
       const dataFim = finalDate
         ? finalDate
         : new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() + 1,
-          0,
-          0,
-          -1,
-        );
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() + 1,
+            0,
+            0,
+            -1,
+          );
       return await this.prisma.$transaction(
         async (trxCampaing) => {
           //TODO VERFICIAR SE JA EXISTE UM CANAL PRA CAMPANHA
@@ -88,25 +85,22 @@ export class CampaignsService {
             },
           });
 
-          console.log('findTags', findTags);
+          //console.log('findTags', findTags);
 
           // Verifica se o array está vazio
           if (findTags.length === 0) {
-            throw new HttpException(
-              `this tags: ${tags} not found`,
-              404,
-            );
+            throw new HttpException(`this tags: ${tags} not found`, 404);
           }
 
           const findAudience = await trxCampaing.audiences.findMany({
             where: {
               id: {
-                in: idAudience // Verifica se os IDs das tags existem no banco
+                in: idAudience, // Verifica se os IDs das tags existem no banco
               },
-              organization_id: organization_id
-            }
-          })
-          console.log('findAudience', findAudience)
+              organization_id: organization_id,
+            },
+          });
+          //console.log('findAudience', findAudience);
           // Verifica se o array está vazio
           if (findAudience.length === 0) {
             throw new HttpException(
@@ -130,36 +124,36 @@ export class CampaignsService {
               jsonMeta: jsonMeta ? jsonMeta : undefined,
               subject: subject ? subject : undefined,
               createdBy: createdBy,
-              organization_id: organization_id
+              organization_id: organization_id,
             },
           });
-          console.log('Campanha criada:', camp);
+          //console.log('Campanha criada:', camp);
           // Rastrear IDs de contato únicos usando um Set
           const uniqueContactIds = new Set<number>();
 
-          //TODO VERIFICA SE JÁ EXISTE UMA AUDIENCIA 
+          //TODO VERIFICA SE JÁ EXISTE UMA AUDIENCIA
           for (const audiencia of idAudience) {
-            console.log('audiencia', audiencia)
+            //console.log('audiencia', audiencia);
             const campAudi = await trxCampaing.campaignaudience.create({
               data: {
                 idCampaign: camp.id,
                 idAudience: audiencia,
-                organization_id: organization_id
+                organization_id: organization_id,
               },
             });
-            console.log('campAudi', campAudi)
+            //  console.log('campAudi', campAudi);
 
             // preciso dos contatos da audincia para adicionar na campaigndetails
             const audContacts = await trxCampaing.audiencescontacts.findMany({
               where: {
                 idAudience: audiencia,
-                organization_id: organization_id
-              }
-            })
-            console.log('audContacts', audContacts)
+                organization_id: organization_id,
+              },
+            });
+            // console.log('audContacts', audContacts);
 
             // Adiciona contatos únicos ao Set
-            audContacts.forEach(contact => {
+            audContacts.forEach((contact) => {
               uniqueContactIds.add(contact.idContact);
             });
           }
@@ -171,35 +165,37 @@ export class CampaignsService {
             organization_id: organization_id,
             createdBy: 1,
           }));
-          console.log('associationTagsData', associationTagsData)
+          // console.log('associationTagsData', associationTagsData);
           // Realiza o insert usando createMany
           const associationTags = await trxCampaing.associationtags.createMany({
             data: associationTagsData,
             skipDuplicates: true, // Opcional: evita duplicatas, caso já existam associações
           });
-          console.log('associationTags', associationTags);
-
+          // console.log('associationTags', associationTags);
 
           // Prepara os dados finais para inserir no campaigndetails
-          const campaignDetailsData = Array.from(uniqueContactIds).map(idContact => ({
-            idCampaign: camp.id,
-            idContact,
-            statusId: 1,
-            organization_id: organization_id
-          }));
-          console.log('campaignDetailsData', campaignDetailsData);
+          const campaignDetailsData = Array.from(uniqueContactIds).map(
+            (idContact) => ({
+              idCampaign: camp.id,
+              idContact,
+              statusId: 1,
+              organization_id: organization_id,
+            }),
+          );
+          // console.log('campaignDetailsData', campaignDetailsData);
 
           if (campaignDetailsData.length > 0) {
-            const insertedDetails = await trxCampaing.campaigndetails.createMany({
-              data: campaignDetailsData,
-              skipDuplicates: true,
-            });
-            console.log('Inserted campaign details:', insertedDetails);
+            const insertedDetails =
+              await trxCampaing.campaigndetails.createMany({
+                data: campaignDetailsData,
+                skipDuplicates: true,
+              });
+            // console.log('Inserted campaign details:', insertedDetails);
           }
           return {
             campaign: camp,
             audience: idAudience,
-            qtdContact: campaignDetailsData.length
+            qtdContact: campaignDetailsData.length,
           };
         },
         {
@@ -207,31 +203,23 @@ export class CampaignsService {
           timeout: 500000,
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         },
-      )
+      );
     } catch (error) {
-      console.log(`erro ao criar a campanha`, error)
+      console.log(`erro ao criar a campanha`, error);
       throw new HttpException(error.message, error.status);
     }
     //return 'This action adds a new campaign';
   }
 
-  async findAll(
-    query: {
-      page?: number;
-      limit?: number;
-      organization_id: string;
-      name?: string;
-      statusId?: number;
-      createdBy?: number;
-    }) {
-    const {
-      page,
-      limit,
-      organization_id,
-      name,
-      statusId,
-      createdBy,
-    } = query;
+  async findAll(query: {
+    page?: number;
+    limit?: number;
+    organization_id: string;
+    name?: string;
+    statusId?: number;
+    createdBy?: number;
+  }) {
+    const { page, limit, organization_id, name, statusId, createdBy } = query;
     const skip = (page - 1) * limit;
 
     const filters = {
@@ -240,8 +228,8 @@ export class CampaignsService {
         name ? { name: { contains: name } } : {},
         statusId ? { statusId: statusId } : {},
         createdBy ? { createdBy: createdBy } : {},
-      ]
-    }
+      ],
+    };
     try {
       const [campaign, totalCampaigns] = await Promise.all([
         this.prisma.campaigns.findMany({
@@ -279,7 +267,7 @@ export class CampaignsService {
         }),
         this.prisma.audiences.count({ where: filters }),
         // this.prisma.campaigndetails.count({ where: { statusId: { in: CampaignContantes.QTD_CAMPAING_DETAILS_ENVIADO, }, }, })
-      ])
+      ]);
       return {
         data: campaign,
         totalCampaigns,
@@ -289,30 +277,26 @@ export class CampaignsService {
         totalPages: Math.ceil(totalCampaigns / limit),
       };
     } catch (error) {
-      console.log(`erro ao procurar campanha`, error)
+      console.log(`erro ao procurar campanha`, error);
       throw new HttpException(error.message, error.status);
     }
-
   }
 
-  async findOne(
-    id: number, 
-    organization_id: string
-  ) {
+  async findOne(id: number, organization_id: string) {
     //console.log(id,organization_id)
     try {
       const campanha = await this.prisma.campaigns.findFirst({
         where: {
           id: id,
-          organization_id: organization_id
+          organization_id: organization_id,
         },
-      })
+      });
       if (!campanha) {
         throw new HttpException('Campanha nao existe', 404);
       }
-      return campanha
+      return campanha;
     } catch (error) {
-      console.log(`erro ao procurar id da campanha`, error)
+      console.log(`erro ao procurar id da campanha`, error);
       throw new HttpException(error.message, error.status);
     }
     //return `This action returns a #${id} campaign`;

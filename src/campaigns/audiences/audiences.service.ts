@@ -505,10 +505,29 @@ export class AudiencesService {
             //console.log(createAudienceContacts)
           } catch (error) {
             console.log(`erro ao criar os contatos`, error);
+            await this.prisma.audiences.update({
+              where: {
+                id: audience.id,
+              },
+              data: {
+                statusId: AudienceConstantes.AUDIENCE_STATUS_ERRO,
+                obs: `Erro ao processar dados: ${error.message}`,
+              },
+            });
             throw new HttpException(error.message, error.status);
           }
         }
       }
+      await this.prisma.audiences.update({
+        where: {
+          id: audience.id,
+        },
+        data: {
+          statusId: AudienceConstantes.AUDIENCE_STATUS_ATIVO,
+          updatedAt: new Date(),
+        },
+      });
+
       return {
         audiencia: audience,
         customerUnified: idCustomerUnified.map((id) => id),
