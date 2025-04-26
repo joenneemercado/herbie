@@ -21,6 +21,8 @@ import { createInteractionSchema } from './dto/create-interaction-schema';
 import {
   FindInteractionSchema,
   findInteractionSchema,
+  FindInteractionTeucardSchema,
+  findInteractionTeucardSchema,
 } from './dto/interation.dto';
 
 @ApiTags('Interactions')
@@ -104,46 +106,6 @@ export class InteractionsController {
     return this.interactionsService.findOne(+id);
   }
 
-  // @Get('find/interaction')
-  // findInteraction() {
-  //   return this.interactionsService.findInteraction();
-  // }
-  // @Get('find/interaction')
-  // findInteraction(
-  //   @Query('seller') seller: string,
-  //   @Query('date_start') date_start: string,
-  //   @Query('date_end') date_end: string,
-  //   @Query('ean') ean: string,
-  // ) {
-  //   return this.interactionsService.findInteraction(
-  //     seller,
-  //     date_start,
-  //     date_end,
-  //     ean,
-  //   );
-  // }
-
-  // @Get('find/interaction')
-  // findInteraction(
-  //   @Query('seller') seller: string,
-  //   @Query('dateBegin') dateBegin: string,
-  //   @Query('dateEnd') dateEnd: string,
-  //   @Query('ean') ean: string,
-  //   @Query('organization_id') organization_id: string,
-  //   @Query('refId') refId: string,
-  //   @Query('status_order') status_order: string,
-  // ) {
-  //   return this.interactionsService.findInteraction(
-  //     seller,
-  //     dateBegin,
-  //     dateEnd,
-  //     ean,
-  //     organization_id,
-  //     refId,
-  //     status_order,
-  //   );
-  // }
-
   @Get('find/interaction/vtex')
   findInteraction(
     @Query() findInteraction: FindInteractionSchema,
@@ -154,6 +116,18 @@ export class InteractionsController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.interactionsService.findInteraction(parsed.data, req);
+  }
+
+  @Get('find/interaction/teucard')
+  findInteractionTeuCard(
+    @Query() findInteraction: FindInteractionTeucardSchema,
+    @Request() req: Request,
+  ) {
+    const parsed = findInteractionTeucardSchema.safeParse(findInteraction);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.interactionsService.findInteractionTeuCard(parsed.data, req);
   }
 
   // @Post('/create/customer')
