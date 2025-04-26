@@ -24,6 +24,7 @@ import { AudiencesModule } from './campaigns/audiences/audiences.module';
 import { TagsModule } from './tags/tags.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { SourceModule } from './source/source.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { APP_GUARD } from '@nestjs/core';
     CampaignsModule,
     AudiencesModule,
     TagsModule,
+    SourceModule,
   ],
   controllers: [AppController],
   providers: [
