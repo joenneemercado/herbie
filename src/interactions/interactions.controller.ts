@@ -1,15 +1,12 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Param,
   Request,
   Query,
   BadRequestException,
 } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
-import { CreateInteractionDto } from './dto/create-interaction.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -17,34 +14,19 @@ import {
   ApiQuery,
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
-import { createInteractionSchema } from './dto/create-interaction-schema';
+import { intrationDtoSchema } from './dto/interaction-schema';
 import {
   FindInteractionSchema,
   findInteractionSchema,
   FindInteractionTeucardSchema,
   findInteractionTeucardSchema,
+  IntrationDto,
 } from './dto/interation.dto';
 
 @ApiTags('Interactions')
 @Controller('interactions')
 export class InteractionsController {
   constructor(private readonly interactionsService: InteractionsService) {}
-
-  @ApiExcludeEndpoint()
-  @Post('/create')
-  @ApiOperation({ summary: 'Cria uma nova interação' })
-  @ApiResponse({ status: 201, description: 'Interação criada com sucesso' })
-  @ApiResponse({ status: 400, description: 'Dados inválidos' })
-  create(
-    @Body() createInteractionDto: CreateInteractionDto,
-    @Request() req: Request,
-  ) {
-    const parsed = createInteractionSchema.safeParse(createInteractionDto);
-    if (!parsed.success) {
-      throw new BadRequestException(parsed.error.errors);
-    }
-    return this.interactionsService.create(parsed.data, req);
-  }
 
   @Get()
   @ApiOperation({ summary: 'Obtém todas as interações' })
@@ -107,6 +89,41 @@ export class InteractionsController {
   }
 
   @Get('find/interaction/vtex')
+  @ApiOperation({ summary: 'Obtém todas as interações' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Lista de interações retornada com sucesso',
+  // })
+  // @ApiQuery({
+  //   name: 'page',
+  //   type: Number,
+  //   required: false,
+  //   description: 'Número da página (padrão: 1)',
+  // })
+  // @ApiQuery({
+  //   name: 'limit',
+  //   type: Number,
+  //   required: false,
+  //   description: 'Quantidade de itens por página (padrão: 10)',
+  // })
+  // @ApiQuery({
+  //   name: 'organization_id',
+  //   type: String,
+  //   required: true,
+  //   description: 'ID da organização',
+  // })
+  // @ApiQuery({
+  //   name: 'customer_id',
+  //   type: Number,
+  //   required: false,
+  //   description: 'ID do cliente (opcional)',
+  // })
+  // @ApiQuery({
+  //   name: 'customer_unified_id',
+  //   type: Number,
+  //   required: false,
+  //   description: 'ID do cliente Unificado(opcional)',
+  // })
   findInteraction(
     @Query() findInteraction: FindInteractionSchema,
     @Request() req: Request,
@@ -138,4 +155,21 @@ export class InteractionsController {
   //   }
   //   return this.zeusService.create(parsed.data, req);
   // }
+
+  @ApiExcludeEndpoint()
+  @Get('/campaing/contact')
+  findInteractionCampaingContact(
+    @Query() intrationDto: IntrationDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createInteractionCampaing', intrationDto);
+    const parsed = intrationDtoSchema.safeParse(intrationDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.interactionsService.findInteractionCampaingContact(
+      parsed.data,
+      req,
+    );
+  }
 }

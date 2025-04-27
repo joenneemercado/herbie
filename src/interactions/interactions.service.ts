@@ -2,18 +2,20 @@ import {
   ConsoleLogger,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 
 import { PrismaService } from '@src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
-import { InteractionConstantes } from './interactions.constantes';
-import { CreateInteractionSchema } from './dto/create-interaction-schema';
+
 import {
   FindInteractionSchema,
   FindInteractionTeucardSchema,
 } from './dto/interation.dto';
+import { IntrationDtoSchema } from './dto/interaction-schema';
+import { InteractionConstantes } from './interactions.constantes';
 
 @Injectable()
 export class InteractionsService {
@@ -21,89 +23,6 @@ export class InteractionsService {
     private readonly prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
-
-  async create(createInteractionDto: CreateInteractionSchema, req: Request) {
-    console.log('createInteractionDto', createInteractionDto);
-    const reqToken = req.headers['authorization'];
-    if (!reqToken) {
-      throw new UnauthorizedException();
-    }
-    try {
-      const token = reqToken.split(' ')[1];
-      //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
-      const { sub, orgs } = await this.jwtService.decode(token);
-      const {
-        organization_id,
-        cpf,
-        event_id,
-        //source_id,
-        type,
-        details,
-        total,
-      } = createInteractionDto;
-
-      console.log(details);
-
-      const findCustomerUnified = await this.prisma.customerUnified.findFirst({
-        where: {
-          cpf: cpf,
-          organization_id: organization_id,
-        },
-      });
-
-      const findUser = await this.prisma.customer.findFirst({
-        where: {
-          cpf: cpf,
-          organization_id: organization_id,
-          source_id: InteractionConstantes.SOURCE_ID_ZEUS,
-        },
-      });
-
-      if (!findUser) {
-        return {
-          code: HttpStatus.NOT_FOUND,
-          message: 'User not found',
-        };
-        //throw new HttpException('User not found', HttpStatus.NOT_FOUND)
-      }
-
-      if (findCustomerUnified && findUser) {
-        await this.prisma.interaction.create({
-          data: {
-            organization_id: organization_id,
-            details: details.length > 0 ? details : createInteractionDto,
-            customer_unified_Id: findCustomerUnified.id,
-            event_id: event_id,
-            source_id: InteractionConstantes.SOURCE_ID_ZEUS,
-            type: type,
-            total: total,
-          },
-        });
-        //console.log('criando com customer unified', createInteraction)
-      } else {
-        await this.prisma.interaction.create({
-          data: {
-            organization_id: organization_id,
-            details: details.length > 0 ? details : createInteractionDto,
-            customer_id: findUser.id,
-            event_id: event_id,
-            source_id: InteractionConstantes.SOURCE_ID_ZEUS,
-            type: type,
-            total: total,
-          },
-        });
-        //console.log('cirando customer', createInteraction)
-      }
-
-      return {
-        message: 'Interaction created successfully',
-        code: HttpStatus.CREATED,
-      };
-    } catch (error) {
-      console.log(error.message);
-    }
-    //return 'This action adds a new interaction';
-  }
 
   async findAll(params: {
     page: number;
@@ -254,7 +173,7 @@ export class InteractionsService {
 
     const whereCondition = filters.length > 0 ? { AND: filters } : {};
 
-    const limit = Number(findInteraction.limit) || 10;
+    const limit = Number(findInteraction) || 10;
     const cursor = findInteraction.cursor
       ? Number(findInteraction.cursor)
       : undefined;
@@ -513,5 +432,101 @@ export class InteractionsService {
         totalPages, // Total de páginas
       },
     };
+  }
+
+  //todo interacao de campanha para o contato
+  async findInteractionCampaingContact(
+    intrationDto: IntrationDtoSchema,
+    req: Request,
+  ) {
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    try {
+      const filters = [];
+
+      const customer_unified_Tratato = intrationDto.customer_unified_id
+        ? Number(intrationDto.customer_unified_id)
+        : undefined;
+
+      if (intrationDto.customer_unified_id) {
+        filters.push({
+          customer_unified_Id: customer_unified_Tratato,
+        });
+      }
+
+      const whereCondition = filters.length > 0 ? { AND: filters } : {};
+
+      const limit = Number(intrationDto.limit) || 10;
+      const cursor = intrationDto.cursor
+        ? Number(intrationDto.cursor)
+        : undefined;
+
+      //console.log(intrationDto);
+      const interactions = await this.prisma.interaction.findMany({
+        where: {
+          organization_id: intrationDto.organization_id,
+          event_id: InteractionConstantes.EVENTE_ID_CAMPAIGN,
+          source_id: InteractionConstantes.SOURCE_ID_CAMPAIGN,
+          type: InteractionConstantes.EVENT_TYPE_CAMPAIGN,
+          ...whereCondition,
+        },
+        take: limit,
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: {
+          id: 'asc',
+        },
+      });
+      //console.log('log interaction', interactions);
+      const itemsOnPage = interactions.length;
+      const total = await this.prisma.interaction.count({
+        where: {
+          organization_id: intrationDto.organization_id,
+          event_id: InteractionConstantes.EVENTE_ID_CAMPAIGN,
+          source_id: InteractionConstantes.SOURCE_ID_CAMPAIGN,
+          type: InteractionConstantes.EVENT_TYPE_CAMPAIGN,
+          ...whereCondition,
+        },
+      });
+
+      const nextCursor =
+        interactions.length === limit
+          ? interactions[interactions.length - 1].id
+          : null;
+
+      const totalPages = Math.ceil(total / limit);
+
+      // Extraindo múltiplos campos de 'details'
+      const data = interactions
+        .map((interaction) => {
+          if (interaction.details && typeof interaction.details === 'object') {
+            return {
+              id: interaction.details['id'],
+              name: interaction.details['name'],
+              message: interaction.details['message'],
+              dateStart: interaction.details['dateStart'],
+              dateEnd: interaction.details['dateEnd'],
+            };
+          }
+          return null; // Caso 'details' não seja um objeto válido
+        })
+        .filter(Boolean);
+
+      //console.log('Detalhes das campanhas:', data);
+
+      return {
+        data, // Dados da consulta
+        pageInfo: {
+          total, // Total de itens no banco
+          itemsOnPage, // Itens retornados na página atual
+          nextCursor, // ID do próximo cursor
+          totalPages, // Total de páginas
+        },
+      };
+    } catch (error) {
+      console.error('Error in findInteractionCampaing:', error);
+      throw new InternalServerErrorException();
+    }
   }
 }
