@@ -56,18 +56,19 @@ model Member {
 }
 
 model User {
-  id              Int          @id @default(autoincrement())
-  email           String       @unique
-  password        String
-  name            String
-  role            String
-  last_access     DateTime?
-  created_at      DateTime?    @default(now())
-  updated_at      DateTime?    @updatedAt
-  organization_id String
-  members         Member[]
-  orders          Order[]
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
+  id                    Int                     @id @default(autoincrement())
+  email                 String                  @unique
+  password              String
+  name                  String
+  role                  String
+  last_access           DateTime?
+  created_at            DateTime?               @default(now())
+  updated_at            DateTime?               @updatedAt
+  organization_id       String
+  ConfigurationsChannel ConfigurationsChannel[]
+  members               Member[]
+  orders                Order[]
+  organization          Organization            @relation(fields: [organization_id], references: [public_id])
 }
 
 model TypeEvent {
@@ -545,18 +546,21 @@ model Campaignstatus {
 }
 
 model Channels {
-  id              Int          @id @default(autoincrement())
-  name            String       @db.VarChar(255)
-  type            String?      @db.VarChar(255)
-  colorCode       String?
-  statusId        Int
-  createdAt       DateTime?    @default(now())
-  updatedAt       DateTime?    @default(now())
-  createdBy       Int?
-  updatedBy       Int?
-  organization_id String
-  campaigns       Campaigns[]
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
+  id                    Int                     @id @default(autoincrement())
+  name                  String                  @db.VarChar(255)
+  type                  String?                 @db.VarChar(255)
+  colorCode             String?
+  statusId              Int
+  createdAt             DateTime?               @default(now())
+  updatedAt             DateTime?               @default(now())
+  createdBy             Int?                    @default(1)
+  updatedBy             Int?
+  organization_id       String
+  provider              String?                 @db.VarChar
+  campaigns             Campaigns[]
+  organization          Organization            @relation(fields: [organization_id], references: [public_id])
+  ConfigurationsChannel ConfigurationsChannel[]
+  IntegrationTokens     IntegrationTokens[]
 }
 
 model Tags {
@@ -598,6 +602,39 @@ model CustomerUnifiedTags {
   idtag               Int?
   CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_customerunified_fk")
   Tags                Tags?            @relation(fields: [idtag], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_tags_fk")
+}
+
+model ConfigurationsChannel {
+  id          Int       @id @default(autoincrement())
+  description String    @db.VarChar(255)
+  idChannel   Int
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime
+  user_id     Int
+  value       String?   @db.VarChar(255)
+  Channels    Channels  @relation(fields: [idChannel], references: [id])
+  User        User      @relation(fields: [user_id], references: [id])
+
+  @@index([createdAt])
+  @@index([idChannel, user_id])
+  @@index([updatedAt])
+  @@index([user_id, idChannel, createdAt])
+  @@index([user_id])
+}
+
+model IntegrationTokens {
+  id        Int       @id @default(autoincrement())
+  idChannel Int
+  label     String
+  value     String
+  statusId  Int
+  createdAt DateTime? @default(now())
+  updatedAt DateTime  @default(now())
+  createdBy Int?
+  updatedBy Int?
+  Channels  Channels  @relation(fields: [idChannel], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([idChannel, label])
 }
 
 enum Role {
