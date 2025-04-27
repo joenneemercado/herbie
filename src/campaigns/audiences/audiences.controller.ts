@@ -10,7 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AudiencesService } from './audiences.service';
-import { CreateAudienceDto } from './dto/create-audience.dto';
+import {
+  CreateAudienceDto,
+  CreateAudienceInteractionDto,
+} from './dto/create-audience.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -302,7 +305,7 @@ export class AudiencesController {
 
   @Post('/interation')
   async interationVtex2(
-    @Body() audienceDto: CreateAudienceDto,
+    @Body() audienceDto: CreateAudienceInteractionDto,
     @Request() req: Request,
   ) {
     const audience = await this.audiencesService.creatAudienceProcesso(

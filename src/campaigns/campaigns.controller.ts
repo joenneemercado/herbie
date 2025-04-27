@@ -1,22 +1,38 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Request,
+  BadRequestException,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CampaignsService } from './campaigns.service';
-import { createCampaingDto } from './dto/create-campaign.dto';
-import { UpdateCampaignDto } from './dto/update-campaign.dto';
-import { ApiBearerAuth, ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CreateCampaingDto } from './dto/create-campaign.dto';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
+import { createCampaignchema } from './dto/campaign.schema';
 
 @ApiTags('campaigns')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 @Controller('campaigns')
 export class CampaignsController {
-  constructor(private readonly campaignsService: CampaignsService) { }
+  constructor(private readonly campaignsService: CampaignsService) {}
 
   // @Post()
   // create(@Body() createCampaignDto: createCampaingDto) {
   //   return this.campaignsService.create(createCampaignDto);
   // }
-  @ApiBody({ type: createCampaingDto })
+  @ApiBody({ type: CreateCampaingDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post()
   create(
@@ -41,7 +57,8 @@ export class CampaignsController {
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.campaignsService.create({
         idAudience,
         organization_id,
@@ -61,8 +78,8 @@ export class CampaignsController {
         dateEnd,
         jsonMeta,
         subject,
-      })
-    };
+      });
+    }
   }
 
   @ApiQuery({
@@ -101,7 +118,6 @@ export class CampaignsController {
     description: 'Page numbe',
     example: 1,
   })
-
   @Get('/all')
   findAll(
     @Query('page') page = 1,
@@ -113,7 +129,8 @@ export class CampaignsController {
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.campaignsService.findAll({
         page,
         limit,
@@ -121,10 +138,9 @@ export class CampaignsController {
         statusId,
         name,
         createdBy,
-      })
-    };
+      });
+    }
   }
-
 
   @ApiQuery({
     name: 'organization_id',
@@ -140,29 +156,29 @@ export class CampaignsController {
     example: 1,
     type: Number,
   })
-
   @Get(':id')
   findOne(
     @Param('id') id: number,
-    @Query('organization_id') organization_id: string
+    @Query('organization_id') organization_id: string,
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
-      return this.campaignsService.findOne(
-        id,
-        organization_id
-      )
-    };
+    }
+    {
+      return this.campaignsService.findOne(id, organization_id);
+    }
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateCampaignDto: UpdateCampaignDto) {
-  //   return this.campaignsService.update(+id, updateCampaignDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.campaignsService.remove(+id);
-  // }
+  @Get('/details/contacts')
+  findCampaignDetails(
+    @Query() createCampaignDto: CreateCampaingDto,
+    @Request() req: Request,
+  ) {
+    console.log('createInteractionCampaing', createCampaignDto);
+    const parsed = createCampaignchema.safeParse(createCampaignDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.campaignsService.findCampaignDetails(parsed.data, req);
+  }
 }
