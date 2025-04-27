@@ -63,6 +63,12 @@ export class CreateAudienceDto {
   @IsString({ message: 'O marital_status deve ser uma string' })
   @ApiProperty({ description: 'Estado civil', example: 'single' })
   marital_status?: string;
+}
+
+export class CreateAudienceInteractionDto {
+  @IsString({ message: 'O organization_id deve ser uma string' })
+  @ApiProperty({ description: 'ID da organização', example: 'org-abc123' })
+  organization_id: string;
 
   @IsOptional()
   @IsString({ message: 'O dateBegin deve ser uma string' })
