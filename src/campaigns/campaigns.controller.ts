@@ -10,7 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CampaignsService } from './campaigns.service';
-import { CreateCampaingDto } from './dto/create-campaign.dto';
+import {
+  CampaingContactDto,
+  CreateCampaingDto,
+} from './dto/create-campaign.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -19,7 +22,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
-import { createCampaignchema } from './dto/campaign.schema';
+import {
+  campaingContactDtochema,
+  createCampaignchema,
+} from './dto/campaign.schema';
 
 @ApiTags('campaigns')
 @ApiBearerAuth()
@@ -180,5 +186,18 @@ export class CampaignsController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.campaignsService.findCampaignDetails(parsed.data, req);
+  }
+
+  @Get('/info/contacts')
+  findCampaignContacts(
+    @Query() CampaingContactDto: CampaingContactDto,
+    @Request() req: Request,
+  ) {
+    //console.log('CampaingContactDto', CampaingContactDto);
+    const parsed = campaingContactDtochema.safeParse(CampaingContactDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.campaignsService.findCampaignContacts(parsed.data, req);
   }
 }

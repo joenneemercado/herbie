@@ -47,48 +47,6 @@ export type FindInteractionTeucardSchema = z.infer<
   typeof findInteractionTeucardSchema
 >;
 
-// export class InteractionDto {
-//   @IsString({ message: 'O organization_id deve ser uma string' })
-//   @ApiProperty({ description: 'ID da organização', example: '1' })
-//   organization_id: string;
-
-//   @IsNumber({}, { message: 'O source_id deve ser um número' })
-//   @ApiProperty({ description: 'ID da origem', example: 2 })
-//   source_id: number;
-
-//   @IsOptional()
-//   @IsString({ message: 'O type deve ser uma string' })
-//   @ApiProperty({
-//     description: 'Tipo de interação',
-//     example: 'purchase',
-//   })
-//   type: string;
-
-//   @IsOptional()
-//   @IsNumber({}, { message: 'O customer_unified_id deve ser um número' })
-//   @ApiProperty({
-//     description: 'ID do cliente unificado',
-//     example: 123,
-//   })
-//   customer_unified_id: number;
-
-//   @IsOptional()
-//   @IsNumber({}, { message: 'O status_id deve ser um número' })
-//   @ApiProperty({
-//     description: 'ID do status da interação',
-//     example: 1,
-//   })
-//   status_id: number;
-
-//   @IsOptional()
-//   @IsNumber({}, { message: 'O created_by deve ser um número' })
-//   @ApiProperty({
-//     description: 'ID de quem criou a interação',
-//     example: 99,
-//   })
-//   created_by: number;
-// }
-
 export class IntrationDto {
   @IsString({ message: 'O organization_id deve ser um UUID válido' })
   @ApiProperty()
@@ -110,7 +68,15 @@ export class IntrationDto {
   @IsString({ message: 'O customer_unified_id deve ser uma string' })
   @ApiProperty({
     description: 'ID do cliente unificado',
-    example: 123,
+    example: '123',
   })
   customer_unified_id?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O customer deve ser uma string' })
+  @ApiProperty({
+    description: 'ID do customer ',
+    example: '123',
+  })
+  customer_id?: string;
 }

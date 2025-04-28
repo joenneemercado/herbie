@@ -28,10 +28,19 @@ export class InteractionsService {
     organization_id: string;
     customer_id?: number;
     customer_unified_id?: number;
+    orderby?: 'asc' | 'desc'; // <-- AQUI TIPANDO CERTO
   }) {
-    const { page, limit, organization_id, customer_id, customer_unified_id } =
-      params;
+    const {
+      page,
+      limit,
+      organization_id,
+      customer_id,
+      customer_unified_id,
+      orderby,
+    } = params;
     const skip = (page - 1) * limit;
+    // console.log(params);
+    // console.log(orderby);
 
     const filters: Prisma.InteractionWhereInput = {
       AND: [
@@ -43,15 +52,20 @@ export class InteractionsService {
       ],
     };
     //console.log(filters);
+
+    const orderByClause = {
+      created_at: orderby ?? 'desc', // se não passar, vira 'desc' automático
+    };
     try {
       const [result, total] = await Promise.all([
         this.prisma.interaction.findMany({
           skip,
           take: Number(limit),
           where: filters,
-          orderBy: {
-            created_at: 'desc',
-          },
+          // orderBy: {
+          //   created_at: 'desc',
+          // },
+          orderBy: orderByClause,
           include: {
             CustomerUnified: {
               select: {
@@ -83,6 +97,92 @@ export class InteractionsService {
       throw error;
     }
   }
+
+  // async findAll(intrationDto: IntrationDtoSchema, req: Request) {
+  //   try {
+  //     const reqToken = req.headers['authorization'];
+  //     if (!reqToken) {
+  //       throw new UnauthorizedException();
+  //     }
+
+  //     const filters = [];
+
+  //     if (intrationDto.customer_unified_id) {
+  //       filters.push({
+  //         customer_unified_Id: Number(intrationDto.customer_unified_id),
+  //       });
+  //     }
+
+  //     const whereCondition = filters.length > 0 ? { AND: filters } : {};
+
+  //     const limit = Number(intrationDto.limit) || 10;
+  //     const cursor = intrationDto.cursor
+  //       ? Number(intrationDto.cursor)
+  //       : undefined;
+
+  //     const realLimit = limit + 1; // pega 1 a maisit + 1; // pega 1 a mais
+
+  //     const data = await this.prisma.interaction.findMany({
+  //       where: {
+  //         organization_id: intrationDto.organization_id,
+  //         ...whereCondition,
+  //       },
+  //       include: {
+  //         CustomerUnified: {
+  //           select: {
+  //             firstname: true,
+  //             lastname: true,
+  //           },
+  //         },
+  //         Source: {
+  //           select: {
+  //             name: true,
+  //           },
+  //         },
+  //       },
+  //       take: realLimit,
+  //       cursor: cursor ? { id: cursor } : undefined,
+  //       skip: cursor ? 1 : 0, // <- ESSA LINHA
+  //       orderBy: {
+  //         id: 'asc',
+  //       },
+  //     });
+
+  //     // const nextCursor =
+  //     //   data.length === limit ? data[data.length - 1].id : null;
+  //     // //Ajustar o nextCursor e o retorno
+
+  //     // console.log('log interaction', interactions);
+  //     let nextCursor: number | null = null;
+  //     if (data.length === realLimit) {
+  //       const nextItem = data.pop(); // tira o item extra
+  //       nextCursor = nextItem!.id; // pega o id dele como próximo cursor
+  //     }
+
+  //     const itemsOnPage = data.length;
+  //     const total = await this.prisma.interaction.count({
+  //       where: {
+  //         organization_id: intrationDto.organization_id,
+  //         ...whereCondition,
+  //       },
+  //     });
+
+  //     const totalPages = Math.ceil(total / limit);
+
+  //     return {
+  //       data, // Dados da consulta
+  //       pageInfo: {
+  //         total, // Total de itens no banco
+  //         itemsOnPage, // Itens retornados na página atual
+  //         nextCursor, // ID do próximo cursor
+  //         totalPages, // Total de páginas
+  //       },
+  //     };
+  //   } catch (error) {
+  //     console.error('Error fetching customers Unified:', error);
+  //     throw error;
+  //   }
+  // }
 
   findOne(id: number) {
     return `This action returns a #${id} interaction`;

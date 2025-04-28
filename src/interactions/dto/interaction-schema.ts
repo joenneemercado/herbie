@@ -48,14 +48,6 @@ export const intrationDtoSchema = z.object({
   organization_id: z
     .string()
     .min(1, { message: 'ID da organização é obrigatório.' }),
-  // Aqui fazemos a transformação para número diretamente
-  // source_id: z
-  //   .string()
-  //   .refine((val) => !isNaN(Number(val)), {
-  //     message: 'O source_id deve ser um número',
-  //   }) // Refina para garantir que é um número válido
-  //   .transform((val) => Number(val)) // Transforma a string em número
-  //   .pipe(z.number().min(1, { message: 'ID da origem é obrigatório.' })), // Adiciona a validação para o número
 
   cursor: z
     .union([z.string(), z.number()])
@@ -69,14 +61,17 @@ export const intrationDtoSchema = z.object({
   customer_unified_id: z
     .string()
     .optional()
-    .transform((val) => {
-      const num = Number(val);
-      if (isNaN(num))
-        throw new Error('O customer_unified_id deve ser um número');
-      return num;
-    })
-    .refine((val) => typeof val === 'number', {
-      message: 'O customer_unified_id deve ser um número válido',
+    .transform((val) => (val ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'customer_unified_id deve ser um número válido',
+    }),
+
+  customer_id: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'customer_id deve ser um número válido',
     }),
 });
 

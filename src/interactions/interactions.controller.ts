@@ -70,6 +70,7 @@ export class InteractionsController {
     @Query('organization_id') organization_id: string,
     @Query('customer_id') customer_id?: number,
     @Query('customer_unified_id') customer_unified_id?: number,
+    @Query('orderby') orderby?: string,
   ) {
     return this.interactionsService.findAll({
       page,
@@ -77,8 +78,18 @@ export class InteractionsController {
       organization_id,
       customer_id,
       customer_unified_id,
+      orderby: orderby as 'asc' | 'desc',
     });
   }
+
+  // findAll(@Query() intrationDto: IntrationDto, @Request() req: Request) {
+  //   //console.log('createInteractionCampaing', intrationDto);
+  //   const parsed = intrationDtoSchema.safeParse(intrationDto);
+  //   if (!parsed.success) {
+  //     throw new BadRequestException(parsed.error.errors);
+  //   }
+  //   return this.interactionsService.findAll(parsed.data, req);
+  // }
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtém uma única interação pelo ID' })

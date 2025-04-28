@@ -27,7 +27,13 @@ export const createCampaignchema = z.object({
   // date_created_start:z.union([z.string(), z.array(z.string())]).nullish().optional(),
   // date_created_end:z.union([z.string(), z.array(z.string())]).nullish().optional(),
   idAudience: z.union([z.string(), z.array(z.string())]).nullish(),
-
+  customer_unified_id: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'customer_unified_id deve ser um número válido',
+    }),
   cursor: z
     .union([z.string(), z.number()])
     .transform((val) => Number(val))
@@ -46,3 +52,27 @@ export const UpdateCampaignSchema = z.object({
 
 export type CreateCampaignSchema = z.infer<typeof createCampaignchema>;
 export type updateCampaignSchema = z.infer<typeof UpdateCampaignSchema>;
+
+export const campaingContactDtochema = z.object({
+  organization_id: z
+    .string()
+    .min(1, { message: 'ID da organização é obrigatório.' }),
+
+  customer_unified_id: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'customer_unified_id deve ser um número válido',
+    }),
+  cursor: z
+    .union([z.string(), z.number()])
+    .transform((val) => Number(val))
+    .optional(),
+  limit: z
+    .union([z.string(), z.number()])
+    .transform((val) => Number(val))
+    .default(10),
+});
+
+export type CampaingContactDtochema = z.infer<typeof campaingContactDtochema>;
