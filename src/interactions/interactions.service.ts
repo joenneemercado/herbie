@@ -1,6 +1,4 @@
 import {
-  ConsoleLogger,
-  HttpStatus,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -44,7 +42,7 @@ export class InteractionsService {
           : { organization_id: organization_id },
       ],
     };
-
+    //console.log(filters);
     try {
       const [result, total] = await Promise.all([
         this.prisma.interaction.findMany({
@@ -54,9 +52,24 @@ export class InteractionsService {
           orderBy: {
             created_at: 'desc',
           },
+          include: {
+            CustomerUnified: {
+              select: {
+                firstname: true,
+                lastname: true,
+              },
+            },
+            Source: {
+              select: {
+                name: true,
+              },
+            },
+          },
         }),
         this.prisma.interaction.count({ where: filters }),
       ]);
+
+      //console.log(result);
 
       return {
         data: result,
