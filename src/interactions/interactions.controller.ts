@@ -14,7 +14,11 @@ import {
   ApiQuery,
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
-import { intrationDtoSchema } from './dto/interaction-schema';
+import {
+  intrationCustomerUnifiedDtoSchema,
+  IntrationCustomerUnifiedDtoSchema,
+  intrationDtoSchema,
+} from './dto/interaction-schema';
 import {
   FindInteractionSchema,
   findInteractionSchema,
@@ -156,6 +160,52 @@ export class InteractionsController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.interactionsService.findInteractionTeuCard(parsed.data, req);
+  }
+
+  @Get('find/unified')
+  @ApiOperation({ summary: 'Obtém todas as interações' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de interações retornada com sucesso',
+  })
+  @ApiQuery({
+    name: 'organization_id',
+    type: String,
+    required: true,
+    description: 'ID da organização',
+  })
+  @ApiQuery({
+    name: 'cursor',
+    type: Number,
+    required: false,
+    description: 'Número da página (padrão: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Quantidade de itens por página (padrão: 10)',
+  })
+  @ApiQuery({
+    name: 'customer_unified_id',
+    type: Number,
+    required: false,
+    description: 'ID do cliente Unificado(opcional)',
+  })
+  findInteractionCustomerUnified(
+    @Query() interactionCustomerUnified: IntrationCustomerUnifiedDtoSchema,
+    @Request() req: Request,
+  ) {
+    const parsed = intrationCustomerUnifiedDtoSchema.safeParse(
+      interactionCustomerUnified,
+    );
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.interactionsService.findInteractionCustomerUnified(
+      parsed.data,
+      req,
+    );
   }
 
   // @Post('/create/customer')

@@ -12,7 +12,10 @@ import {
   FindInteractionSchema,
   FindInteractionTeucardSchema,
 } from './dto/interation.dto';
-import { IntrationDtoSchema } from './dto/interaction-schema';
+import {
+  IntrationCustomerUnifiedDtoSchema,
+  IntrationDtoSchema,
+} from './dto/interaction-schema';
 import { InteractionConstantes } from './interactions.constantes';
 
 @Injectable()
@@ -640,6 +643,69 @@ export class InteractionsService {
     } catch (error) {
       console.error('Error in findInteractionCampaing:', error);
       throw new InternalServerErrorException();
+    }
+  }
+
+  //todo intracao do contato unificado
+  async findInteractionCustomerUnified(
+    interactionCustomerUnified: IntrationCustomerUnifiedDtoSchema,
+    req: Request,
+  ) {
+    console.log('findInteractionCustomerUnified', interactionCustomerUnified);
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    try {
+      const limit = Number(interactionCustomerUnified.limit) || 10;
+      const cursor = interactionCustomerUnified.cursor
+        ? Number(interactionCustomerUnified.cursor)
+        : undefined;
+
+      const data = await this.prisma.interaction.findMany({
+        where: {
+          organization_id: interactionCustomerUnified.organization_id,
+          customer_unified_Id: interactionCustomerUnified.customer_unified_id,
+          NOT: {
+            customer_unified_Id: null,
+          },
+        },
+        include: {
+          CustomerUnified: true,
+        },
+        take: limit,
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: {
+          id: 'asc',
+        },
+      });
+      const itemsOnPage = data.length;
+
+      const nextCursor =
+        data.length === limit ? data[data.length - 1].id : null;
+
+      const total = await this.prisma.interaction.count({
+        where: {
+          organization_id: interactionCustomerUnified.organization_id,
+          customer_unified_Id: interactionCustomerUnified.customer_unified_id,
+          NOT: {
+            customer_unified_Id: null,
+          },
+        },
+      });
+
+      const totalPages = Math.ceil(total / limit);
+      return {
+        data, // Dados da consulta
+        pageInfo: {
+          total, // Total de itens no banco
+          itemsOnPage, // Itens retornados na página atual
+          nextCursor, // ID do próximo cursor
+          totalPages, // Total de páginas
+        },
+      };
+    } catch (error) {
+      console.log('Error in findInteractionCustomerUnified:', error);
     }
   }
 }
