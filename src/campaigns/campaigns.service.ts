@@ -761,27 +761,27 @@ export class CampaignsService {
       const limit = Number(campaingContactDto.limit) || 10;
       const page = Number(campaingContactDto.page) || 1;
 
-      const data = await this.prisma.campaigndetails.findMany({
+      const data = await this.prisma.campaignDetails.findMany({
         where: {
-          idContact: Number(campaingContactDto.customer_unified_id),
+          contact_id: Number(campaingContactDto.customer_unified_id),
           organization_id: campaingContactDto.organization_id,
         },
         select: {
-          sentAt: true,
-          updatedAt: true,
-          campaigns: {
+          sent_at: true,
+          updated_at: true,
+          Campaigns: {
             select: {
               id: true,
               name: true,
               message: true,
-              channels: {
+              Channels: {
                 select: {
                   name: true,
                 },
               },
             },
           },
-          campaigndetailsstatus: {
+          CampaignDetailsStatus: {
             select: {
               id: true,
               name: true,
@@ -804,10 +804,10 @@ export class CampaignsService {
       //console.log('campanha', campanha);
       //console.log('log interaction', interactions);
       //const itemsOnPage = campanha.length;
-      const total = await this.prisma.campaigndetails.count({
+      const total = await this.prisma.campaignDetails.count({
         where: {
           organization_id: campaingContactDto.organization_id,
-          idContact: Number(campaingContactDto.customer_unified_id),
+          contact_id: Number(campaingContactDto.customer_unified_id),
         },
       });
 
