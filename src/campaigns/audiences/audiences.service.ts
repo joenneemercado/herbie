@@ -270,10 +270,10 @@ export class AudiencesService {
             const audiencie = await trxAudi.audiences.create({
               data: {
                 name: createAudienceDto.name,
-                statusId: createAudienceDto.statusId
+                status_id: createAudienceDto.statusId
                   ? createAudienceDto.statusId
                   : 1,
-                createdBy: createAudienceDto.createdBy
+                created_by: createAudienceDto.createdBy
                   ? createAudienceDto.createdBy
                   : 1,
                 organization_id: createAudienceDto.organization_id,
@@ -311,20 +311,20 @@ export class AudiencesService {
               for (const id of lista) {
                 try {
                   const createAudienceContacts =
-                    await trxAudi.audiencescontacts.create({
+                    await trxAudi.audiencesContacts.create({
                       data: {
-                        idAudience: audiencie.id,
-                        idContact: id,
+                        audience_id: audiencie.id,
+                        contact_id: id,
                         organization_id: createAudienceDto.organization_id,
-                        statusId: createAudienceDto.statusId
+                        status_id: createAudienceDto.statusId
                           ? createAudienceDto.statusId
                           : 1,
-                        createdBy: createAudienceDto.createdBy
+                        created_by: createAudienceDto.createdBy
                           ? createAudienceDto.createdBy
                           : 1,
                       },
                     });
-                  console.log(createAudienceContacts);
+                  //console.log(createAudienceContacts);
                 } catch (error) {
                   console.log(`erro ao criar os contatos`, error);
                   throw new HttpException(error.message, error.status);
@@ -368,8 +368,8 @@ export class AudiencesService {
       AND: [
         organization_id ? { organization_id: organization_id } : {},
         name ? { name: { contains: name } } : {},
-        statusId ? { statusId: statusId } : {},
-        createdBy ? { createdBy: createdBy } : {},
+        statusId ? { status_id: statusId } : {},
+        createdBy ? { created_by: createdBy } : {},
       ],
     };
     try {
@@ -623,8 +623,8 @@ export class AudiencesService {
       const createAudience = await this.prisma.audiences.create({
         data: {
           name: String(audienceDto.name),
-          statusId: Number(AudienceConstantes.AUDIENCE_STATUS_PROCESSANDO),
-          createdBy: 1,
+          status_id: Number(AudienceConstantes.AUDIENCE_STATUS_PROCESSANDO),
+          created_by: 1,
           organization_id: String(audienceDto.organization_id),
         },
       });
@@ -674,13 +674,13 @@ export class AudiencesService {
         //console.log(lista)
         for (const id of lista) {
           try {
-            await this.prisma.audiencescontacts.create({
+            await this.prisma.audiencesContacts.create({
               data: {
-                idAudience: audience.id,
-                idContact: id,
+                audience_id: audience.id,
+                contact_id: id,
                 organization_id: audienceDto.organization_id,
-                statusId: audienceDto.statusId ? audienceDto.statusId : 1,
-                createdBy: audienceDto.createdBy ? audienceDto.createdBy : 1,
+                status_id: audienceDto.statusId ? audienceDto.statusId : 1,
+                created_by: audienceDto.createdBy ? audienceDto.createdBy : 1,
               },
             });
             //console.log(createAudienceContacts)
@@ -691,7 +691,7 @@ export class AudiencesService {
                 id: audience.id,
               },
               data: {
-                statusId: AudienceConstantes.AUDIENCE_STATUS_ERRO,
+                status_id: AudienceConstantes.AUDIENCE_STATUS_ERRO,
                 obs: `Erro ao processar dados: ${error.message}`,
               },
             });
@@ -704,8 +704,8 @@ export class AudiencesService {
           id: audience.id,
         },
         data: {
-          statusId: AudienceConstantes.AUDIENCE_STATUS_ATIVO,
-          updatedAt: new Date(),
+          status_id: AudienceConstantes.AUDIENCE_STATUS_ATIVO,
+          updated_at: new Date(),
         },
       });
 

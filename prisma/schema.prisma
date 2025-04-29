@@ -20,24 +20,26 @@ model Organization {
   avatar_url            String?
   updated_by            Int?
   addresses             Address[]
+  AudienceStatus        AudienceStatus[]
   Audiences             Audiences[]
-  Audiencescontacts     Audiencescontacts[]
-  Audiencestatus        Audiencestatus[]
+  AudiencesContacts     AudiencesContacts[]
   Brand                 Brand[]
-  Campaignaudience      Campaignaudience[]
-  Campaigndetails       Campaigndetails[]
-  Campaigndetailsstatus Campaigndetailsstatus[]
+  CampaignAudience      CampaignAudience[]
+  CampaignDetails       CampaignDetails[]
+  CampaignDetailsStatus CampaignDetailsStatus[]
+  CampaignStatus        CampaignStatus[]
   Campaigns             Campaigns[]
-  Campaignstatus        Campaignstatus[]
   categories            Category[]
   Channels              Channels[]
   customers             Customer[]
   CustomerField         CustomerField[]
   CustomerUnified       CustomerUnified[]
+  ImportJob             ImportJob[]
   interactions          Interaction[]
   members               Member[]
   orders                Order[]
   products              Product[]
+  RFM                   RFM[]
   segments              Segment[]
   sellers               Seller[]
   Sku                   Sku[]
@@ -113,16 +115,17 @@ model Order {
   order_date              DateTime
   total                   Float
   subtotal                Float
-  total_with_discounts    Float
-  shipping_total          Float
-  percent_discount_total  Float
-  absolute_discount_total Float
+  total_with_discounts    Float?
+  shipping_total          Float?
+  percent_discount_total  Float?
+  absolute_discount_total Float?
   coupon_code             String?
   coupon_description      String?
   user_id                 Int
   seller_id               Int
   organization_id         Int
   customer_id             Int?
+  total_items             Int?
   organization            Organization @relation(fields: [organization_id], references: [id])
   seller                  Seller       @relation(fields: [seller_id], references: [id])
   user                    User         @relation(fields: [user_id], references: [id])
@@ -130,15 +133,18 @@ model Order {
 }
 
 model OrderItem {
-  id         Int     @id @default(autoincrement())
-  quantity   Int
-  price      Float
-  discount   Float
-  total      Float
-  order_id   Int
-  product_id Int
-  order      Order   @relation(fields: [order_id], references: [id])
-  product    Product @relation(fields: [product_id], references: [id])
+  id       Int     @id @default(autoincrement())
+  quantity Int
+  price    Float
+  discount Float?
+  total    Float
+  order_id Int
+  ean      String? @db.VarChar
+  name     String  @db.VarChar
+  sku      String  @db.VarChar
+  brand    String? @db.VarChar
+  category String? @db.VarChar
+  order    Order   @relation(fields: [order_id], references: [id])
 }
 
 model Category {
@@ -158,7 +164,6 @@ model Product {
   category_id     Int
   brand_id        Int?
   organization_id String
-  order_items     OrderItem[]
   brand           Brand?       @relation(fields: [brand_id], references: [id])
   category        Category     @relation(fields: [category_id], references: [id])
   organization    Organization @relation(fields: [organization_id], references: [public_id])
@@ -219,7 +224,7 @@ model Customer {
   x                        String?                    @db.VarChar
   whatsapp                 String?                    @db.VarChar
   addresses                Address[]
-  Associationtags          Associationtags[]
+  AssociationTags          AssociationTags[]
   organization             Organization               @relation(fields: [organization_id], references: [public_id])
   Source                   Source?                    @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_source_fk")
   customer_fields          CustomerField[]
@@ -254,14 +259,19 @@ model CustomerUnified {
   updated_by               Int?
   has_child                Int?
   status_id                Int?
+  score_fields             Int?                       @default(0)
+  score_behavior           Int?                       @default(0)
+  score_shop               String?                    @db.VarChar
+  score                    Int?                       @default(0)
   addresses                Address[]
-  audiencescontacts        Audiencescontacts[]
-  campaigndetails          Campaigndetails[]
+  AudiencesContacts        AudiencesContacts[]
+  CampaignDetails          CampaignDetails[]
   customer_fields          CustomerField[]
   organization             Organization               @relation(fields: [organization_id], references: [public_id])
   CustomerUnifiedTags      CustomerUnifiedTags[]
   Customer_CustomerUnified Customer_CustomerUnified[]
   Interaction              Interaction[]
+  RFM                      RFM[]
   segments                 SegmentCustomer[]
 }
 
@@ -357,7 +367,7 @@ model Source {
   name        String?       @db.VarChar
   description String?       @db.VarChar
   color_code  String?       @db.VarChar
-  statusid    Int?
+  status_id   Int?
   Customer    Customer[]
   Interaction Interaction[]
 }
@@ -397,102 +407,18 @@ model Status {
 }
 
 model Audiences {
-  createdAt         DateTime?           @default(now())
+  created_at        DateTime?           @default(now())
   id                Int                 @id @default(autoincrement())
   organization_id   String
   name              String              @db.VarChar(255)
   obs               String?
-  statusId          Int?                @default(1)
-  updatedAt         DateTime?
-  createdBy         Int?
-  updatedBy         Int?
+  status_id         Int?                @default(1)
+  updated_at        DateTime?
+  created_by        Int?
+  updated_by        Int?
   organization      Organization        @relation(fields: [organization_id], references: [public_id])
-  audiencescontacts Audiencescontacts[]
-  campaignaudience  Campaignaudience[]
-}
-
-model Audiencescontacts {
-  id              Int             @id @default(autoincrement())
-  idContact       Int
-  organization_id String
-  idAudience      Int
-  statusId        Int?
-  createdAt       DateTime?       @default(now())
-  updatedAt       DateTime?       @default(now())
-  createdBy       Int?
-  updatedBy       Int?
-  audiences       Audiences       @relation(fields: [idAudience], references: [id])
-  CustomerUnified CustomerUnified @relation(fields: [idContact], references: [id])
-  organization    Organization    @relation(fields: [organization_id], references: [public_id])
-  audiencestatus  Audiencestatus? @relation(fields: [statusId], references: [id])
-
-  @@index([idAudience])
-  @@index([idContact])
-  @@index([statusId])
-}
-
-model Audiencestatus {
-  id                Int                 @id @default(autoincrement())
-  name              String              @db.VarChar(255)
-  createdAt         DateTime?           @default(now())
-  createdBy         Int?
-  organization_id   String
-  updatedAt         DateTime?
-  updatedBy         Int?
-  audiencescontacts Audiencescontacts[]
-  organization      Organization        @relation(fields: [organization_id], references: [public_id])
-}
-
-model Campaignaudience {
-  id              Int          @id @default(autoincrement())
-  idCampaign      Int?
-  idAudience      Int?
-  organization_id String
-  audiences       Audiences?   @relation(fields: [idAudience], references: [id])
-  campaigns       Campaigns?   @relation(fields: [idCampaign], references: [id])
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
-
-  @@index([idAudience])
-  @@index([idCampaign])
-}
-
-model Campaigndetails {
-  id                    Int                   @id @default(autoincrement())
-  idContact             Int
-  idCampaign            Int
-  sender                String?               @db.VarChar(100)
-  sentAt                DateTime?
-  statusId              Int
-  createdAt             DateTime?             @default(now())
-  updatedAt             DateTime?             @default(now()) @db.Timestamp(0)
-  idSender              String?               @db.VarChar(100)
-  organization_id       String
-  campaigns             Campaigns             @relation(fields: [idCampaign], references: [id])
-  CustomerUnified       CustomerUnified       @relation(fields: [idContact], references: [id])
-  organization          Organization          @relation(fields: [organization_id], references: [public_id])
-  campaigndetailsstatus Campaigndetailsstatus @relation(fields: [statusId], references: [id])
-
-  @@index([createdAt, statusId])
-  @@index([idCampaign, sender, statusId])
-  @@index([idCampaign, statusId])
-  @@index([idCampaign, updatedAt])
-  @@index([idContact])
-  @@index([sender])
-  @@index([sender, sentAt])
-  @@index([statusId])
-  @@index([updatedAt])
-}
-
-model Campaigndetailsstatus {
-  id              Int               @id @default(autoincrement())
-  name            String            @db.VarChar(255)
-  createdAt       DateTime?         @default(now())
-  createdBy       Int?
-  updatedAt       DateTime?
-  updatedBy       Int?
-  organization_id String
-  campaigndetails Campaigndetails[]
-  organization    Organization      @relation(fields: [organization_id], references: [public_id])
+  AudiencesContacts AudiencesContacts[]
+  CampaignAudience  CampaignAudience[]
 }
 
 model Campaigns {
@@ -500,49 +426,36 @@ model Campaigns {
   name             String
   message          String
   file             String?
-  typeMessage      Int
-  sendingBy        String?            @db.VarChar(255)
-  statusId         Int?
-  createdAt        DateTime?          @default(now())
-  updatedAt        DateTime?          @default(now())
-  createdBy        Int?               @default(1)
+  type_message     Int
+  sending_by       String?            @db.VarChar(255)
+  status_id        Int?
+  created_at       DateTime?          @default(now())
+  updated_at       DateTime?          @default(now())
+  created_by       Int?               @default(1)
   priority         Int?               @default(0)
-  updatedBy        Int?
-  idChannel        Int?
-  dateStart        DateTime?          @default(now())
-  dateEnd          DateTime?
-  jsonMeta         Json?
+  updated_by       Int?
+  channel_id       Int?
+  date_start       DateTime?          @default(now())
+  date_end         DateTime?
+  json_meta        Json?
   subject          String?
   organization_id  String
-  Associationtags  Associationtags[]
-  campaignaudience Campaignaudience[]
-  campaigndetails  Campaigndetails[]
-  channels         Channels?          @relation(fields: [idChannel], references: [id])
+  AssociationTags  AssociationTags[]
+  CampaignAudience CampaignAudience[]
+  CampaignDetails  CampaignDetails[]
+  Channels         Channels?          @relation(fields: [channel_id], references: [id], map: "Campaigns_idChannel_fkey")
   organization     Organization       @relation(fields: [organization_id], references: [public_id])
-  campaignstatus   Campaignstatus?    @relation(fields: [statusId], references: [id])
+  CampaignStatus   CampaignStatus?    @relation(fields: [status_id], references: [id], map: "Campaigns_statusId_fkey")
 
-  @@index([createdAt])
-  @@index([dateStart, dateEnd])
-  @@index([idChannel, statusId, createdAt])
-  @@index([sendingBy])
-  @@index([sendingBy, statusId, createdAt])
-  @@index([statusId, idChannel, createdAt, typeMessage, dateStart, dateEnd])
-  @@index([statusId])
-  @@index([statusId, updatedAt])
-  @@index([updatedAt])
-}
-
-model Campaignstatus {
-  id              Int          @id @default(autoincrement())
-  name            String       @db.VarChar(255)
-  description     String?      @db.VarChar(255)
-  createdAt       DateTime?    @default(now())
-  createdBy       Int?
-  updatedAt       DateTime?    @default(now())
-  updatedBy       Int?
-  organization_id String
-  campaigns       Campaigns[]
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
+  @@index([created_at], map: "Campaigns_createdAt_idx")
+  @@index([date_start, date_end], map: "Campaigns_dateStart_dateEnd_idx")
+  @@index([channel_id, status_id, created_at], map: "Campaigns_idChannel_statusId_createdAt_idx")
+  @@index([sending_by], map: "Campaigns_sendingBy_idx")
+  @@index([sending_by, status_id, created_at], map: "Campaigns_sendingBy_statusId_createdAt_idx")
+  @@index([status_id, channel_id, created_at, type_message, date_start, date_end], map: "Campaigns_statusId_idChannel_createdAt_typeMessage_dateStar_idx")
+  @@index([status_id], map: "Campaigns_statusId_idx")
+  @@index([status_id, updated_at], map: "Campaigns_statusId_updatedAt_idx")
+  @@index([updated_at], map: "Campaigns_updatedAt_idx")
 }
 
 model Channels {
@@ -557,7 +470,7 @@ model Channels {
   updatedBy             Int?
   organization_id       String
   provider              String?                 @db.VarChar
-  campaigns             Campaigns[]
+  Campaigns             Campaigns[]
   organization          Organization            @relation(fields: [organization_id], references: [public_id])
   ConfigurationsChannel ConfigurationsChannel[]
   IntegrationTokens     IntegrationTokens[]
@@ -567,33 +480,14 @@ model Tags {
   id                  Int                   @id @default(autoincrement())
   name                String
   color               String?               @db.VarChar(255)
-  createdAt           DateTime?             @default(now())
-  updatedAt           DateTime?             @default(now())
-  createdBy           Int?
+  created_at          DateTime?             @default(now())
+  updated_at          DateTime?             @default(now())
+  created_by          Int?
   organization_id     String
-  updatedBy           Int?
-  Associationtags     Associationtags[]
+  updated_by          Int?
+  AssociationTags     AssociationTags[]
   CustomerUnifiedTags CustomerUnifiedTags[]
   organization        Organization          @relation(fields: [organization_id], references: [public_id])
-}
-
-model Associationtags {
-  id              Int        @id @default(autoincrement())
-  idTag           Int
-  idCampaing      Int?
-  idCustomer      Int?
-  createdAt       DateTime?  @default(now())
-  updatedAt       DateTime?  @default(now())
-  createdBy       Int?
-  organization_id String
-  updatedBy       Int?
-  campaigns       Campaigns? @relation(fields: [idCampaing], references: [id])
-  customer        Customer?  @relation(fields: [idCustomer], references: [id])
-  tags            Tags       @relation(fields: [idTag], references: [id])
-
-  @@index([idTag])
-  @@index([idCampaing])
-  @@index([idCustomer])
 }
 
 model CustomerUnifiedTags {
@@ -637,9 +531,168 @@ model IntegrationTokens {
   @@index([idChannel, label])
 }
 
+model AssociationTags {
+  id              Int        @id(map: "Associationtags_pkey") @default(autoincrement())
+  tag_id          Int
+  campaing_id     Int?
+  customer_id     Int?
+  created_at      DateTime?  @default(now())
+  updated_at      DateTime?  @default(now())
+  created_by      Int?
+  organization_id String
+  updated_by      Int?
+  Campaigns       Campaigns? @relation(fields: [campaing_id], references: [id], map: "Associationtags_idCampaing_fkey")
+  Customer        Customer?  @relation(fields: [customer_id], references: [id], map: "Associationtags_idCustomer_fkey")
+  Tags            Tags       @relation(fields: [tag_id], references: [id], map: "Associationtags_idTag_fkey")
+
+  @@index([campaing_id], map: "Associationtags_idCampaing_idx")
+  @@index([customer_id], map: "Associationtags_idCustomer_idx")
+  @@index([tag_id], map: "Associationtags_idTag_idx")
+}
+
+model AudienceStatus {
+  id                Int                 @id(map: "Audiencestatus_pkey") @default(autoincrement())
+  name              String              @db.VarChar(255)
+  created_at        DateTime?           @default(now())
+  created_by        Int?
+  organization_id   String
+  updated_at        DateTime?
+  updated_by        Int?
+  Organization      Organization        @relation(fields: [organization_id], references: [public_id], map: "Audiencestatus_organization_id_fkey")
+  AudiencesContacts AudiencesContacts[]
+}
+
+model AudiencesContacts {
+  id              Int             @id(map: "Audiencescontacts_pkey") @default(autoincrement())
+  contact_id      Int
+  organization_id String
+  audience_id     Int
+  status_id       Int?
+  created_at      DateTime?       @default(now())
+  updated_at      DateTime?       @default(now())
+  created_by      Int?
+  updated_by      Int?
+  Audiences       Audiences       @relation(fields: [audience_id], references: [id], map: "Audiencescontacts_idAudience_fkey")
+  CustomerUnified CustomerUnified @relation(fields: [contact_id], references: [id], map: "Audiencescontacts_idContact_fkey")
+  Organization    Organization    @relation(fields: [organization_id], references: [public_id], map: "Audiencescontacts_organization_id_fkey")
+  AudienceStatus  AudienceStatus? @relation(fields: [status_id], references: [id], map: "Audiencescontacts_statusId_fkey")
+
+  @@index([audience_id], map: "Audiencescontacts_idAudience_idx")
+  @@index([contact_id], map: "Audiencescontacts_idContact_idx")
+  @@index([status_id], map: "Audiencescontacts_statusId_idx")
+}
+
+model CampaignAudience {
+  id              Int          @id(map: "Campaignaudience_pkey") @default(autoincrement())
+  campaign_id     Int?
+  audience_id     Int?
+  organization_id String
+  Audiences       Audiences?   @relation(fields: [audience_id], references: [id], map: "Campaignaudience_idAudience_fkey")
+  Campaigns       Campaigns?   @relation(fields: [campaign_id], references: [id], map: "Campaignaudience_idCampaign_fkey")
+  Organization    Organization @relation(fields: [organization_id], references: [public_id], map: "Campaignaudience_organization_id_fkey")
+
+  @@index([audience_id], map: "Campaignaudience_idAudience_idx")
+  @@index([campaign_id], map: "Campaignaudience_idCampaign_idx")
+}
+
+model CampaignDetails {
+  id                    Int                   @id(map: "Campaigndetails_pkey") @default(autoincrement())
+  contact_id            Int
+  campaign_id           Int
+  sender                String?               @db.VarChar(100)
+  sent_at               DateTime?
+  status_id             Int
+  created_at            DateTime?             @default(now())
+  updated_at            DateTime?             @default(now()) @db.Timestamp(0)
+  sender_id             String?               @db.VarChar(100)
+  organization_id       String
+  Campaigns             Campaigns             @relation(fields: [campaign_id], references: [id], map: "Campaigndetails_idCampaign_fkey")
+  CustomerUnified       CustomerUnified       @relation(fields: [contact_id], references: [id], map: "Campaigndetails_idContact_fkey")
+  Organization          Organization          @relation(fields: [organization_id], references: [public_id], map: "Campaigndetails_organization_id_fkey")
+  CampaignDetailsStatus CampaignDetailsStatus @relation(fields: [status_id], references: [id], map: "Campaigndetails_statusId_fkey")
+
+  @@index([created_at, status_id], map: "Campaigndetails_createdAt_statusId_idx")
+  @@index([campaign_id, sender, status_id], map: "Campaigndetails_idCampaign_sender_statusId_idx")
+  @@index([campaign_id, status_id], map: "Campaigndetails_idCampaign_statusId_idx")
+  @@index([campaign_id, updated_at], map: "Campaigndetails_idCampaign_updatedAt_idx")
+  @@index([contact_id], map: "Campaigndetails_idContact_idx")
+  @@index([sender], map: "Campaigndetails_sender_idx")
+  @@index([sender, sent_at], map: "Campaigndetails_sender_sentAt_idx")
+  @@index([status_id], map: "Campaigndetails_statusId_idx")
+  @@index([updated_at], map: "Campaigndetails_updatedAt_idx")
+}
+
+model CampaignDetailsStatus {
+  id              Int               @id(map: "Campaigndetailsstatus_pkey") @default(autoincrement())
+  name            String            @db.VarChar(255)
+  created_at      DateTime?         @default(now())
+  created_by      Int?
+  updated_at      DateTime?
+  updated_by      Int?
+  organization_id String
+  CampaignDetails CampaignDetails[]
+  Organization    Organization      @relation(fields: [organization_id], references: [public_id], map: "Campaigndetailsstatus_organization_id_fkey")
+}
+
+model CampaignStatus {
+  id              Int          @id(map: "Campaignstatus_pkey") @default(autoincrement())
+  name            String       @db.VarChar(255)
+  description     String?      @db.VarChar(255)
+  created_at      DateTime?    @default(now())
+  created_by      Int?
+  updated_at      DateTime?    @default(now())
+  updated_by      Int?
+  organization_id String
+  Organization    Organization @relation(fields: [organization_id], references: [public_id], map: "Campaignstatus_organization_id_fkey")
+  Campaigns       Campaigns[]
+}
+
+model ImportJob {
+  id              String       @id
+  status          StatusJob
+  fileName        String
+  fileSize        Int
+  totalItems      Int          @default(0)
+  totalProcessed  Int          @default(0)
+  totalSuccess    Int          @default(0)
+  totalErrors     Int          @default(0)
+  progress        Int          @default(0)
+  errorMessage    String?
+  errorDetails    String?
+  organization_id String
+  createdAt       DateTime     @default(now())
+  completedAt     DateTime?
+  Organization    Organization @relation(fields: [organization_id], references: [public_id])
+}
+
+model RFM {
+  id                  Int             @id @default(autoincrement())
+  customer_unified_id Int
+  score_r             Int
+  score_fm            Float           @db.Real
+  organization_id     String
+  score_f             Int?
+  score_m             Int?
+  updated_at          DateTime?       @default(now()) @db.Timestamptz(6)
+  CustomerUnified     CustomerUnified @relation(fields: [customer_unified_id], references: [id])
+  Organization        Organization    @relation(fields: [organization_id], references: [public_id])
+
+  @@index([customer_unified_id])
+  @@index([customer_unified_id, organization_id])
+  @@index([id])
+  @@index([organization_id])
+}
+
 enum Role {
   ADMIN
   MEMBER
   BILLING
   SUPER
+}
+
+enum StatusJob {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
