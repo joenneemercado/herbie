@@ -1,20 +1,20 @@
-import { Interaction } from './../../interactions/entities/interaction.entity';
+import { CreateAudienceDto } from './dto/create-audience.dto';
 import {
   HttpException,
   Injectable,
   UnauthorizedException,
-  Body,
   HttpStatus,
 } from '@nestjs/common';
 import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { Prisma } from '@prisma/client';
-import {
-  CreateAudienceSchema,
-  createAudienceSchema,
-} from './dto/audience.schema';
+
 import { InteractionsService } from '@src/interactions/interactions.service';
 import { AudienceConstantes } from './audience.constantes';
+import {
+  CreateAudienceInterationSchema,
+  CreateAudienceSchema,
+} from './dto/audience.schema';
 @Injectable()
 export class AudiencesService {
   jwtService: any;
@@ -25,166 +25,330 @@ export class AudiencesService {
   ) {}
 
   //TODO CREATE AUDIENCE
-  async create(Body: {
-    audiencia: string;
-    statusId?: number;
-    createdBy?: number;
-    organization_id: string;
-    date_birth_start?: string[] | string;
-    date_birth_end?: string[] | string;
-    gender?: string;
-    marital_status?: string;
-    date_created_start?: Date;
-    date_created_end?: Date;
-  }) {
-    const {
-      organization_id,
-      date_birth_start,
-      date_birth_end,
-      gender,
-      marital_status,
-      date_created_start,
-      date_created_end,
-      audiencia,
-      statusId,
-      createdBy,
-    } = Body;
-    //console.log(params)
+  // async create(Body: {
+  //   audiencia: string;
+  //   statusId?: number;
+  //   createdBy?: number;
+  //   organization_id: string;
+  //   date_birth_start?: string[] | string;
+  //   date_birth_end?: string[] | string;
+  //   gender?: string;
+  //   marital_status?: string;
+  //   date_created_start?: Date;
+  //   date_created_end?: Date;
+  // }) {
+  //   const {
+  //     organization_id,
+  //     date_birth_start,
+  //     date_birth_end,
+  //     gender,
+  //     marital_status,
+  //     date_created_start,
+  //     date_created_end,
+  //     audiencia,
+  //     statusId,
+  //     createdBy,
+  //   } = Body;
+  //   //console.log(params)
 
-    const startOfDay = new Date(date_created_start);
-    startOfDay.setHours(0, 0, 0, 0); // Define para meia-noite do início do dia
-    const endOfDay = new Date(date_created_end);
-    endOfDay.setHours(23, 59, 59, 999); // Define para o final do dia
-    const dateBirthFilter = { OR: [] };
+  //   const startOfDay = new Date(date_created_start);
+  //   startOfDay.setHours(0, 0, 0, 0); // Define para meia-noite do início do dia
+  //   const endOfDay = new Date(date_created_end);
+  //   endOfDay.setHours(23, 59, 59, 999); // Define para o final do dia
+  //   const dateBirthFilter = { OR: [] };
 
-    // Garantindo que os inputs sejam arrays ou lidando com undefined
-    const dates1 = date_birth_start
-      ? Array.isArray(date_birth_start)
-        ? date_birth_start
-        : date_birth_start.replace(/[^\d, -]/g, '').split(',')
-      : []; // Caso date_birth_start seja undefined, retorna um array vazio
+  //   // Garantindo que os inputs sejam arrays ou lidando com undefined
+  //   const dates1 = date_birth_start
+  //     ? Array.isArray(date_birth_start)
+  //       ? date_birth_start
+  //       : date_birth_start.replace(/[^\d, -]/g, '').split(',')
+  //     : []; // Caso date_birth_start seja undefined, retorna um array vazio
 
-    const datesEnd = date_birth_end
-      ? Array.isArray(date_birth_end)
-        ? date_birth_end
-        : date_birth_end.replace(/[^\d, -]/g, '').split(',')
-      : []; // Caso date_birth_end seja undefined, retorna um array vazio
+  //   const datesEnd = date_birth_end
+  //     ? Array.isArray(date_birth_end)
+  //       ? date_birth_end
+  //       : date_birth_end.replace(/[^\d, -]/g, '').split(',')
+  //     : []; // Caso date_birth_end seja undefined, retorna um array vazio
 
-    // console.log('dates1 (start dates):', dates1); // Verifique o array processado de start dates
-    // console.log('datesEnd (end dates):', datesEnd); // Verifique o array processado de end dates
+  //   // console.log('dates1 (start dates):', dates1); // Verifique o array processado de start dates
+  //   // console.log('datesEnd (end dates):', datesEnd); // Verifique o array processado de end dates
 
-    // Iterando simultaneamente sobre os arrays
-    for (let i = 0; i < Math.min(dates1.length, datesEnd.length); i++) {
-      const startDate = new Date(dates1[i].trim());
-      const endDate = new Date(datesEnd[i].trim());
+  //   // Iterando simultaneamente sobre os arrays
+  //   for (let i = 0; i < Math.min(dates1.length, datesEnd.length); i++) {
+  //     const startDate = new Date(dates1[i].trim());
+  //     const endDate = new Date(datesEnd[i].trim());
 
-      //console.log(`Processing pair [${i}]:`);
-      // console.log(`  startDate: ${dates1[i]} -> Parsed: ${startDate}`);
-      // console.log(`  endDate: ${datesEnd[i]} -> Parsed: ${endDate}`);
+  //     //console.log(`Processing pair [${i}]:`);
+  //     // console.log(`  startDate: ${dates1[i]} -> Parsed: ${startDate}`);
+  //     // console.log(`  endDate: ${datesEnd[i]} -> Parsed: ${endDate}`);
 
-      // Adicionando apenas intervalos válidos ao filtro
-      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-        dateBirthFilter.OR.push({
-          date_birth: { gte: startDate, lte: endDate },
-        });
+  //     // Adicionando apenas intervalos válidos ao filtro
+  //     if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+  //       dateBirthFilter.OR.push({
+  //         date_birth: { gte: startDate, lte: endDate },
+  //       });
 
-        // console.log('  Valid pair added to filter:', {
-        //   date_birth: { gte: startDate, lte: endDate },
-        // });
-      } else {
-        console.log('  Invalid date pair, skipped.');
-      }
+  //       // console.log('  Valid pair added to filter:', {
+  //       //   date_birth: { gte: startDate, lte: endDate },
+  //       // });
+  //     } else {
+  //       console.log('  Invalid date pair, skipped.');
+  //     }
+  //   }
+  //   // Resultado final do filtro
+  //   //console.log('Final dateBirthFilter:', JSON.stringify(dateBirthFilter, null, 2));
+
+  //   try {
+  //     return await this.prisma.$transaction(
+  //       async (trxAudi) => {
+  //         if (
+  //           audiencia === '' ||
+  //           audiencia === undefined ||
+  //           audiencia === null
+  //         ) {
+  //           throw new HttpException(`Nome da audiência vazio`, 400);
+  //         }
+
+  //         const existingAudience = await trxAudi.audiences.findFirst({
+  //           where: {
+  //             name: audiencia,
+  //             organization_id: organization_id,
+  //           },
+  //         });
+
+  //         if (existingAudience) {
+  //           throw new HttpException('Audiência já existe', 409);
+  //         }
+
+  //         const audiencie = await trxAudi.audiences.create({
+  //           data: {
+  //             name: audiencia,
+  //             statusId: statusId ? statusId : 1,
+  //             createdBy: createdBy ? createdBy : 1,
+  //             organization_id: organization_id,
+  //           },
+  //         });
+
+  //         const filters = {
+  //           AND: [
+  //             organization_id ? { organization_id: organization_id } : {},
+  //             //date_birth ? { date_birth: String(date_birth) } : {},
+  //             gender ? { gender: String(gender) } : {},
+  //             marital_status ? { marital_status: String(marital_status) } : {},
+  //             date_created_start && date_created_end
+  //               ? { created_at: { gte: startOfDay, lte: endOfDay } }
+  //               : {},
+  //             dateBirthFilter.OR.length > 0 ? dateBirthFilter : {}, // Apenas adiciona o filtro de data se houver
+  //           ],
+  //         };
+  //         //console.log(filters)
+  //         const customerUnified = await trxAudi.customerUnified.findMany({
+  //           where: filters,
+  //         });
+  //         //console.log('customerUnified', customerUnified)
+  //         const tamanho = customerUnified.length;
+  //         if (tamanho > 0) {
+  //           const lista: number[] = customerUnified.map((id) => id.id);
+  //           //console.log(lista)
+  //           for (const id of lista) {
+  //             try {
+  //               const createAudienceContacts =
+  //                 await trxAudi.audiencescontacts.create({
+  //                   data: {
+  //                     idAudience: audiencie.id,
+  //                     idContact: id,
+  //                     organization_id: organization_id,
+  //                     statusId: statusId ? statusId : 1,
+  //                     createdBy: createdBy ? createdBy : 1,
+  //                   },
+  //                 });
+  //               //console.log(createAudienceContacts)
+  //             } catch (error) {
+  //               console.log(`erro ao criar os contatos`, error);
+  //               throw new HttpException(error.message, error.status);
+  //             }
+  //           }
+  //         }
+  //         return {
+  //           audiencia: audiencie,
+  //           customerUnified: customerUnified.map((id) => id.id),
+  //           tamanho: tamanho,
+  //         };
+  //       },
+  //       {
+  //         maxWait: 5000,
+  //         timeout: 500000,
+  //         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+  //       },
+  //     );
+  //   } catch (error) {
+  //     console.log(`erro ao criar audiência`, error);
+  //     throw new HttpException(error.message, error.status);
+  //   }
+  //   // return 'This action adds a new audience';
+  // }
+
+  //Todo create audience com validacao
+  async create(createAudienceDto: CreateAudienceSchema, req: Request) {
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
     }
-    // Resultado final do filtro
-    //console.log('Final dateBirthFilter:', JSON.stringify(dateBirthFilter, null, 2));
-
+    console.log('service', createAudienceDto);
     try {
-      return await this.prisma.$transaction(
-        async (trxAudi) => {
-          if (
-            audiencia === '' ||
-            audiencia === undefined ||
-            audiencia === null
-          ) {
-            throw new HttpException(`Nome da audiência vazio`, 400);
-          }
+      const startOfDay = new Date(createAudienceDto.date_created_start);
+      startOfDay.setHours(0, 0, 0, 0); // Define para meia-noite do início do dia
+      const endOfDay = new Date(createAudienceDto.date_created_end);
+      endOfDay.setHours(23, 59, 59, 999); // Define para o final do dia
+      const dateBirthFilter = { OR: [] };
 
-          const existingAudience = await trxAudi.audiences.findFirst({
-            where: {
-              name: audiencia,
-              organization_id: organization_id,
-            },
+      // Garantindo que os inputs sejam arrays ou lidando com undefined
+      const dates1 = createAudienceDto.date_birth_start
+        ? Array.isArray(createAudienceDto.date_birth_start)
+          ? createAudienceDto.date_birth_start
+          : createAudienceDto.date_birth_start
+              .replace(/[^\d, -]/g, '')
+              .split(',')
+        : []; // Caso date_birth_start seja undefined, retorna um array vazio
+
+      const datesEnd = createAudienceDto.date_birth_end
+        ? Array.isArray(createAudienceDto.date_birth_end)
+          ? createAudienceDto.date_birth_end
+          : createAudienceDto.date_birth_end.replace(/[^\d, -]/g, '').split(',')
+        : []; // Caso date_birth_end seja undefined, retorna um array vazio
+
+      // console.log('dates1 (start dates):', dates1); // Verifique o array processado de start dates
+      // console.log('datesEnd (end dates):', datesEnd); // Verifique o array processado de end dates
+
+      // Iterando simultaneamente sobre os arrays
+      for (let i = 0; i < Math.min(dates1.length, datesEnd.length); i++) {
+        const startDate = new Date(dates1[i].trim());
+        const endDate = new Date(datesEnd[i].trim());
+
+        //console.log(`Processing pair [${i}]:`);
+        // console.log(`  startDate: ${dates1[i]} -> Parsed: ${startDate}`);
+        // console.log(`  endDate: ${datesEnd[i]} -> Parsed: ${endDate}`);
+
+        // Adicionando apenas intervalos válidos ao filtro
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+          dateBirthFilter.OR.push({
+            date_birth: { gte: startDate, lte: endDate },
           });
 
-          if (existingAudience) {
-            throw new HttpException('Audiência já existe', 409);
-          }
+          // console.log('  Valid pair added to filter:', {
+          //   date_birth: { gte: startDate, lte: endDate },
+          // });
+        } else {
+          console.log('Invalid date pair, skipped.');
+        }
+      }
+      // Resultado final do filtro
+      //console.log('Final dateBirthFilter:', JSON.stringify(dateBirthFilter, null, 2));
 
-          const audiencie = await trxAudi.audiences.create({
-            data: {
-              name: audiencia,
-              statusId: statusId ? statusId : 1,
-              createdBy: createdBy ? createdBy : 1,
-              organization_id: organization_id,
-            },
-          });
+      try {
+        return await this.prisma.$transaction(
+          async (trxAudi) => {
+            if (
+              createAudienceDto.name === '' ||
+              createAudienceDto.name === undefined ||
+              createAudienceDto.name === null
+            ) {
+              throw new HttpException(`Nome da audiência vazio`, 400);
+            }
 
-          const filters = {
-            AND: [
-              organization_id ? { organization_id: organization_id } : {},
-              //date_birth ? { date_birth: String(date_birth) } : {},
-              gender ? { gender: String(gender) } : {},
-              marital_status ? { marital_status: String(marital_status) } : {},
-              date_created_start && date_created_end
-                ? { created_at: { gte: startOfDay, lte: endOfDay } }
-                : {},
-              dateBirthFilter.OR.length > 0 ? dateBirthFilter : {}, // Apenas adiciona o filtro de data se houver
-            ],
-          };
-          //console.log(filters)
-          const customerUnified = await trxAudi.customerUnified.findMany({
-            where: filters,
-          });
-          //console.log('customerUnified', customerUnified)
-          const tamanho = customerUnified.length;
-          if (tamanho > 0) {
-            const lista: number[] = customerUnified.map((id) => id.id);
-            //console.log(lista)
-            for (const id of lista) {
-              try {
-                const createAudienceContacts =
-                  await trxAudi.audiencescontacts.create({
-                    data: {
-                      idAudience: audiencie.id,
-                      idContact: id,
-                      organization_id: organization_id,
-                      statusId: statusId ? statusId : 1,
-                      createdBy: createdBy ? createdBy : 1,
-                    },
-                  });
-                //console.log(createAudienceContacts)
-              } catch (error) {
-                console.log(`erro ao criar os contatos`, error);
-                throw new HttpException(error.message, error.status);
+            const existingAudience = await trxAudi.audiences.findFirst({
+              where: {
+                name: createAudienceDto.name,
+                organization_id: createAudienceDto.organization_id,
+              },
+            });
+
+            if (existingAudience) {
+              throw new HttpException('Audiência já existe', 409);
+            }
+
+            const audiencie = await trxAudi.audiences.create({
+              data: {
+                name: createAudienceDto.name,
+                statusId: createAudienceDto.statusId
+                  ? createAudienceDto.statusId
+                  : 1,
+                createdBy: createAudienceDto.createdBy
+                  ? createAudienceDto.createdBy
+                  : 1,
+                organization_id: createAudienceDto.organization_id,
+              },
+            });
+
+            const filters = {
+              AND: [
+                createAudienceDto.organization_id
+                  ? { organization_id: createAudienceDto.organization_id }
+                  : {},
+                //date_birth ? { date_birth: String(date_birth) } : {},
+                createAudienceDto.gender
+                  ? { gender: String(createAudienceDto.gender) }
+                  : {},
+                createAudienceDto.marital_status
+                  ? { marital_status: String(createAudienceDto.marital_status) }
+                  : {},
+                createAudienceDto.date_created_start &&
+                createAudienceDto.date_created_end
+                  ? { created_at: { gte: startOfDay, lte: endOfDay } }
+                  : {},
+                dateBirthFilter.OR.length > 0 ? dateBirthFilter : {}, // Apenas adiciona o filtro de data se houver
+              ],
+            };
+            //console.log(filters)
+            const customerUnified = await trxAudi.customerUnified.findMany({
+              where: filters,
+            });
+            console.log('customerUnified', customerUnified);
+            const tamanho = customerUnified.length;
+            if (tamanho > 0) {
+              const lista: number[] = customerUnified.map((id) => id.id);
+              //console.log(lista)
+              for (const id of lista) {
+                try {
+                  const createAudienceContacts =
+                    await trxAudi.audiencescontacts.create({
+                      data: {
+                        idAudience: audiencie.id,
+                        idContact: id,
+                        organization_id: createAudienceDto.organization_id,
+                        statusId: createAudienceDto.statusId
+                          ? createAudienceDto.statusId
+                          : 1,
+                        createdBy: createAudienceDto.createdBy
+                          ? createAudienceDto.createdBy
+                          : 1,
+                      },
+                    });
+                  console.log(createAudienceContacts);
+                } catch (error) {
+                  console.log(`erro ao criar os contatos`, error);
+                  throw new HttpException(error.message, error.status);
+                }
               }
             }
-          }
-          return {
-            audiencia: audiencie,
-            customerUnified: customerUnified.map((id) => id.id),
-            tamanho: tamanho,
-          };
-        },
-        {
-          maxWait: 5000,
-          timeout: 500000,
-          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-        },
-      );
-    } catch (error) {
-      console.log(`erro ao criar audiência`, error);
-      throw new HttpException(error.message, error.status);
-    }
+            return {
+              audiencia: audiencie,
+              customerUnified: customerUnified.map((id) => id.id),
+              tamanho: tamanho,
+            };
+          },
+          {
+            maxWait: 5000,
+            timeout: 500000,
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          },
+        );
+      } catch (error) {
+        console.log(`erro ao criar audiência`, error);
+        throw new HttpException(error.message, error.status);
+      }
+    } catch (error) {}
+
     // return 'This action adds a new audience';
   }
 
@@ -218,12 +382,20 @@ export class AudiencesService {
         this.prisma.audiences.count({ where: filters }),
       ]);
 
+      const totalPages = Math.ceil(total / limit);
+
       return {
         data: audiences,
         total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / limit),
+        // page: Number(page),
+        // limit: Number(limit),
+        // totalPages: Math.ceil(total / limit),
+        pageInfo: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Number(totalPages),
+        },
       };
     } catch (error) {
       console.log(`erro ao procurar audiência`, error);
@@ -417,7 +589,10 @@ export class AudiencesService {
   }
 
   //TODO CREATE PROCESSO AUDIENCIA
-  async creatAudienceProcesso(audienceDto: CreateAudienceSchema, req: Request) {
+  async creatAudienceProcesso(
+    audienceDto: CreateAudienceInterationSchema,
+    req: Request,
+  ) {
     try {
       const reqToken = req.headers['authorization'];
       if (!reqToken) {
@@ -476,6 +651,12 @@ export class AudiencesService {
         throw new HttpException('Não existe audience', HttpStatus.BAD_REQUEST);
       }
 
+      // const Interaction = await this.interaction.findInteraction(
+      //   audienceDto,
+      //   req,
+      //   true,
+      // );
+
       const Interaction = await this.interaction.findInteraction(
         audienceDto,
         req,
@@ -533,6 +714,97 @@ export class AudiencesService {
         customerUnified: idCustomerUnified.map((id) => id),
         tamanho: tamanho,
       };
+    } catch (error) {
+      console.log('Error decoding token', error);
+    }
+  }
+
+  //TODO CRIA AUDIENCIA SEGMENTADA COM BASE NA INTERACAO DO CLIENTE
+  async createAudienceDetailsInteration(
+    audience,
+    audienceDto: CreateAudienceInterationSchema,
+    req: Request,
+  ) {
+    console.log('interationVtex2', audienceDto);
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    try {
+      if (!audience) {
+        throw new HttpException('Não existe audience', HttpStatus.BAD_REQUEST);
+      }
+
+      // const Interaction = await this.interaction.findInteraction(
+      //   audienceDto,
+      //   req,
+      //   true,
+      // );
+
+      // const Interaction = await this.interaction.findInteractionDetails(
+      //   audienceDto,
+      //   req,
+      //   true,
+      // );
+      // const Interaction = await this.prisma.interaction.findMany({
+      //   where: {
+      //     idContact: audienceDto.idContact,
+      //     organization_id: audienceDto.organization_id,
+      //   },
+      // });
+
+      // console.log('InteractionCustomerUnified', Interaction.customerUnified);
+      // const idCustomerUnified = Interaction.customerUnified.map(
+      //   (item) => item.id,
+      // );
+      // //console.log('idCustomerUnified', idCustomerUnified);
+
+      // const tamanho = idCustomerUnified.length;
+      // if (tamanho > 0) {
+      //   const lista: number[] = idCustomerUnified;
+      //   //console.log(lista)
+      //   for (const id of lista) {
+      //     try {
+      //       await this.prisma.audiencescontacts.create({
+      //         data: {
+      //           idAudience: audience.id,
+      //           idContact: id,
+      //           organization_id: audienceDto.organization_id,
+      //           statusId: audienceDto.statusId ? audienceDto.statusId : 1,
+      //           createdBy: audienceDto.createdBy ? audienceDto.createdBy : 1,
+      //         },
+      //       });
+      //       //console.log(createAudienceContacts)
+      //     } catch (error) {
+      //       console.log(`erro ao criar os contatos`, error);
+      //       await this.prisma.audiences.update({
+      //         where: {
+      //           id: audience.id,
+      //         },
+      //         data: {
+      //           statusId: AudienceConstantes.AUDIENCE_STATUS_ERRO,
+      //           obs: `Erro ao processar dados: ${error.message}`,
+      //         },
+      //       });
+      //       throw new HttpException(error.message, error.status);
+      //     }
+      //   }
+      // }
+      // await this.prisma.audiences.update({
+      //   where: {
+      //     id: audience.id,
+      //   },
+      //   data: {
+      //     statusId: AudienceConstantes.AUDIENCE_STATUS_ATIVO,
+      //     updatedAt: new Date(),
+      //   },
+      // });
+
+      // return {
+      //   audiencia: audience,
+      //   customerUnified: idCustomerUnified.map((id) => id),
+      //   tamanho: tamanho,
+      // };
     } catch (error) {
       console.log('Error decoding token', error);
     }
