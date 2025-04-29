@@ -761,13 +761,30 @@ export class CampaignsService {
       const limit = Number(campaingContactDto.limit) || 10;
       const page = Number(campaingContactDto.page) || 1;
 
-      const campanha = await this.prisma.campaigndetails.findMany({
+      const data = await this.prisma.campaigndetails.findMany({
         where: {
           idContact: Number(campaingContactDto.customer_unified_id),
           organization_id: campaingContactDto.organization_id,
         },
-        include: {
-          campaigns: true,
+        select: {
+          idContact: true,
+          idSender: true,
+          sentAt: true,
+          createdAt: true,
+          statusId: true,
+          updatedAt: true,
+          campaigns: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          campaigndetailsstatus: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
         // take: limit,
         // cursor: cursor ? { id: cursor } : undefined,
@@ -778,7 +795,7 @@ export class CampaignsService {
         take: Number(limit),
       });
 
-      if (!campanha) {
+      if (!data) {
         throw new HttpException('Campanha nao existe', 404);
       }
 
@@ -797,26 +814,6 @@ export class CampaignsService {
 
       const totalPages = Math.ceil(total / limit);
 
-      const data = campanha.map((item) => ({
-        id: item.campaigns.id,
-        name: item.campaigns.name,
-        message: item.campaigns.message,
-        typeMessage: item.campaigns.typeMessage,
-        sendingBy: item.campaigns.sendingBy,
-        statusId: item.campaigns.statusId,
-        dateStart: item.campaigns.dateStart,
-        dateEnd: item.campaigns.dateEnd,
-      }));
-
-      // return {
-      //   data, // Dados da consulta
-      //   pageInfo: {
-      //     total, // Total de itens no banco
-      //     itemsOnPage, // Itens retornados na página atual
-      //     nextCursor, // ID do próximo cursor
-      //     totalPages, // Total de páginas
-      //   },
-      // };
       return {
         data,
         pageInfo: {
