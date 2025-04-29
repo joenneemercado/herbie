@@ -1,68 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
-import { z } from 'zod';
+import { IsOptional, IsString } from 'class-validator';
 
-export const findInteractionSchema = z.object({
-  organization_id: z
-    .string()
-    .min(1, { message: 'ID da organização é obrigatório.' }),
-  sellerName: z.string().optional(),
-  dateBegin: z.string().optional(), // Pode validar formato de data se quiser
-  dateEnd: z.string().optional(),
-  ean: z.string().optional(),
-  refId: z.string().optional(),
-  status_order: z.string().optional(),
-  cursor: z
-    .union([z.string(), z.number()])
-    .transform((val) => Number(val))
-    .optional(),
-
-  limit: z
-    .union([z.string(), z.number()])
-    .transform((val) => Number(val))
-    .default(10),
-
-  // souceId: z.number().min(1, { message: 'ID do canal é obrigatório.' }),
-});
-
-export type FindInteractionSchema = z.infer<typeof findInteractionSchema>;
-
-export const findInteractionTeucardSchema = z.object({
-  organization_id: z
-    .string()
-    .min(1, { message: 'ID da organização é obrigatório.' }),
-  dateBegin: z.string().optional(), // Pode validar formato de data se quiser
-  dateEnd: z.string().optional(),
-  cursor: z
-    .union([z.string(), z.number()])
-    .transform((val) => Number(val))
-    .optional(),
-  limit: z
-    .union([z.string(), z.number()])
-    .transform((val) => Number(val))
-    .default(10),
-});
-
-export type FindInteractionTeucardSchema = z.infer<
-  typeof findInteractionTeucardSchema
->;
-
-export class IntrationDto {
+//todo interacao
+export class InterationDto {
   @IsString({ message: 'O organization_id deve ser um UUID válido' })
   @ApiProperty()
   organization_id: string;
-
-  @IsOptional() // O campo cursor é opcional
-  @IsString({ message: 'O cursor deve ser uma string' })
-  @IsString({ message: 'O cursor deve ser um número válido' }) // Adicionando a verificação se for número
-  @ApiProperty({ description: 'Cursor para paginação', example: '123' })
-  cursor?: string;
 
   @IsOptional() // O campo limit é opcional
   @IsString({ message: 'O limit deve ser uma string' })
   @IsString({ message: 'O limit deve ser um número válido' }) // Adicionando a verificação se for número
   @ApiProperty({ description: 'Limite de registros por página', example: '10' })
   limit?: string;
+
+  @IsOptional() // O campo limit é opcional
+  @IsString({ message: 'O page deve ser uma string' })
+  @IsString({ message: 'O page deve ser um número válido' }) // Adicionando a verificação se for número
+  @ApiProperty({ description: 'Page de registros por página', example: '1' })
+  page?: string;
 
   @IsOptional()
   @IsString({ message: 'O customer_unified_id deve ser uma string' })
@@ -79,6 +34,116 @@ export class IntrationDto {
     example: '123',
   })
   customer_id?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O orderby deve ser uma string' })
+  @ApiProperty({
+    description: 'Ordenação dos resultados',
+    example: 'desc',
+  })
+  orderby?: string;
+}
+
+//todo interacao de compra
+export class InterationCompraDto {
+  @IsString({ message: 'O organization_id deve ser um UUID válido' })
+  @ApiProperty()
+  organization_id: string;
+
+  @IsOptional() // O campo limit é opcional
+  @IsString({ message: 'O limit deve ser uma string' })
+  @IsString({ message: 'O limit deve ser um número válido' }) // Adicionando a verificação se for número
+  @ApiProperty({ description: 'Limite de registros por página', example: '10' })
+  limit?: string;
+
+  @IsOptional() // O campo limit é opcional
+  @IsString({ message: 'O page deve ser uma string' })
+  @IsString({ message: 'O page deve ser um número válido' }) // Adicionando a verificação se for número
+  @ApiProperty({ description: 'Page de registros por página', example: '1' })
+  page?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O sellerName deve ser uma string' })
+  @ApiProperty({
+    description: 'Nome do seller',
+    example: 'mercantilnovaeraloja10',
+  })
+  sellerName?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O dateBegin deve ser uma string' })
+  @ApiProperty({
+    description: 'Data de início',
+    example: '2023-01-01',
+  })
+  dateBegin?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O dateEnd deve ser uma string' })
+  @ApiProperty({
+    description: 'Data de fim',
+    example: '2023-01-01',
+  })
+  dateEnd?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O ean deve ser uma string' })
+  @ApiProperty({
+    description: 'EAN',
+    example: '123',
+  })
+  ean?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O refId deve ser uma string' })
+  @ApiProperty({
+    description: 'Ref ID',
+    example: '123',
+  })
+  refId?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O status_order deve ser uma string' })
+  @ApiProperty({
+    description: 'Status do pedido',
+    example: 'invoiced',
+  })
+  status_order?: string;
+}
+
+//todo interacao teucard
+export class InterationTeuCardDto {
+  @IsString({ message: 'O organization_id deve ser um UUID válido' })
+  @ApiProperty()
+  organization_id: string;
+
+  @IsOptional() // O campo limit é opcional
+  @IsString({ message: 'O limit deve ser uma string' })
+  @IsString({ message: 'O limit deve ser um número válido' }) // Adicionando a verificação se for número
+  @ApiProperty({ description: 'Limite de registros por página', example: '10' })
+  limit?: string;
+
+  @IsOptional() // O campo limit é opcional
+  @IsString({ message: 'O page deve ser uma string' })
+  @IsString({ message: 'O page deve ser um número válido' }) // Adicionando a verificação se for número
+  @ApiProperty({ description: 'Page de registros por página', example: '1' })
+  page?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O dateBegin deve ser uma string' })
+  @ApiProperty({
+    description: 'Data de início',
+    example: '2023-01-01',
+  })
+  dateBegin?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O dateEnd deve ser uma string' })
+  @ApiProperty({
+    description: 'Data de fim',
+    example: '2023-01-01',
+  })
+  dateEnd?: string;
 }
 
 export class IntrationCustomerUnifiedDto {
