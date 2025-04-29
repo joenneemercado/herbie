@@ -767,16 +767,18 @@ export class CampaignsService {
           organization_id: campaingContactDto.organization_id,
         },
         select: {
-          idContact: true,
-          idSender: true,
           sentAt: true,
-          createdAt: true,
-          statusId: true,
           updatedAt: true,
           campaigns: {
             select: {
               id: true,
               name: true,
+              message: true,
+              channels: {
+                select: {
+                  name: true,
+                },
+              },
             },
           },
           campaigndetailsstatus: {
