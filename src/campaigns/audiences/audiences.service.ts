@@ -44,6 +44,21 @@ export class AudiencesService {
     try {
       const [audiences, total] = await Promise.all([
         this.prisma.audiences.findMany({
+          select: {
+            id: true,
+            name: true,
+            status_id: true,
+            created_by: true,
+            updated_by: true,
+            created_at: true,
+            updated_at: true,
+            obs: true,
+            _count: {
+              select: {
+                AudiencesContacts: true,
+              },
+            },
+          },
           skip,
           take: Number(limit),
           where: filters,
@@ -55,13 +70,13 @@ export class AudiencesService {
 
       return {
         data: audiences,
-        total,
+        //total,
         // page: Number(page),
         // limit: Number(limit),
         // totalPages: Math.ceil(total / limit),
         pageInfo: {
-          total,
-          page: Number(page),
+          totalItems: total,
+          currentPage: Number(page),
           limit: Number(limit),
           totalPages: Number(totalPages),
         },
