@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, IsArray } from 'class-validator';
 
 export class CreateAudienceDto {
@@ -63,6 +64,110 @@ export class CreateAudienceDto {
   @IsString({ message: 'O marital_status deve ser uma string' })
   @ApiProperty({ description: 'Estado civil', example: 'single' })
   marital_status?: string;
+}
+
+export class FindSegmentAudienceDto {
+  @IsOptional()
+  @IsString({ message: 'O audiencia deve ser uma string' })
+  @ApiProperty({
+    description: 'Nome do seller',
+    example: 'mercantilnovaera',
+  })
+  sellerName?: string;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'O statusId deve ser um número' })
+  @ApiProperty({ description: 'ID do status', example: 1 })
+  statusId?: number;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'O createdBy deve ser um número' })
+  @ApiProperty({ description: 'Usuário que criou a audiência', example: 101 })
+  createdBy?: number;
+
+  @IsString({ message: 'O organization_id deve ser uma string' })
+  @ApiProperty({ description: 'ID da organização', example: 'org-abc123' })
+  organization_id: string;
+
+  @IsOptional()
+  @IsArray({ message: 'O date_birth_start deve ser um array de strings' })
+  @IsArray()
+  @IsString({ each: true, message: 'Cada souce_id deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        return [String(value)];
+      }
+    }
+    return Array.isArray(value) ? value.map(String) : [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  date_birth_start?: string[];
+
+  @IsOptional()
+  @IsArray({ message: 'O date_birth_end deve ser um array de strings' })
+  @IsArray()
+  @IsString({ each: true, message: 'Cada souce_id deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        return [String(value)];
+      }
+    }
+    return Array.isArray(value) ? value.map(String) : [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  date_birth_end?: string[];
+
+  @IsOptional()
+  @IsString({ message: 'O gender deve ser uma string' })
+  @ApiProperty({ description: 'Gênero', example: 'male' })
+  gender?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O marital_status deve ser uma string' })
+  @ApiProperty({ description: 'Estado civil', example: 'single' })
+  marital_status?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true, message: 'Cada souce_id deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        return [String(value)];
+      }
+    }
+    return Array.isArray(value) ? value.map(String) : [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  souce_id?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true, message: 'Cada event_id deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        return [String(value)];
+      }
+    }
+    return Array.isArray(value) ? value.map(String) : [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  event_id?: string[];
 }
 
 export class CreateAudienceInteractionDto {

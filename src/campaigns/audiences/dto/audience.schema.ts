@@ -7,12 +7,65 @@ export const createAudienceSchema = z.object({
   organization_id: z.string().nullish(),
   date_birth_start: z
     .union([z.string(), z.array(z.string())])
-    .nullish()
-    .optional(),
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
   date_birth_end: z
     .union([z.string(), z.array(z.string())])
-    .nullish()
-    .optional(),
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
+  event_id: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
+
+  souce_id: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
   gender: z.string().nullish().optional(),
   marital_status: z.string().nullish().optional(),
   dateBegin: z.string().optional(), // Pode validar formato de data se quiser

@@ -1,8 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Param,
   Request,
   BadRequestException,
@@ -10,19 +8,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AudiencesService } from './audiences.service';
-import {
-  CreateAudienceDto,
-  CreateAudienceInteractionDto,
-} from './dto/create-audience.dto';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
 import { createAudienceSchema } from './dto/audience.schema';
+import { findSegmentAudienceSchema } from './dto/audience.segment.schema';
+import { FindSegmentAudienceDto } from './dto/create-audience.dto';
 
 @ApiTags('Audiences')
 @ApiBearerAuth()
@@ -186,6 +176,19 @@ export class AudiencesController {
         date_created_end,
       });
     }
+  }
+
+  @Get('/segment/interation')
+  findAllSegmentedInteration(
+    @Query() findSegmentAudienceDto: FindSegmentAudienceDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createInteractionCampaing', intrationDto);
+    const parsed = findSegmentAudienceSchema.safeParse(findSegmentAudienceDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.audiencesService.findAllSegmentedInteration(parsed.data, req);
   }
 
   @ApiQuery({
