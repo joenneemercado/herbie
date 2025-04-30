@@ -1,3 +1,4 @@
+import { Audience } from './entities/audience.entity';
 import {
   HttpException,
   Injectable,
@@ -9,6 +10,7 @@ import { Prisma } from '@prisma/client';
 import { InteractionsService } from '@src/interactions/interactions.service';
 import { CreateAudienceSchema } from './dto/audience.schema';
 import { FindSegmentAudienceSchema } from './dto/audience.segment.schema';
+import { FindAudienceContactsSchema } from './dto/audience.contacts.schema';
 @Injectable()
 export class AudiencesService {
   jwtService: any;
@@ -377,20 +379,90 @@ export class AudiencesService {
     //return `This action returns all audiences`;
   }
 
-  //TODO FIND ID AUDIENCE
-  async findOne(id: number, organization_id: string) {
+  //TODO FIND ID AUDIENCE COM OS CONTATOS PAGINADO
+  async findAudienceContacts(
+    findSegmentAudienceDto: FindAudienceContactsSchema,
+    req: Request,
+  ) {
+    //console.log('findSegmentAudienceDto', findSegmentAudienceDto);
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
     try {
+      const skip =
+        (findSegmentAudienceDto.page - 1) * findSegmentAudienceDto.limit;
+      const limit = Number(findSegmentAudienceDto.limit) || 10;
+      const page = Number(findSegmentAudienceDto.page) || 1;
       //console.log(id,organization_id)
       const audience = await this.prisma.audiences.findFirst({
         where: {
-          id: id,
-          organization_id: organization_id,
+          id: Number(findSegmentAudienceDto.id),
+          organization_id: findSegmentAudienceDto.organization_id,
+        },
+        select: {
+          id: true,
+          name: true,
+          created_at: true,
+          updated_at: true,
+          obs: true,
+          AudienceStatus: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          _count: {
+            select: {
+              AudiencesContacts: true,
+              CampaignAudience: true,
+            },
+          },
         },
       });
+      //console.log(audience);
       if (!audience) {
         throw new HttpException('Audiência nao existe', 404);
       }
-      return audience;
+      const audiencesContacts = await this.prisma.audiencesContacts.findMany({
+        include: {
+          CustomerUnified: {
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+              phone: true,
+              created_at: true,
+              updated_at: true,
+            },
+          },
+        },
+        where: {
+          audience_id: Number(audience.id),
+        },
+        skip,
+        take: Number(limit),
+      });
+
+      const total = await this.prisma.audiencesContacts.count({
+        where: {
+          audience_id: Number(audience.id),
+        },
+      });
+      const contacts = audiencesContacts.map((item) => item.CustomerUnified);
+      //console.log(contacts);
+      const totalPages = Math.ceil(total / limit);
+      return {
+        audience,
+        contacts,
+        pageInfo: {
+          total,
+          page,
+          limit,
+          totalPages,
+        },
+      };
     } catch (error) {
       console.log(`erro ao procurar id da audiência`, error);
       throw new HttpException(error.message, error.status);

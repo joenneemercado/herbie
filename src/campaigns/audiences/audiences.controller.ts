@@ -12,7 +12,11 @@ import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
 import { createAudienceSchema } from './dto/audience.schema';
 import { findSegmentAudienceSchema } from './dto/audience.segment.schema';
-import { FindSegmentAudienceDto } from './dto/create-audience.dto';
+import {
+  FindAudienceContactDto,
+  FindSegmentAudienceDto,
+} from './dto/create-audience.dto';
+import { findAudienceContactsSchema } from './dto/audience.contacts.schema';
 
 @ApiTags('Audiences')
 @ApiBearerAuth()
@@ -205,16 +209,27 @@ export class AudiencesController {
     example: 1,
     type: Number,
   })
-  @Get(':id')
-  findOne(
-    @Param('id') id: number,
-    @Query('organization_id') organization_id: string,
-  ): Promise<any> {
-    if (!organization_id) {
-      throw new BadRequestException('Organization ID is required');
+  @Get('/info/contacts')
+  // findOne(
+  //   @Param('id') id: number,
+  //   @Query('organization_id') organization_id: string,
+  // ): Promise<any> {
+  //   if (!organization_id) {
+  //     throw new BadRequestException('Organization ID is required');
+  //   }
+  //   {
+  //     return this.audiencesService.findOne(id, organization_id);
+  //   }
+  // }
+  findAudienceContacts(
+    @Query() findSegmentAudienceDto: FindAudienceContactDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createInteractionCampaing', intrationDto);
+    const parsed = findAudienceContactsSchema.safeParse(findSegmentAudienceDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
     }
-    {
-      return this.audiencesService.findOne(id, organization_id);
-    }
+    return this.audiencesService.findAudienceContacts(parsed.data, req);
   }
 }

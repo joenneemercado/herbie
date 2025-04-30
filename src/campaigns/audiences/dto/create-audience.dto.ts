@@ -209,3 +209,28 @@ export class CreateAudienceInteractionDto {
   @ApiProperty({ description: 'Status do pedido', example: 'delivered' })
   status_order?: string;
 }
+
+export class FindAudienceContactDto {
+  @IsString({ message: 'O id deve ser um string' })
+  @ApiProperty({
+    description: 'Identificação única da audiência',
+    example: '123456',
+  })
+  id?: number;
+
+  @IsString({ message: 'O organization_id deve ser uma string' })
+  @ApiProperty({ description: 'ID da organização', example: 'org-abc123' })
+  organization_id: string;
+
+  @IsOptional() // O campo cursor é opcional
+  @IsString({ message: 'O page deve ser uma string' })
+  @IsString({ message: 'O page deve ser um número válido' }) // Adicionando a verificação se for número
+  @ApiProperty({ description: 'page para paginação', example: '123' })
+  page?: string;
+
+  @IsOptional() // O campo limit é opcional
+  @IsString({ message: 'O limit deve ser uma string' })
+  @IsString({ message: 'O limit deve ser um número válido' }) // Adicionando a verificação se for número
+  @ApiProperty({ description: 'Limite de registros por página', example: '10' })
+  limit?: string;
+}
