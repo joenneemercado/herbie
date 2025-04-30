@@ -314,7 +314,7 @@ export class ZeusService {
         const findInteraction = await this.prisma.interaction.findFirst({
           where: {
             organization_id: createInteractionDto.organization_id,
-            customer_unified_Id: findCustomerUnified.id,
+            customer_unified_id: findCustomerUnified.id,
             source_id: ZeusConstantes.SOURCE_ID_ZEUS,
             event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
             type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
@@ -362,7 +362,7 @@ export class ZeusService {
           data: {
             details: createInteractionDto,
             organization_id: createInteractionDto.organization_id,
-            customer_unified_Id: findCustomerUnified.id,
+            customer_unified_id: findCustomerUnified.id,
             source_id: ZeusConstantes.SOURCE_ID_ZEUS,
             event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
             type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
@@ -536,7 +536,7 @@ export class ZeusService {
         const findInteraction = await this.prisma.interaction.findFirst({
           where: {
             organization_id: createInteractionDto.organization_id,
-            customer_unified_Id: findCustomerUnified.id,
+            customer_unified_id: findCustomerUnified.id,
             source_id: ZeusConstantes.SOURCE_ID_ZEUS,
             event_id: ZeusConstantes.EVENT_ID_RESGATAR,
             type: ZeusConstantes.EVENT_TYPE_RESGATAR,
@@ -580,7 +580,7 @@ export class ZeusService {
           data: {
             details: createInteractionDto,
             organization_id: createInteractionDto.organization_id,
-            customer_unified_Id: findCustomerUnified.id,
+            customer_unified_id: findCustomerUnified.id,
             source_id: ZeusConstantes.SOURCE_ID_ZEUS,
             event_id: ZeusConstantes.EVENT_ID_RESGATAR,
             type: ZeusConstantes.EVENT_TYPE_RESGATAR,

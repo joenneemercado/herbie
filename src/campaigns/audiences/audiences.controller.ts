@@ -31,94 +31,6 @@ import { createAudienceSchema } from './dto/audience.schema';
 export class AudiencesController {
   constructor(private readonly audiencesService: AudiencesService) {}
 
-  // @Post()
-  // create(
-  //   @Query() CreateAudienceDto: createAudienceSchema,
-  // ) {
-  //   return this.audiencesService.create(CreateAudienceDto);
-  // }
-
-  // @ApiQuery({
-  //   name: 'organization_id',
-  //   required: true,
-  //   description: 'Organization ID (public_id)',
-  //   example: 'cm0l1u61r00003b6junq2pmbi',
-  //   type: String,
-  // })
-  // @ApiQuery({
-  //   name: 'date_birth_start',
-  //   required: false,
-  //   description: 'Start date of birthday',
-  //   example: '["1984-02-10","1984-07-15"]',
-  //   type: [String],
-  // })
-
-  // @ApiQuery({
-  //   name: 'date_birth_end',
-  //   required: true,
-  //   description: 'end date of birthday',
-  //   example: '[1984-02-10,1984-07-15]',
-  //   type: [String],
-  // })
-  // @ApiQuery({
-  //   name: 'gender',
-  //   required: false,
-  //   description: 'gender',
-  //   example: 'female or male',
-  //   type: String,
-  // })
-  // @ApiQuery({
-  //   name: 'marital_status',
-  //   required: false,
-  //   description: 'marital',
-  //   example: 'singer',
-  //   type: String,
-  // })
-  // @ApiQuery({
-  //   name: 'date_created_start',
-  //   required: false,
-  //   description: 'start date of criation',
-  //   example: '2024-09-23',
-  //   type: String,
-  // })
-  // @ApiQuery({
-  //   name: 'date_created_end',
-  //   required: false,
-  //   description: 'end date of criation',
-  //   example: '2024-09-23',
-  //   type: String,
-  // })
-  @ApiBody({ type: CreateAudienceDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Post()
-  create(
-    @Body('audiencia') audiencia: string,
-    @Body('organization_id') organization_id: string,
-    @Body('date_birth_start') date_birth_start: string[],
-    @Body('date_birth_end') date_birth_end: string[],
-    @Body('gender') gender: string,
-    @Body('marital_status') marital_status: string,
-    @Body('date_created_start') date_created_start: Date,
-    @Body('date_created_end') date_created_end: Date,
-    //@Body() createUserDto: CreateUserDto
-  ): Promise<any> {
-    if (!organization_id) {
-      throw new BadRequestException('Organization ID is required');
-    }
-    {
-      return this.audiencesService.create({
-        audiencia,
-        organization_id,
-        date_birth_start,
-        date_birth_end,
-        gender,
-        marital_status,
-        date_created_start,
-        date_created_end,
-      });
-    }
-  }
-
   @ApiQuery({
     name: 'organization_id',
     required: true,
@@ -301,22 +213,5 @@ export class AudiencesController {
     {
       return this.audiencesService.findOne(id, organization_id);
     }
-  }
-
-  @Post('/interation')
-  async interationVtex2(
-    @Body() audienceDto: CreateAudienceInteractionDto,
-    @Request() req: Request,
-  ) {
-    const audience = await this.audiencesService.creatAudienceProcesso(
-      audienceDto,
-      req,
-    );
-    const parsed = createAudienceSchema.safeParse(audienceDto);
-    if (!parsed.success) {
-      throw new BadRequestException(parsed.error.errors);
-    }
-    this.audiencesService.createAudienceInteration(audience, parsed.data, req);
-    return audience;
   }
 }

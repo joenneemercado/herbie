@@ -134,7 +134,7 @@ export class VtexService {
         const findInteracao = await this.prisma.interaction.findFirst({
           where: {
             organization_id,
-            customer_unified_Id: verifyCustomerUnified.id,
+            customer_unified_id: verifyCustomerUnified.id,
             event_id: VtexConstantes.EVENT_ID_COMPRA,
             type: VtexConstantes.EVENT_TYPE_COMPRA,
             source_id: VtexConstantes.SOURCE_ID_VTEX,
@@ -154,7 +154,7 @@ export class VtexService {
         await this.prisma.interaction.create({
           data: {
             organization_id,
-            customer_unified_Id: verifyCustomerUnified.id,
+            customer_unified_id: verifyCustomerUnified.id,
             details: pedido,
             total: pedido.value,
             event_id: VtexConstantes.EVENT_ID_COMPRA,

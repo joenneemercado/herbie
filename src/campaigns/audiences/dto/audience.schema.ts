@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 export const createAudienceSchema = z.object({
   name: z.string().nullish(),
-  statusId: z.number().nullish().optional(),
-  createdBy: z.number().nullish(),
+  status_id: z.number().nullish().optional(),
+  created_by: z.number().nullish(),
   organization_id: z.string().nullish(),
   date_birth_start: z
     .union([z.string(), z.array(z.string())])

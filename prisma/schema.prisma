@@ -23,26 +23,23 @@ model Organization {
   AudienceStatus        AudienceStatus[]
   Audiences             Audiences[]
   AudiencesContacts     AudiencesContacts[]
-  Brand                 Brand[]
   CampaignAudience      CampaignAudience[]
   CampaignDetails       CampaignDetails[]
   CampaignDetailsStatus CampaignDetailsStatus[]
   CampaignStatus        CampaignStatus[]
   Campaigns             Campaigns[]
-  categories            Category[]
   Channels              Channels[]
   customers             Customer[]
   CustomerField         CustomerField[]
   CustomerUnified       CustomerUnified[]
+  Event                 Event[]
   ImportJob             ImportJob[]
   interactions          Interaction[]
   members               Member[]
   orders                Order[]
-  products              Product[]
   RFM                   RFM[]
   segments              Segment[]
   sellers               Seller[]
-  Sku                   Sku[]
   Tags                  Tags[]
   events                TypeEvent[]
   users                 User[]
@@ -95,18 +92,20 @@ model Seller {
   postal_code     String?
   created_at      DateTime     @default(now())
   updated_at      DateTime     @updatedAt
-  from_channel    String?
+  channel         String?
   organization_id String
   orders          Order[]
   organization    Organization @relation(fields: [organization_id], references: [public_id])
 }
 
 model Event {
-  id            Int           @id @default(autoincrement())
-  name          String
-  type_event_id Int
-  type_event    TypeEvent     @relation(fields: [type_event_id], references: [id])
-  Interaction   Interaction[]
+  id              Int           @id @default(autoincrement())
+  name            String
+  type_event_id   Int
+  organization_id String?       @db.VarChar
+  type_event      TypeEvent     @relation(fields: [type_event_id], references: [id])
+  Organization    Organization? @relation(fields: [organization_id], references: [public_id], onDelete: NoAction, onUpdate: NoAction, map: "event_organization_fk")
+  Interaction     Interaction[]
 }
 
 model Order {
@@ -145,53 +144,6 @@ model OrderItem {
   brand    String? @db.VarChar
   category String? @db.VarChar
   order    Order   @relation(fields: [order_id], references: [id])
-}
-
-model Category {
-  id                 Int          @id @default(autoincrement())
-  name               String
-  parent_category_id Int?
-  organization_id    Int
-  organization       Organization @relation(fields: [organization_id], references: [id])
-  parent_category    Category?    @relation("CategoryToCategory", fields: [parent_category_id], references: [id])
-  sub_categories     Category[]   @relation("CategoryToCategory")
-  products           Product[]
-}
-
-model Product {
-  id              Int          @id @default(autoincrement())
-  name            String
-  category_id     Int
-  brand_id        Int?
-  organization_id String
-  brand           Brand?       @relation(fields: [brand_id], references: [id])
-  category        Category     @relation(fields: [category_id], references: [id])
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
-  skus            Sku[]
-}
-
-model Brand {
-  id              Int          @id @default(autoincrement())
-  name            String
-  ref_id          String
-  from_channel    String?
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
-  organization_id String
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
-  products        Product[]
-}
-
-model Sku {
-  id              Int          @id @default(autoincrement())
-  sku_ref         String
-  name            String
-  product_id      Int
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
-  organization_id String
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
-  product         Product      @relation(fields: [product_id], references: [id])
 }
 
 model Customer {
@@ -286,37 +238,37 @@ model Customer_CustomerUnified {
 }
 
 model Address {
-  id                Int              @id @default(autoincrement())
-  address_ref       String?
-  neighborhood      String?
-  street            String?
-  city              String?
-  state             String?
-  country           String?
-  postal_code       String?
-  address_type      String?
-  is_default        Boolean?
-  organization_id   String
-  customer_id       String
-  customerUnifiedId Int?
-  complement        String?
-  number            String?
-  CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
-  customer          Customer         @relation(fields: [customer_id], references: [public_id])
-  organization      Organization     @relation(fields: [organization_id], references: [public_id])
+  id                  Int              @id @default(autoincrement())
+  address_ref         String?
+  neighborhood        String?
+  street              String?
+  city                String?
+  state               String?
+  country             String?
+  postal_code         String?
+  address_type        String?
+  is_default          Boolean?
+  organization_id     String
+  customer_id         String
+  customer_unified_id Int?
+  complement          String?
+  number              String?
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], map: "Address_customerUnifiedId_fkey")
+  customer            Customer         @relation(fields: [customer_id], references: [public_id])
+  organization        Organization     @relation(fields: [organization_id], references: [public_id])
 }
 
 model CustomerField {
-  id                Int              @id @default(autoincrement())
-  customer_id       String
-  type              String
-  description       String?
-  value             String?
-  organization_id   String
-  customerUnifiedId Int?
-  CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
-  customer          Customer         @relation(fields: [customer_id], references: [public_id])
-  organization      Organization     @relation(fields: [organization_id], references: [public_id])
+  id                  Int              @id @default(autoincrement())
+  customer_id         String
+  type                String
+  description         String?
+  value               String?
+  organization_id     String
+  customer_unified_id Int?
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], map: "CustomerField_customerUnifiedId_fkey")
+  customer            Customer         @relation(fields: [customer_id], references: [public_id])
+  organization        Organization     @relation(fields: [organization_id], references: [public_id])
 }
 
 model Interaction {
@@ -327,13 +279,13 @@ model Interaction {
   source_id           Int
   created_at          DateTime?        @default(now())
   event_id            Int
-  customer_unified_Id Int?
+  customer_unified_id Int?
   customer_id         Int?
   total               Float?
   updated_at          DateTime?
   created_by          Int?
   status_id           Int?
-  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_Id], references: [id], map: "Interaction_customerUnifiedId_fkey")
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], map: "Interaction_customerUnifiedId_fkey")
   event               Event            @relation(fields: [event_id], references: [id])
   organization        Organization     @relation(fields: [organization_id], references: [public_id])
   Customer            Customer?        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_customer_fk")
@@ -351,12 +303,12 @@ model Segment {
 }
 
 model SegmentCustomer {
-  segment_id        Int
-  customer_id       String
-  customerUnifiedId Int?
-  CustomerUnified   CustomerUnified? @relation(fields: [customerUnifiedId], references: [id])
-  customer          Customer         @relation(fields: [customer_id], references: [public_id])
-  segment           Segment          @relation(fields: [segment_id], references: [id])
+  segment_id          Int
+  customer_id         String
+  customer_unified_id Int?
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], map: "SegmentCustomer_customerUnifiedId_fkey")
+  customer            Customer         @relation(fields: [customer_id], references: [public_id])
+  segment             Segment          @relation(fields: [segment_id], references: [id])
 
   @@id([segment_id, customer_id])
 }
@@ -462,12 +414,12 @@ model Channels {
   id                    Int                     @id @default(autoincrement())
   name                  String                  @db.VarChar(255)
   type                  String?                 @db.VarChar(255)
-  colorCode             String?
-  statusId              Int
-  createdAt             DateTime?               @default(now())
-  updatedAt             DateTime?               @default(now())
-  createdBy             Int?                    @default(1)
-  updatedBy             Int?
+  color_code            String?
+  status_id             Int
+  created_at            DateTime?               @default(now())
+  updated_at            DateTime?               @default(now())
+  created_by            Int?                    @default(1)
+  updated_by            Int?
   organization_id       String
   provider              String?                 @db.VarChar
   Campaigns             Campaigns[]
@@ -493,42 +445,42 @@ model Tags {
 model CustomerUnifiedTags {
   id                  Int              @id(map: "customerunifiedtags_pk") @default(autoincrement())
   customer_unified_id Int?
-  idtag               Int?
+  tag_id              Int?
   CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_customerunified_fk")
-  Tags                Tags?            @relation(fields: [idtag], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_tags_fk")
+  Tags                Tags?            @relation(fields: [tag_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customerunifiedtags_tags_fk")
 }
 
 model ConfigurationsChannel {
   id          Int       @id @default(autoincrement())
   description String    @db.VarChar(255)
-  idChannel   Int
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime
+  channel_id  Int
+  created_at  DateTime? @default(now())
+  updated_at  DateTime
   user_id     Int
   value       String?   @db.VarChar(255)
-  Channels    Channels  @relation(fields: [idChannel], references: [id])
+  Channels    Channels  @relation(fields: [channel_id], references: [id], map: "ConfigurationsChannel_idChannel_fkey")
   User        User      @relation(fields: [user_id], references: [id])
 
-  @@index([createdAt])
-  @@index([idChannel, user_id])
-  @@index([updatedAt])
-  @@index([user_id, idChannel, createdAt])
   @@index([user_id])
+  @@index([created_at], map: "ConfigurationsChannel_createdAt_idx")
+  @@index([channel_id, user_id], map: "ConfigurationsChannel_idChannel_user_id_idx")
+  @@index([updated_at], map: "ConfigurationsChannel_updatedAt_idx")
+  @@index([user_id, channel_id, created_at], map: "ConfigurationsChannel_user_id_idChannel_createdAt_idx")
 }
 
 model IntegrationTokens {
-  id        Int       @id @default(autoincrement())
-  idChannel Int
-  label     String
-  value     String
-  statusId  Int
-  createdAt DateTime? @default(now())
-  updatedAt DateTime  @default(now())
-  createdBy Int?
-  updatedBy Int?
-  Channels  Channels  @relation(fields: [idChannel], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id         Int       @id @default(autoincrement())
+  channel_id Int
+  label      String
+  value      String
+  status_id  Int
+  created_at DateTime? @default(now())
+  updated_at DateTime  @default(now())
+  created_by Int?
+  updated_by Int?
+  Channels   Channels  @relation(fields: [channel_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "IntegrationTokens_idChannel_fkey")
 
-  @@index([idChannel, label])
+  @@index([channel_id, label], map: "IntegrationTokens_idChannel_label_idx")
 }
 
 model AssociationTags {
@@ -650,18 +602,18 @@ model CampaignStatus {
 model ImportJob {
   id              String       @id
   status          StatusJob
-  fileName        String
-  fileSize        Int
-  totalItems      Int          @default(0)
-  totalProcessed  Int          @default(0)
-  totalSuccess    Int          @default(0)
-  totalErrors     Int          @default(0)
+  file_name       String
+  file_size       Int
+  total_items     Int          @default(0)
+  total_processed Int          @default(0)
+  total_success   Int          @default(0)
+  total_errors    Int          @default(0)
   progress        Int          @default(0)
-  errorMessage    String?
-  errorDetails    String?
+  error_message   String?
+  error_details   String?
   organization_id String
-  createdAt       DateTime     @default(now())
-  completedAt     DateTime?
+  created_at      DateTime     @default(now())
+  completed_at    DateTime?
   Organization    Organization @relation(fields: [organization_id], references: [public_id])
 }
 

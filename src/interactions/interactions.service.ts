@@ -280,7 +280,7 @@ export class InteractionsService {
         source_id: 2,
         ...whereCondition,
         NOT: {
-          customer_unified_Id: null,
+          customer_unified_id: null,
         },
       },
       include: {
@@ -446,11 +446,11 @@ export class InteractionsService {
 
       // Obter IDs de CustomerUnified e Customer
       const unifiedIds = interactions
-        .map((i) => i.customer_unified_Id)
+        .map((i) => i.customer_unified_id)
         .filter((id) => !!id);
 
       const customerIds = interactions
-        .filter((i) => !i.customer_unified_Id && !!i.customer_id)
+        .filter((i) => !i.customer_unified_id && !!i.customer_id)
         .map((i) => i.customer_id);
 
       // 2. Buscar quem comprou (event_id = 6)
@@ -463,9 +463,9 @@ export class InteractionsService {
           where: {
             event_id: 6,
             organization_id: interation.organization_id,
-            customer_unified_Id: { in: chunk },
+            customer_unified_id: { in: chunk },
           },
-          select: { customer_unified_Id: true },
+          select: { customer_unified_id: true },
         });
         compraram.push(...res);
       }
@@ -492,11 +492,11 @@ export class InteractionsService {
 
       // 3. Filtrar os que não compraram
       const aprovadosSemCompra = interactions.filter((interaction) => {
-        if (interaction.customer_unified_Id) {
-          return !compraramUnifiedIds.has(interaction.customer_unified_Id);
+        if (interaction.customer_unified_id) {
+          return !compraramUnifiedIds.has(interaction.customer_unified_id);
         } else if (
           interaction.customer_id &&
-          interaction.customer_unified_Id === null
+          interaction.customer_unified_id === null
         ) {
           return !compraramCustomerIds.has(interaction.customer_id);
         }
@@ -663,9 +663,9 @@ export class InteractionsService {
       const data = await this.prisma.interaction.findMany({
         where: {
           organization_id: interactionCustomerUnified.organization_id,
-          customer_unified_Id: interactionCustomerUnified.customer_unified_id,
+          customer_unified_id: interactionCustomerUnified.customer_unified_id,
           NOT: {
-            customer_unified_Id: null,
+            customer_unified_id: null,
           },
         },
         include: {
@@ -687,9 +687,9 @@ export class InteractionsService {
       const total = await this.prisma.interaction.count({
         where: {
           organization_id: interactionCustomerUnified.organization_id,
-          customer_unified_Id: interactionCustomerUnified.customer_unified_id,
+          customer_unified_id: interactionCustomerUnified.customer_unified_id,
           NOT: {
-            customer_unified_Id: null,
+            customer_unified_id: null,
           },
         },
       });
