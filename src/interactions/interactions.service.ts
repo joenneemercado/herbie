@@ -19,82 +19,6 @@ export class InteractionsService {
     private jwtService: JwtService,
   ) {}
 
-  // async findAll(params: {
-  //   page: number;
-  //   limit: number;
-  //   organization_id: string;
-  //   customer_id?: number;
-  //   customer_unified_id?: number;
-  //   orderby?: 'asc' | 'desc'; // <-- AQUI TIPANDO CERTO
-  // }) {
-  //   const {
-  //     page,
-  //     limit,
-  //     organization_id,
-  //     customer_id,
-  //     customer_unified_id,
-  //     orderby,
-  //   } = params;
-  //   const skip = (page - 1) * limit;
-  //   // console.log(params);
-  //   // console.log(orderby);
-
-  //   const filters: Prisma.InteractionWhereInput = {
-  //     AND: [
-  //       customer_id ? { customer_id: customer_id } : {},
-  //       customer_unified_id ? { customer_unified_Id: customer_unified_id } : {},
-  //       organization_id
-  //         ? { organization_id: organization_id }
-  //         : { organization_id: organization_id },
-  //     ],
-  //   };
-  //   //console.log(filters);
-
-  //   const orderByClause = {
-  //     created_at: orderby ?? 'desc', // se não passar, vira 'desc' automático
-  //   };
-  //   try {
-  //     const [result, total] = await Promise.all([
-  //       this.prisma.interaction.findMany({
-  //         skip,
-  //         take: Number(limit),
-  //         where: filters,
-  //         // orderBy: {
-  //         //   created_at: 'desc',
-  //         // },
-  //         orderBy: orderByClause,
-  //         include: {
-  //           CustomerUnified: {
-  //             select: {
-  //               firstname: true,
-  //               lastname: true,
-  //             },
-  //           },
-  //           Source: {
-  //             select: {
-  //               name: true,
-  //             },
-  //           },
-  //         },
-  //       }),
-  //       this.prisma.interaction.count({ where: filters }),
-  //     ]);
-
-  //     //console.log(result);
-
-  //     return {
-  //       data: result,
-  //       total,
-  //       page,
-  //       limit,
-  //       totalPages: Math.ceil(total / limit),
-  //     };
-  //   } catch (error) {
-  //     console.error('Error fetching customers Unified:', error);
-  //     throw error;
-  //   }
-  // }
-
   //todo procura todas as interacoes para o contato
   async findAll(interation: InteractionDtoSchema, req: Request) {
     try {
@@ -108,7 +32,7 @@ export class InteractionsService {
 
       if (interation.customer_unified_id) {
         filters.push({
-          customer_unified_Id: Number(interation.customer_unified_id),
+          customer_unified_id: Number(interation.customer_unified_id),
         });
       }
       if (interation.customer_id) {
@@ -541,102 +465,6 @@ export class InteractionsService {
       console.log(error);
     }
   }
-
-  //todo interacao de campanha para o contato
-  // async findInteractionCampaingContact(
-  //   intrationDto: IntrationDtoSchema,
-  //   req: Request,
-  // ) {
-  //   const reqToken = req.headers['authorization'];
-  //   if (!reqToken) {
-  //     throw new UnauthorizedException();
-  //   }
-  //   try {
-  //     const filters = [];
-
-  //     const customer_unified_Tratato = intrationDto.customer_unified_id
-  //       ? Number(intrationDto.customer_unified_id)
-  //       : undefined;
-
-  //     if (intrationDto.customer_unified_id) {
-  //       filters.push({
-  //         customer_unified_Id: customer_unified_Tratato,
-  //       });
-  //     }
-
-  //     const whereCondition = filters.length > 0 ? { AND: filters } : {};
-
-  //     const limit = Number(intrationDto.limit) || 10;
-  //     const cursor = intrationDto.cursor
-  //       ? Number(intrationDto.cursor)
-  //       : undefined;
-
-  //     //console.log(intrationDto);
-  //     const interactions = await this.prisma.interaction.findMany({
-  //       where: {
-  //         organization_id: intrationDto.organization_id,
-  //         event_id: InteractionConstantes.EVENTE_ID_CAMPAIGN,
-  //         source_id: InteractionConstantes.SOURCE_ID_CAMPAIGN,
-  //         type: InteractionConstantes.EVENT_TYPE_CAMPAIGN,
-  //         ...whereCondition,
-  //       },
-  //       take: limit,
-  //       cursor: cursor ? { id: cursor } : undefined,
-  //       orderBy: {
-  //         id: 'asc',
-  //       },
-  //     });
-  //     //console.log('log interaction', interactions);
-  //     const itemsOnPage = interactions.length;
-  //     const total = await this.prisma.interaction.count({
-  //       where: {
-  //         organization_id: intrationDto.organization_id,
-  //         event_id: InteractionConstantes.EVENTE_ID_CAMPAIGN,
-  //         source_id: InteractionConstantes.SOURCE_ID_CAMPAIGN,
-  //         type: InteractionConstantes.EVENT_TYPE_CAMPAIGN,
-  //         ...whereCondition,
-  //       },
-  //     });
-
-  //     const nextCursor =
-  //       interactions.length === limit
-  //         ? interactions[interactions.length - 1].id
-  //         : null;
-
-  //     const totalPages = Math.ceil(total / limit);
-
-  //     // Extraindo múltiplos campos de 'details'
-  //     const data = interactions
-  //       .map((interaction) => {
-  //         if (interaction.details && typeof interaction.details === 'object') {
-  //           return {
-  //             id: interaction.details['id'],
-  //             name: interaction.details['name'],
-  //             message: interaction.details['message'],
-  //             dateStart: interaction.details['dateStart'],
-  //             dateEnd: interaction.details['dateEnd'],
-  //           };
-  //         }
-  //         return null; // Caso 'details' não seja um objeto válido
-  //       })
-  //       .filter(Boolean);
-
-  //     //console.log('Detalhes das campanhas:', data);
-
-  //     return {
-  //       data, // Dados da consulta
-  //       pageInfo: {
-  //         total, // Total de itens no banco
-  //         itemsOnPage, // Itens retornados na página atual
-  //         nextCursor, // ID do próximo cursor
-  //         totalPages, // Total de páginas
-  //       },
-  //     };
-  //   } catch (error) {
-  //     console.error('Error in findInteractionCampaing:', error);
-  //     throw new InternalServerErrorException();
-  //   }
-  // }
 
   //todo intracao do contato unificado
   async findInteractionCustomerUnified(

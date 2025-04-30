@@ -365,10 +365,11 @@ model Audiences {
   name              String              @db.VarChar(255)
   obs               String?
   status_id         Int?                @default(1)
-  updated_at        DateTime?
+  updated_at        DateTime?           @default(now())
   created_by        Int?
   updated_by        Int?
   organization      Organization        @relation(fields: [organization_id], references: [public_id])
+  AudienceStatus    AudienceStatus?     @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "audiences_audiencestatus_fk")
   AudiencesContacts AudiencesContacts[]
   CampaignAudience  CampaignAudience[]
 }
@@ -511,6 +512,7 @@ model AudienceStatus {
   updated_at        DateTime?
   updated_by        Int?
   Organization      Organization        @relation(fields: [organization_id], references: [public_id], map: "Audiencestatus_organization_id_fkey")
+  Audiences         Audiences[]
   AudiencesContacts AudiencesContacts[]
 }
 

@@ -316,43 +316,45 @@ export class CampaignsService {
       const limit = Number(campaingDetailsDto.limit) || 10;
       const page = Number(campaingDetailsDto.page) || 1;
 
-      const campanha = await this.prisma.campaignDetails.findMany({
+      const data = await this.prisma.campaignDetails.findMany({
         where: {
           campaign_id: Number(campaingDetailsDto.id),
           organization_id: campaingDetailsDto.organization_id,
         },
-        include: {
-          CustomerUnified: true,
-          CampaignDetailsStatus: true,
+        select: {
+          id: true,
+          contact_id: true,
+          sender: true,
+          sent_at: true,
+          status_id: true,
+          created_at: true,
+          updated_at: true,
+          CustomerUnified: {
+            select: {
+              firstname: true,
+              lastname: true,
+              phone: true,
+              email: true,
+            },
+          },
+          CampaignDetailsStatus: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
-
         skip,
         take: Number(limit),
       });
-      //console.log('campanha', campanha);
-
-      if (!campanha) {
+      if (!data) {
         throw new HttpException('Campanha nao existe', 404);
       }
-
-      //console.log('campanha', campanha);
-      //console.log('log interaction', interactions);
-      // const itemsOnPage = campanha.length;
       const total = await this.prisma.campaignDetails.count({
         where: {
           organization_id: campaingDetailsDto.organization_id,
         },
       });
-
-      const data = campanha.map((item) => ({
-        firstName: item.CustomerUnified.firstname,
-        lastName: item.CustomerUnified.lastname,
-        phone: item.CustomerUnified.phone,
-        sender: item.sender,
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-        statusId: item.CampaignDetailsStatus.name,
-      }));
 
       const totalPages = Math.ceil(total / limit);
       return {
