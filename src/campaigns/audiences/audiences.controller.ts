@@ -6,6 +6,8 @@ import {
   BadRequestException,
   Query,
   UseGuards,
+  Post,
+  Body,
 } from '@nestjs/common';
 import { AudiencesService } from './audiences.service';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -193,6 +195,19 @@ export class AudiencesController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.audiencesService.findAllSegmentedInteration(parsed.data, req);
+  }
+
+  @Post('/create/segment')
+  createAudienceSegment(
+    @Body() findSegmentAudienceDto: FindSegmentAudienceDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createInteractionCampaing', findSegmentAudienceDto);
+    const parsed = findSegmentAudienceSchema.safeParse(findSegmentAudienceDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.audiencesService.createAudienceSegment(parsed.data, req);
   }
 
   @ApiQuery({

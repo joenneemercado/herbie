@@ -68,17 +68,21 @@ export class CreateAudienceDto {
 
 export class FindSegmentAudienceDto {
   @IsOptional()
-  @IsString({ message: 'O audiencia deve ser uma string' })
-  @ApiProperty({
-    description: 'Nome do seller',
-    example: 'mercantilnovaera',
-  })
-  sellerName?: string;
+  @IsString({ message: 'O nome da audiencia deve ser um string' })
+  @ApiProperty({ description: 'Nome da audiência', example: 'Nova audiência' })
+  name?: string;
 
   @IsOptional()
-  @IsNumber({}, { message: 'O statusId deve ser um número' })
-  @ApiProperty({ description: 'ID do status', example: 1 })
-  statusId?: number;
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O total deve ser um número' })
+  @ApiProperty({ description: 'total', example: 1 })
+  total_start?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O total deve ser um número' })
+  @ApiProperty({ description: 'total', example: 1 })
+  total_end?: number;
 
   @IsOptional()
   @IsNumber({}, { message: 'O createdBy deve ser um número' })
@@ -126,6 +130,22 @@ export class FindSegmentAudienceDto {
   date_birth_end?: string[];
 
   @IsOptional()
+  @IsString({ message: 'O date_created_start deve ser uma string' })
+  @ApiProperty({
+    description: 'Data de término',
+    example: '2024-12-31T23:59:59.999Z',
+  })
+  date_created_start?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O date_created_end deve ser uma string' })
+  @ApiProperty({
+    description: 'Data de término',
+    example: '2024-12-31T23:59:59.999Z',
+  })
+  date_created_end?: string;
+
+  @IsOptional()
   @IsString({ message: 'O gender deve ser uma string' })
   @ApiProperty({ description: 'Gênero', example: 'male' })
   gender?: string;
@@ -168,6 +188,21 @@ export class FindSegmentAudienceDto {
   })
   @ApiProperty({ type: [String] })
   event_id?: string[];
+
+  @IsOptional() // O campo cursor é opcional
+  @IsString({ message: 'O refId deve ser uma string' })
+  @ApiProperty({ description: 'refId para paginação', example: '123' })
+  refId?: string;
+
+  @IsOptional() // O campo cursor é opcional
+  @IsString({ message: 'O page deve ser uma string' })
+  @ApiProperty({ description: 'page para paginação', example: '123' })
+  page?: string;
+
+  @IsOptional() // O campo limit é opcional
+  @IsString({ message: 'O limit deve ser uma string' })
+  @ApiProperty({ description: 'Limite de registros por página', example: '10' })
+  limit?: string;
 }
 
 export class CreateAudienceInteractionDto {

@@ -22,6 +22,7 @@ export class InteractionsService {
   //todo procura todas as interacoes para o contato
   async findAll(interation: InteractionDtoSchema, req: Request) {
     try {
+      //console.log(interation);
       const reqToken = req.headers['authorization'];
       if (!reqToken) {
         throw new UnauthorizedException();
