@@ -28,25 +28,52 @@ export type CreateCampaignDtoSchema = z.infer<typeof createCampaignDtochema>;
 //todo consultar campanha
 export const findCampaignchema = z.object({
   name: z.string().nullish(),
-  createdBy: z.number().nullish().optional(),
-  statusId: z.number().nullish().optional(),
-  id: z
-    .string()
+  created_by: z
+    .number()
     .optional()
-    .transform((val) => (val ? Number(val) : undefined))
+    .transform((val) => (val !== undefined ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'created_by deve ser um número válido',
+    }),
+  status_id: z
+    .number()
+    .optional()
+    .transform((val) => (val !== undefined ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'status_id deve ser um número válido',
+    }),
+  id: z
+    .number()
+    .optional()
+    .transform((val) => (val !== undefined ? Number(val) : undefined))
     .refine((val) => val === undefined || !isNaN(val), {
       message: 'id deve ser um número válido',
+    }),
+  channel_id: z
+    .number()
+    .optional()
+    .transform((val) => (val !== undefined ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'channel_id deve ser um número válido',
     }),
   organization_id: z
     .string()
     .min(1, { message: 'ID da organização é obrigatório.' }),
   page: z
-    .union([z.string(), z.number()])
-    .transform((val) => Number(val))
+    .number()
+    .optional()
+    .transform((val) => (val !== undefined ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'page deve ser um número válido',
+    })
     .default(1),
   limit: z
-    .union([z.string(), z.number()])
-    .transform((val) => Number(val))
+    .number()
+    .optional()
+    .transform((val) => (val !== undefined ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'limit deve ser um número válido',
+    })
     .default(10),
 });
 

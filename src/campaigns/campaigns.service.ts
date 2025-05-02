@@ -1,3 +1,4 @@
+import { Tag } from './../tags/entities/tag.entity';
 import {
   CampaingContactDtochema,
   CampaingDetailsDtochema,
@@ -220,34 +221,45 @@ export class CampaignsService {
       throw new UnauthorizedException();
     }
     try {
+      //console.log(findCampaingDto);
       const skip = (findCampaingDto.page - 1) * findCampaingDto.limit;
       const limit = Number(findCampaingDto.limit) || 10;
       const currentPage = Number(findCampaingDto.page) || 1;
 
-      const filters = {
-        AND: [
-          findCampaingDto.id ? { id: findCampaingDto.id } : {},
-          findCampaingDto.organization_id
-            ? { organization_id: findCampaingDto.organization_id }
-            : {},
-          findCampaingDto.name
-            ? { name: { contains: findCampaingDto.name } }
-            : {},
-          findCampaingDto.statusId
-            ? { statusId: findCampaingDto.statusId }
-            : {},
-          findCampaingDto.createdBy
-            ? { createdBy: findCampaingDto.createdBy }
-            : {},
-        ],
+      const filtersCampaing = [];
+
+      if (findCampaingDto.id) {
+        filtersCampaing.push({ id: findCampaingDto.id });
+      }
+      if (findCampaingDto.name) {
+        filtersCampaing.push({ name: { contains: findCampaingDto.name } });
+      }
+      if (findCampaingDto.status_id) {
+        filtersCampaing.push({ status_id: findCampaingDto.status_id });
+      }
+      if (findCampaingDto.created_by) {
+        filtersCampaing.push({ created_by: findCampaingDto.created_by });
+      }
+      if (findCampaingDto.channel_id) {
+        filtersCampaing.push({ channel_id: findCampaingDto.channel_id });
+      }
+
+      const whereConditionCampaing = {
+        AND: [...filtersCampaing],
       };
 
       const data = await this.prisma.campaigns.findMany({
         where: {
           organization_id: findCampaingDto.organization_id,
-          ...filters,
+          ...whereConditionCampaing,
         },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          message: true,
+          date_start: true,
+          date_end: true,
+
           CampaignStatus: {
             select: {
               id: true,
@@ -255,21 +267,39 @@ export class CampaignsService {
             },
           },
           AssociationTags: {
-            include: {
-              Tags: true,
-            },
-          },
-          CampaignAudience: {
-            include: {
-              Audiences: {
+            select: {
+              Tags: {
                 select: {
+                  id: true,
                   name: true,
                 },
               },
             },
           },
-          CampaignDetails: true,
+          _count: {
+            select: {
+              CampaignDetails: true,
+            },
+          },
+          // CampaignAudience: {
+          //   include: {
+          //     Audiences: {
+          //       select: {
+          //         name: true,
+          //       },
+          //     },
+          //   },
+          // },
+          Channels: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
+        // include: {
+        //   //CampaignDetails: true,
+        // },
         orderBy: [
           { updated_at: 'desc' },
           { priority: 'desc' },
@@ -282,7 +312,7 @@ export class CampaignsService {
       const totalItems = await this.prisma.campaigns.count({
         where: {
           organization_id: findCampaingDto.organization_id,
-          ...filters,
+          ...whereConditionCampaing,
         },
       });
 
@@ -314,7 +344,7 @@ export class CampaignsService {
       //console.log('createCampaignDto', createCampaignDto);
       const skip = (campaingDetailsDto.page - 1) * campaingDetailsDto.limit;
       const limit = Number(campaingDetailsDto.limit) || 10;
-      const page = Number(campaingDetailsDto.page) || 1;
+      const currentPage = Number(campaingDetailsDto.page) || 1;
 
       const data = await this.prisma.campaignDetails.findMany({
         where: {
@@ -350,18 +380,19 @@ export class CampaignsService {
       if (!data) {
         throw new HttpException('Campanha nao existe', 404);
       }
-      const total = await this.prisma.campaignDetails.count({
+      const totalItems = await this.prisma.campaignDetails.count({
         where: {
+          campaign_id: Number(campaingDetailsDto.id),
           organization_id: campaingDetailsDto.organization_id,
         },
       });
 
-      const totalPages = Math.ceil(total / limit);
+      const totalPages = Math.ceil(totalItems / limit);
       return {
         data,
         pageInfo: {
-          total,
-          page,
+          totalItems,
+          currentPage,
           limit,
           totalPages,
         },
@@ -383,7 +414,7 @@ export class CampaignsService {
     try {
       const skip = (campaingContactDto.page - 1) * campaingContactDto.limit;
       const limit = Number(campaingContactDto.limit) || 10;
-      const page = Number(campaingContactDto.page) || 1;
+      const currentPage = Number(campaingContactDto.page) || 1;
 
       const data = await this.prisma.campaignDetails.findMany({
         where: {
@@ -428,7 +459,7 @@ export class CampaignsService {
       //console.log('campanha', campanha);
       //console.log('log interaction', interactions);
       //const itemsOnPage = campanha.length;
-      const total = await this.prisma.campaignDetails.count({
+      const totalItems = await this.prisma.campaignDetails.count({
         where: {
           organization_id: campaingContactDto.organization_id,
           contact_id: Number(campaingContactDto.customer_unified_id),
@@ -438,13 +469,13 @@ export class CampaignsService {
       // const nextCursor =
       //   campanha.length === limit ? campanha[campanha.length - 1].id : null;
 
-      const totalPages = Math.ceil(total / limit);
+      const totalPages = Math.ceil(totalItems / limit);
 
       return {
         data,
         pageInfo: {
-          total,
-          page,
+          totalItems,
+          currentPage,
           limit,
           totalPages,
         },

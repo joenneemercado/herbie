@@ -1181,7 +1181,7 @@ export class AudiencesService {
       const skip =
         (findSegmentAudienceDto.page - 1) * findSegmentAudienceDto.limit;
       const limit = Number(findSegmentAudienceDto.limit) || 10;
-      const page = Number(findSegmentAudienceDto.page) || 1;
+      const currentPage = Number(findSegmentAudienceDto.page) || 1;
       //console.log(id,organization_id)
       const audience = await this.prisma.audiences.findFirst({
         where: {
@@ -1233,20 +1233,20 @@ export class AudiencesService {
         take: Number(limit),
       });
 
-      const total = await this.prisma.audiencesContacts.count({
+      const totalItems = await this.prisma.audiencesContacts.count({
         where: {
           audience_id: Number(audience.id),
         },
       });
       const contacts = audiencesContacts.map((item) => item.CustomerUnified);
       //console.log(contacts);
-      const totalPages = Math.ceil(total / limit);
+      const totalPages = Math.ceil(totalItems / limit);
       return {
         audience,
         contacts,
         pageInfo: {
-          total,
-          page,
+          totalItems,
+          currentPage,
           limit,
           totalPages,
         },

@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { CampaignsService } from './campaigns.service';
 import {
-  CampaingContactDto,
   CampaingDetailsDto,
   CreateCampaingDto,
   FindCampaingDto,
@@ -24,7 +23,6 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
 import {
-  campaingContactDtochema,
   campaingDetailsDtochema,
   createCampaignDtochema,
   findCampaignchema,
@@ -299,16 +297,16 @@ export class CampaignsController {
     return this.campaignsService.findCampaignDetails(parsed.data, req);
   }
 
-  @Get('/info/contacts')
-  findCampaignContacts(
-    @Query() campaingContactDto: CampaingContactDto,
-    @Request() req: Request,
-  ) {
-    //console.log('CampaingContactDto', CampaingContactDto);
-    const parsed = campaingContactDtochema.safeParse(campaingContactDto);
-    if (!parsed.success) {
-      throw new BadRequestException(parsed.error.errors);
-    }
-    return this.campaignsService.findCampaignContacts(parsed.data, req);
-  }
+  // @Get('/info/contacts')
+  // findCampaignContacts(
+  //   @Query() campaingContactDto: CampaingContactDto,
+  //   @Request() req: Request,
+  // ) {
+  //   //console.log('CampaingContactDto', CampaingContactDto);
+  //   const parsed = campaingContactDtochema.safeParse(campaingContactDto);
+  //   if (!parsed.success) {
+  //     throw new BadRequestException(parsed.error.errors);
+  //   }
+  //   return this.campaignsService.findCampaignContacts(parsed.data, req);
+  // }
 }

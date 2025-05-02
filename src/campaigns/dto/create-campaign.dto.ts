@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 //todo criar campanha
@@ -99,39 +100,66 @@ export class CreateCampaingDto {
 
 //todo consultar campanha
 export class FindCampaingDto {
-  @IsOptional()
-  @IsString({ message: 'O name do cliente' })
-  @ApiProperty()
-  message?: string;
+  @IsOptional() // O campo limit é opcional
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O created_by deve ser um número' })
+  @ApiProperty({
+    description: 'created_by',
+    example: 10,
+  })
+  created_by?: number;
 
-  @IsOptional()
-  @IsNumber({}, { message: 'O statusId deve ser um número' })
-  @ApiProperty()
-  statusId?: number;
+  @IsOptional() // O campo limit é opcional
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O status_id deve ser um número' })
+  @ApiProperty({
+    description: 'status_id',
+    example: 10,
+  })
+  status_id?: number;
 
   @IsString({ message: 'O organization_id deve ser um UUID válido' })
   @ApiProperty()
   organization_id: string;
 
-  @IsOptional()
-  @IsString({ message: 'O id deve ser uma string' })
+  @IsOptional() // O campo cursor é opcional
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O ID deve ser um número' })
   @ApiProperty({
-    description: 'ID do cliente unificado',
-    example: '123',
+    description: 'id da campanha',
+    example: 1,
   })
-  id?: string;
+  id?: number;
 
   @IsOptional() // O campo cursor é opcional
-  @IsString({ message: 'O cursor deve ser uma string' })
-  @IsString({ message: 'O cursor deve ser um número válido' }) // Adicionando a verificação se for número
-  @ApiProperty({ description: 'Cursor para paginação', example: '123' })
-  page?: string;
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O ID deve ser um número' })
+  @ApiProperty({ description: 'id', example: 1 })
+  @ApiProperty({
+    description: 'canal da campanha',
+    example: 1,
+  })
+  channel_id?: number;
+
+  @IsOptional() // O campo cursor é opcional
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O page deve ser um número' })
+  @ApiProperty({ description: 'page', example: 1 })
+  @ApiProperty({
+    description: 'page',
+    example: 1,
+  })
+  page?: number;
 
   @IsOptional() // O campo limit é opcional
-  @IsString({ message: 'O limit deve ser uma string' })
-  @IsString({ message: 'O limit deve ser um número válido' }) // Adicionando a verificação se for número
-  @ApiProperty({ description: 'Limite de registros por página', example: '10' })
-  limit?: string;
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O limit deve ser um número' })
+  @ApiProperty({ description: 'limit', example: 10 })
+  @ApiProperty({
+    description: 'limit',
+    example: 10,
+  })
+  limit?: number;
 }
 
 export class CampaingDetailsDto {
