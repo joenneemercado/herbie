@@ -222,7 +222,7 @@ export class CampaignsService {
     try {
       const skip = (findCampaingDto.page - 1) * findCampaingDto.limit;
       const limit = Number(findCampaingDto.limit) || 10;
-      const page = Number(findCampaingDto.page) || 1;
+      const currentPage = Number(findCampaingDto.page) || 1;
 
       const filters = {
         AND: [
@@ -279,19 +279,19 @@ export class CampaignsService {
         take: Number(limit),
       });
 
-      const total = await this.prisma.campaigns.count({
+      const totalItems = await this.prisma.campaigns.count({
         where: {
           organization_id: findCampaingDto.organization_id,
           ...filters,
         },
       });
 
-      const totalPages = Math.ceil(total / limit);
+      const totalPages = Math.ceil(totalItems / limit);
       return {
         data,
         pageInfo: {
-          total,
-          page,
+          totalItems,
+          currentPage,
           limit,
           totalPages,
         },

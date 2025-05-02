@@ -246,10 +246,12 @@ export class CreateAudienceInteractionDto {
 }
 
 export class FindAudienceContactDto {
-  @IsString({ message: 'O id deve ser um string' })
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O ID deve ser um número' })
+  @ApiProperty({ description: 'id', example: 1 })
   @ApiProperty({
     description: 'Identificação única da audiência',
-    example: '123456',
+    example: 1,
   })
   id?: number;
 
@@ -257,15 +259,23 @@ export class FindAudienceContactDto {
   @ApiProperty({ description: 'ID da organização', example: 'org-abc123' })
   organization_id: string;
 
-  @IsOptional() // O campo cursor é opcional
-  @IsString({ message: 'O page deve ser uma string' })
-  @IsString({ message: 'O page deve ser um número válido' }) // Adicionando a verificação se for número
-  @ApiProperty({ description: 'page para paginação', example: '123' })
-  page?: string;
+  @IsOptional() // O campo limit é opcional
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O page deve ser um número' })
+  @ApiProperty({ description: 'page', example: 1 })
+  @ApiProperty({
+    description: 'page para paginação',
+    example: 1,
+  })
+  page?: number;
 
   @IsOptional() // O campo limit é opcional
-  @IsString({ message: 'O limit deve ser uma string' })
-  @IsString({ message: 'O limit deve ser um número válido' }) // Adicionando a verificação se for número
-  @ApiProperty({ description: 'Limite de registros por página', example: '10' })
-  limit?: string;
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O limit deve ser um número' })
+  @ApiProperty({ description: 'limit', example: 1 })
+  @ApiProperty({
+    description: 'limit para paginação',
+    example: 1,
+  })
+  limit?: number;
 }

@@ -1186,7 +1186,7 @@ export class AudiencesService {
       const audience = await this.prisma.audiences.findFirst({
         where: {
           id: Number(findSegmentAudienceDto.id),
-          organization_id: findSegmentAudienceDto.organization_id,
+          organization_id: String(findSegmentAudienceDto.organization_id),
         },
         select: {
           id: true,
