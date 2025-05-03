@@ -8,17 +8,24 @@ import {
   UseGuards,
   Post,
   Body,
+  Put,
 } from '@nestjs/common';
 import { AudiencesService } from './audiences.service';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
-import { createAudienceSchema } from './dto/audience.schema';
+import {
+  createAudienceSchema,
+  updateAudienceSchema,
+} from './dto/audience.schema';
 import { findSegmentAudienceSchema } from './dto/audience.segment.schema';
 import {
   FindAudienceContactDto,
+  FindAudienceStatusDto,
   FindSegmentAudienceDto,
 } from './dto/create-audience.dto';
 import { findAudienceContactsSchema } from './dto/audience.contacts.schema';
+import { UpdateAudienceDto } from './dto/update-audience.dto';
+import { findAudienceStatuschema } from './dto/audience.status.schema';
 
 @ApiTags('Audiences')
 @ApiBearerAuth()
@@ -245,5 +252,31 @@ export class AudiencesController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.audiencesService.findAudienceContacts(parsed.data, req);
+  }
+
+  @Get('/status')
+  audienceStatus(
+    @Query() findAudienceStatusDto: FindAudienceStatusDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createInteractionCampaing', findSegmentAudienceDto);
+    const parsed = findAudienceStatuschema.safeParse(findAudienceStatusDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.audiencesService.audienceStatus(parsed.data, req);
+  }
+
+  @Put('/update/status')
+  updateAudienceSegment(
+    @Query() updateAudienceDto: UpdateAudienceDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createInteractionCampaing', findSegmentAudienceDto);
+    const parsed = updateAudienceSchema.safeParse(updateAudienceDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.audiencesService.updateAudienceSegment(parsed.data, req);
   }
 }

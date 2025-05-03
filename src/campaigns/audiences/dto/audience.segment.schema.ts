@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const findSegmentAudienceSchema = z.object({
   status_id: z.number().nullish().optional(),
+  sellerName: z.string().optional(),
   total_start: z
     .number()
     .optional()

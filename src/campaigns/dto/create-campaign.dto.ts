@@ -11,7 +11,7 @@ export class CreateCampaingDto {
   idAudience?: number[];
 
   @IsOptional()
-  @IsString({ message: 'O organization_id deve ser um UUID válido' })
+  @IsString({ message: 'O name deve ser um UUID válido' })
   @ApiProperty()
   name?: string;
 

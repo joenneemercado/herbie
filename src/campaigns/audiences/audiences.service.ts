@@ -8,6 +8,8 @@ import { PrismaService } from '@src/database/prisma.service';
 import { InteractionsService } from '@src/interactions/interactions.service';
 import { FindSegmentAudienceSchema } from './dto/audience.segment.schema';
 import { FindAudienceContactsSchema } from './dto/audience.contacts.schema';
+import { UpdateAudienceSchema } from './dto/audience.schema';
+import { FindAudienceStatuschema } from './dto/audience.status.schema';
 @Injectable()
 export class AudiencesService {
   jwtService: any;
@@ -823,6 +825,15 @@ export class AudiencesService {
       //     },
       //   });
       // }
+      if (findSegmentAudienceDto.sellerName) {
+        filterCustomerInteration.push({
+          details: {
+            path: ['hostname'],
+            equals: findSegmentAudienceDto.sellerName,
+          },
+        });
+      }
+
       if (findSegmentAudienceDto.refId) {
         filterCustomerInteration.push({
           OR: [
@@ -1256,5 +1267,106 @@ export class AudiencesService {
       throw new HttpException(error.message, error.status);
     }
     //return `This action returns a #${id} audience`;
+  }
+
+  //TODO FIND AUDIENCE STATUS
+  async audienceStatus(
+    findAudienceStatusDto: FindAudienceStatuschema,
+    req: Request,
+  ) {
+    //console.log('findAudienceStatusDto', findAudienceStatusDto);
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    try {
+      const skip =
+        (findAudienceStatusDto.page - 1) * findAudienceStatusDto.limit;
+      const limit = Number(findAudienceStatusDto.limit) || 10;
+      const page = Number(findAudienceStatusDto.page) || 1;
+      const filtersAudienceStatus = [];
+      if (findAudienceStatusDto.id) {
+        filtersAudienceStatus.push({
+          id: findAudienceStatusDto.id,
+        });
+      }
+      const whereConditionAudienceStatus = {
+        AND: [...filtersAudienceStatus],
+      };
+      //console.log(JSON.stringify(whereConditionAudienceStatus));
+      const data = await this.prisma.audienceStatus.findMany({
+        where: {
+          organization_id: findAudienceStatusDto.organization_id,
+          ...whereConditionAudienceStatus,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+        skip: skip,
+        take: limit,
+      });
+      const total = await this.prisma.audienceStatus.count({
+        where: {
+          organization_id: findAudienceStatusDto.organization_id,
+          ...whereConditionAudienceStatus,
+        },
+      });
+
+      const totalPages = Math.ceil(total / limit);
+      return {
+        data,
+        pageInfo: {
+          total,
+          page,
+          limit,
+          totalPages,
+        },
+      };
+    } catch (error) {
+      console.log(`erro ao procurar audiência`, error);
+      throw new HttpException(error.message, error.status);
+    }
+  }
+  //TODO UPDATE AUDIENCE ID
+  async updateAudienceSegment(
+    updateAudienceDto: UpdateAudienceSchema,
+    req: Request,
+  ) {
+    // console.log('updateAudienceDto', updateAudienceDto);
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    try {
+      const findAudience = await this.prisma.audiences.findFirst({
+        where: {
+          id: updateAudienceDto.id,
+          organization_id: updateAudienceDto.organization_id,
+        },
+      });
+      if (!findAudience) {
+        return {
+          message: 'Audiência nao já existe',
+        };
+      }
+      //console.log(findAudience);
+      const audience = await this.prisma.audiences.update({
+        where: {
+          id: updateAudienceDto.id,
+        },
+        data: {
+          status_id: updateAudienceDto.status_id,
+        },
+      });
+      //console.log(audience);
+      return {
+        message: 'Audiência atualizada com sucesso',
+        audience,
+      };
+    } catch (error) {
+      console.log(`erro ao procurar id da audiência`, error);
+      throw new HttpException(error.message, error.status);
+    }
   }
 }

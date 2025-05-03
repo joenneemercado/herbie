@@ -73,6 +73,14 @@ export class FindSegmentAudienceDto {
   name?: string;
 
   @IsOptional()
+  @IsString({ message: 'O nome da sellerName deve ser um string' })
+  @ApiProperty({
+    description: 'Nome do sellerName',
+    example: 'mercantilnovaeraloja10',
+  })
+  sellerName?: string;
+
+  @IsOptional()
   @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
   @IsNumber({}, { message: 'O total deve ser um número' })
   @ApiProperty({ description: 'total', example: 1 })
@@ -276,6 +284,41 @@ export class FindAudienceContactDto {
   @ApiProperty({
     description: 'limit para paginação',
     example: 1,
+  })
+  limit?: number;
+}
+
+export class FindAudienceStatusDto {
+  @IsString({ message: 'O organization_id deve ser um UUID válido' })
+  @ApiProperty()
+  organization_id: string;
+
+  @IsOptional() // O campo cursor é opcional
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O ID deve ser um número' })
+  @ApiProperty({
+    description: 'id do channel',
+    example: 1,
+  })
+  id?: number;
+
+  @IsOptional() // O campo cursor é opcional
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O page deve ser um número' })
+  @ApiProperty({ description: 'page', example: 1 })
+  @ApiProperty({
+    description: 'page',
+    example: 1,
+  })
+  page?: number;
+
+  @IsOptional() // O campo limit é opcional
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O limit deve ser um número' })
+  @ApiProperty({ description: 'limit', example: 10 })
+  @ApiProperty({
+    description: 'limit',
+    example: 10,
   })
   limit?: number;
 }

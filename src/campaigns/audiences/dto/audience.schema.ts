@@ -77,9 +77,23 @@ export const createAudienceSchema = z.object({
 });
 
 export const updateAudienceSchema = z.object({
-  id: z.number(),
-  public_id: z.string().optional().nullable(),
-  nickname: z.string().optional().nullable(),
+  organization_id: z
+    .string()
+    .min(1, { message: 'ID da organização é obrigatório.' }),
+  status_id: z
+    .number()
+    .optional()
+    .transform((val) => (val !== undefined ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'status_id deve ser um número válido',
+    }),
+  id: z
+    .number()
+    .optional()
+    .transform((val) => (val !== undefined ? Number(val) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: 'id deve ser um número válido',
+    }),
 });
 
 export type CreateAudienceSchema = z.infer<typeof createAudienceSchema>;
