@@ -153,14 +153,84 @@ export class FindSegmentAudienceDto {
   })
   date_created_end?: string;
 
-  @IsOptional()
-  @IsString({ message: 'O gender deve ser uma string' })
-  @ApiProperty({ description: 'Gênero', example: 'male' })
-  gender?: string;
+  // @IsOptional()
+  // @IsString({ message: 'O gender deve ser uma string' })
+  // @ApiProperty({ description: 'Gênero', example: 'male' })
+  // gender?: string;
 
   @IsOptional()
-  @IsString({ message: 'O marital_status deve ser uma string' })
-  @ApiProperty({ description: 'Estado civil', example: 'single' })
+  @IsArray()
+  @IsString({ each: true, message: 'Cada refId deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        // Tenta tratar caso seja string do tipo '[female,male]'
+        const fallbackParsed = value
+          .replace(/^\[|\]$/g, '')
+          .split(',')
+          .map((s) => s.trim());
+        return fallbackParsed;
+      }
+    }
+
+    if (Array.isArray(value)) {
+      return value.flatMap((v) => {
+        if (typeof v === 'string' && /^\[.*\]$/.test(v)) {
+          return v
+            .replace(/^\[|\]$/g, '')
+            .split(',')
+            .map((s) => s.trim());
+        }
+        return v;
+      });
+    }
+
+    return [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  gender?: string[];
+
+  // @IsOptional()
+  // @IsString({ message: 'O marital_status deve ser uma string' })
+  // @ApiProperty({ description: 'Estado civil', example: 'single' })
+  // marital_status?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true, message: 'Cada refId deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        // Tenta tratar caso seja string do tipo '[female,male]'
+        const fallbackParsed = value
+          .replace(/^\[|\]$/g, '')
+          .split(',')
+          .map((s) => s.trim());
+        return fallbackParsed;
+      }
+    }
+
+    if (Array.isArray(value)) {
+      return value.flatMap((v) => {
+        if (typeof v === 'string' && /^\[.*\]$/.test(v)) {
+          return v
+            .replace(/^\[|\]$/g, '')
+            .split(',')
+            .map((s) => s.trim());
+        }
+        return v;
+      });
+    }
+
+    return [String(value)];
+  })
+  @ApiProperty({ type: [String] })
   marital_status?: string;
 
   @IsOptional()
@@ -197,10 +267,27 @@ export class FindSegmentAudienceDto {
   @ApiProperty({ type: [String] })
   event_id?: string[];
 
-  @IsOptional() // O campo cursor é opcional
-  @IsString({ message: 'O refId deve ser uma string' })
-  @ApiProperty({ description: 'refId para paginação', example: '123' })
-  refId?: string;
+  // @IsOptional() // O campo cursor é opcional
+  // @IsString({ message: 'O refId deve ser uma string' })
+  // @ApiProperty({ description: 'refId para paginação', example: '123' })
+  // refId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true, message: 'Cada refId deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        return [String(value)];
+      }
+    }
+    return Array.isArray(value) ? value.map(String) : [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  refId?: string[];
 
   @IsOptional() // O campo cursor é opcional
   @IsString({ message: 'O page deve ser uma string' })

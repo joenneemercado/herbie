@@ -27,11 +27,57 @@ export const findSegmentAudienceSchema = z.object({
     .union([z.string(), z.array(z.string())])
     .nullish()
     .optional(),
-  gender: z.string().nullish().optional(),
-  marital_status: z.string().nullish().optional(),
+  //gender: z.string().nullish().optional(),
+  gender: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
+  //marital_status: z.string().nullish().optional(),
+  marital_status: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
+
   dateBegin: z.string().optional(), // Pode validar formato de data se quiser
   dateEnd: z.string().optional(),
-  refId: z.string().optional(),
+  //refId: z.string().optional(),
+  refId: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
   page: z
     .union([z.string(), z.number()])
     .transform((val) => Number(val))

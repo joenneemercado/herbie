@@ -101,7 +101,7 @@ export class AudiencesService {
     req: Request,
     nolimit = true,
   ) {
-    //console.log('CREATE AUDIENCE', findSegmentAudienceDto);
+    // console.log('CREATE AUDIENCE', findSegmentAudienceDto);
     const reqToken = req.headers['authorization'];
     if (!reqToken) {
       throw new UnauthorizedException();
@@ -834,22 +834,47 @@ export class AudiencesService {
         });
       }
 
-      if (findSegmentAudienceDto.refId) {
-        filterCustomerInteration.push({
-          OR: [
+      // if (findSegmentAudienceDto.refId) {
+      //   filterCustomerInteration.push({
+      //     OR: [
+      //       {
+      //         details: {
+      //           path: ['items'],
+      //           array_contains: [{ refId: findSegmentAudienceDto.refId }],
+      //         },
+      //       },
+      //       {
+      //         details: {
+      //           path: ['details', 'produtos'],
+      //           array_contains: [{ codigo: findSegmentAudienceDto.refId }],
+      //         },
+      //       },
+      //     ],
+      //   });
+      // }
+      if (
+        findSegmentAudienceDto.refId &&
+        findSegmentAudienceDto.refId.length > 0
+      ) {
+        const refIdConditions = findSegmentAudienceDto.refId.flatMap(
+          (refId) => [
             {
               details: {
                 path: ['items'],
-                array_contains: [{ refId: findSegmentAudienceDto.refId }],
+                array_contains: [{ refId }],
               },
             },
             {
               details: {
                 path: ['details', 'produtos'],
-                array_contains: [{ codigo: findSegmentAudienceDto.refId }],
+                array_contains: [{ codigo: refId }],
               },
             },
           ],
+        );
+
+        filterCustomerInteration.push({
+          OR: refIdConditions,
         });
       }
 
@@ -915,14 +940,43 @@ export class AudiencesService {
       //   });
       // }
 
-      if (findSegmentAudienceDto.gender) {
+      // if (findSegmentAudienceDto.gender) {
+      //   filterCustomer.push({
+      //     gender: findSegmentAudienceDto.gender,
+      //   });
+      // }
+      if (
+        findSegmentAudienceDto.gender &&
+        findSegmentAudienceDto.gender.length > 0
+      ) {
+        const genderConditions = findSegmentAudienceDto.gender.map(
+          (gender) => ({
+            gender: gender,
+          }),
+        );
+
         filterCustomer.push({
-          gender: findSegmentAudienceDto.gender,
+          OR: genderConditions,
         });
       }
-      if (findSegmentAudienceDto.marital_status) {
+
+      // if (findSegmentAudienceDto.marital_status) {
+      //   filterCustomer.push({
+      //     marital_status: findSegmentAudienceDto.marital_status,
+      //   });
+      // }
+      if (
+        findSegmentAudienceDto.marital_status &&
+        findSegmentAudienceDto.marital_status.length > 0
+      ) {
+        const maritalConditions = findSegmentAudienceDto.marital_status.map(
+          (marital_status) => ({
+            marital_status: marital_status,
+          }),
+        );
+
         filterCustomer.push({
-          marital_status: findSegmentAudienceDto.marital_status,
+          OR: maritalConditions,
         });
       }
 
@@ -1183,7 +1237,7 @@ export class AudiencesService {
     findSegmentAudienceDto: FindAudienceContactsSchema,
     req: Request,
   ) {
-    //console.log('findSegmentAudienceDto', findSegmentAudienceDto);
+    console.log('findSegmentAudienceDto', findSegmentAudienceDto);
     const reqToken = req.headers['authorization'];
     if (!reqToken) {
       throw new UnauthorizedException();
