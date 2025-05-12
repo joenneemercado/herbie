@@ -42,7 +42,7 @@ import { EventsModule } from './events/events.module';
     ScheduleModule.forRoot(),
     DatabaseModule.forRoot(),
     MulterModule.register({
-      dest: './uploads',
+      dest: process.env.UPLOAD_DIR,
     }),
     CustomersModule,
     OrdersModule,
