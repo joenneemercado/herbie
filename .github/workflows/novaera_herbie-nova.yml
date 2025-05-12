@@ -73,4 +73,4 @@ jobs:
         with:
           app-name: 'herbie-nova'
           slot-name: 'Production'
-          package: release.zip
+          package: .

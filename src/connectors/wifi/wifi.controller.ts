@@ -20,7 +20,7 @@ export class WifiController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './src/uploads', // Certifique-se de que a pasta está correta
+        destination: process.env.UPLOAD_DIR, // Certifique-se de que a pasta está correta
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
