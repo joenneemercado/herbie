@@ -36,7 +36,7 @@ async function bootstrap() {
   //app.useGlobalGuards(new RolesGuard()); // Aplica o guard globalmente
 
   await app.listen(process.env.PORT || 3000, async () => {
-    console.log(`Application is running on: ${await app.getUrl()}`);
+    console.log(`App is running on: ${await app.getUrl()}`);
   });
 }
 
