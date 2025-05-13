@@ -1,0 +1,36 @@
+services:
+  app:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hebie-novaera-vps
+    #restart: always
+
+    environment:
+      DATABASE_URL: ${DATABASE_URL} 
+      PORT: ${PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      BULL_PASSWORD: ${BULL_PASSWORD}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      UPLOAD_DIR: ${UPLOAD_DIR}
+
+    ports:
+      - '3014:3014'
+
+    networks:
+      - em_connectores_network
+
+networks:
+  em_connectores_network:
+    driver: bridge

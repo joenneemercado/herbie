@@ -24,6 +24,37 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v4
         with:
+          node-version: '22.x'
+
+      - name: Install NPM UPDATE
+        run: npm install -g npm@latest
+
+      - name: Install NestJS CLI
+        run: npm install -g @nestjs/cli
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Clean dist folder
+        run: rm -rf dist
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-app
+          path: .
+
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v4
+        with:
           node-version: '20.x'
 
       - name: npm install, build, and test
@@ -57,9 +88,6 @@ jobs:
         with:
           name: node-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -73,4 +101,4 @@ jobs:
         with:
           app-name: 'herbie-nova'
           slot-name: 'Production'
-          package: release.zip
+          package: .

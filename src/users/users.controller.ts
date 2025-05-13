@@ -20,11 +20,6 @@ import { JwtAuthGuard } from '@src/auth/jwt.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
-
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -34,11 +29,7 @@ export class UsersController {
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
-  @ApiExcludeEndpoint()
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
+
   @ApiExcludeEndpoint()
   @Delete(':id')
   remove(@Param('id') id: string) {
