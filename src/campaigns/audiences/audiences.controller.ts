@@ -203,6 +203,22 @@ export class AudiencesController {
     return this.audiencesService.findAllSegmentedInteration(parsed.data, req);
   }
 
+  @Get('/segment/count/interation')
+  findAllSegmentedInterationCount(
+    @Query() findSegmentAudienceDto: FindSegmentAudienceDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createInteractionCampaing', intrationDto);
+    const parsed = findSegmentAudienceSchema.safeParse(findSegmentAudienceDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.audiencesService.findAllSegmentedInterationCount(
+      parsed.data,
+      req,
+    );
+  }
+
   @Post('/create/segment')
   createAudienceSegment(
     @Body() findSegmentAudienceDto: FindSegmentAudienceDto,
