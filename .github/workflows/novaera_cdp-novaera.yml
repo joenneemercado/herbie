@@ -61,4 +61,4 @@ jobs:
           app-name: 'CDP-NOVAERA'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_45859CF83CAA489D83FCB67984D0766E }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F9BFA01537A5400AAD85A1BDB1D0CEAF }}
