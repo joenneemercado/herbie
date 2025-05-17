@@ -109,34 +109,37 @@ model Event {
 }
 
 model Order {
-  id                      Int          @id @default(autoincrement())
+  id                      Int              @id @default(autoincrement())
   order_ref               String
   order_date              DateTime
-  total                   Float
-  subtotal                Float
-  total_with_discounts    Float?
-  shipping_total          Float?
-  percent_discount_total  Float?
-  absolute_discount_total Float?
+  total                   Int
+  subtotal                Int
+  total_with_discounts    Int?
+  shipping_total          Int?
+  percent_discount_total  Int?
+  absolute_discount_total Int?
   coupon_code             String?
   coupon_description      String?
   user_id                 Int
   seller_id               Int
-  organization_id         Int
+  organization_id         String
   customer_id             Int?
   total_items             Int?
-  organization            Organization @relation(fields: [organization_id], references: [id])
-  seller                  Seller       @relation(fields: [seller_id], references: [id])
-  user                    User         @relation(fields: [user_id], references: [id])
+  customer_unified_id     Int?
+  seller                  Seller           @relation(fields: [seller_id], references: [id])
+  user                    User             @relation(fields: [user_id], references: [id])
+  Customer                Customer?        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "order_customer_fk")
+  CustomerUnified         CustomerUnified? @relation(fields: [customer_unified_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "order_customerunified_fk")
+  organization            Organization     @relation(fields: [organization_id], references: [public_id], onDelete: NoAction, onUpdate: NoAction, map: "order_organization_fk")
   order_items             OrderItem[]
 }
 
 model OrderItem {
   id       Int     @id @default(autoincrement())
   quantity Int
-  price    Float
-  discount Float?
-  total    Float
+  price    Int
+  discount Int?
+  total    Int
   order_id Int
   ean      String? @db.VarChar
   name     String  @db.VarChar
@@ -182,6 +185,7 @@ model Customer {
   customer_fields          CustomerField[]
   Customer_CustomerUnified Customer_CustomerUnified[]
   Interaction              Interaction[]
+  Order                    Order[]
   segments                 SegmentCustomer[]
 
   @@unique([cnpj, source_id], map: "customer_cnpj_idx")
@@ -223,6 +227,7 @@ model CustomerUnified {
   CustomerUnifiedTags      CustomerUnifiedTags[]
   Customer_CustomerUnified Customer_CustomerUnified[]
   Interaction              Interaction[]
+  Order                    Order[]
   RFM                      RFM[]
   segments                 SegmentCustomer[]
 }
@@ -260,14 +265,14 @@ model Address {
 
 model CustomerField {
   id                  Int              @id @default(autoincrement())
-  customer_id         String
+  customer_id         String?
   type                String
   description         String?
   value               String?
   organization_id     String
   customer_unified_id Int?
   CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], map: "CustomerField_customerUnifiedId_fkey")
-  customer            Customer         @relation(fields: [customer_id], references: [public_id])
+  customer            Customer?        @relation(fields: [customer_id], references: [public_id], onDelete: Restrict)
   organization        Organization     @relation(fields: [organization_id], references: [public_id])
 }
 
@@ -452,15 +457,16 @@ model CustomerUnifiedTags {
 }
 
 model ConfigurationsChannel {
-  id          Int       @id @default(autoincrement())
-  description String    @db.VarChar(255)
-  channel_id  Int
-  created_at  DateTime? @default(now())
-  updated_at  DateTime
-  user_id     Int
-  value       String?   @db.VarChar(255)
-  Channels    Channels  @relation(fields: [channel_id], references: [id], map: "ConfigurationsChannel_idChannel_fkey")
-  User        User      @relation(fields: [user_id], references: [id])
+  id              Int       @id @default(autoincrement())
+  description     String    @db.VarChar(255)
+  channel_id      Int
+  created_at      DateTime? @default(now())
+  updated_at      DateTime
+  user_id         Int
+  value           String?   @db.VarChar(255)
+  organization_id String    @db.VarChar
+  Channels        Channels  @relation(fields: [channel_id], references: [id], map: "ConfigurationsChannel_idChannel_fkey")
+  User            User      @relation(fields: [user_id], references: [id])
 
   @@index([user_id])
   @@index([created_at], map: "ConfigurationsChannel_createdAt_idx")
@@ -560,6 +566,7 @@ model CampaignDetails {
   updated_at            DateTime?             @default(now()) @db.Timestamp(0)
   sender_id             String?               @db.VarChar(100)
   organization_id       String
+  obs                   String?
   Campaigns             Campaigns             @relation(fields: [campaign_id], references: [id], map: "Campaigndetails_idCampaign_fkey")
   CustomerUnified       CustomerUnified       @relation(fields: [contact_id], references: [id], map: "Campaigndetails_idContact_fkey")
   Organization          Organization          @relation(fields: [organization_id], references: [public_id], map: "Campaigndetails_organization_id_fkey")
