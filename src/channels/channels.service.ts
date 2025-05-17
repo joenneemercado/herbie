@@ -32,6 +32,9 @@ export class ChannelsService {
       if (findChannelDto.status_id) {
         filtersChannel.push({ status_id: findChannelDto.status_id });
       }
+      if (findChannelDto.type) {
+        filtersChannel.push({ type: findChannelDto.type });
+      }
       const whereConditionChannel = {
         AND: [...filtersChannel],
       };
@@ -43,6 +46,7 @@ export class ChannelsService {
         select: {
           id: true,
           name: true,
+          type: true,
           status_id: true,
         },
         skip: skip,

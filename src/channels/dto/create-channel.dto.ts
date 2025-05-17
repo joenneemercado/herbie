@@ -9,6 +9,11 @@ export class FindChannelDto {
   @ApiProperty()
   organization_id: string;
 
+  @IsOptional()
+  @IsString({ message: 'type of channel' })
+  @ApiProperty()
+  type: string;
+
   @IsOptional() // O campo cursor é opcional
   @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
   @IsNumber({}, { message: 'O status_id deve ser um número' })

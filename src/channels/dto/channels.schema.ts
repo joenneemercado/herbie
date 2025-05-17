@@ -5,6 +5,7 @@ export const findChannelchema = z.object({
   organization_id: z
     .string()
     .min(1, { message: 'ID da organização é obrigatório.' }),
+  type: z.string().optional(),
   status_id: z
     .number()
     .optional()
