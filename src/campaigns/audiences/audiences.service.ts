@@ -428,14 +428,14 @@ export class AudiencesService {
 
   //     // Filtro para source_id
   //     if (
-  //       Array.isArray(findSegmentAudienceDto.souce_id) &&
-  //       findSegmentAudienceDto.souce_id.filter(
+  //       Array.isArray(findSegmentAudienceDto.source_id) &&
+  //       findSegmentAudienceDto.source_id.filter(
   //         (id) => id !== '' && !isNaN(Number(id)),
   //       ).length > 0
   //     ) {
   //       filterCustomerInteration.push({
   //         source_id: {
-  //           in: findSegmentAudienceDto.souce_id
+  //           in: findSegmentAudienceDto.source_id
   //             .filter((id) => id !== '' && !isNaN(Number(id)))
   //             .map(Number),
   //         },
@@ -700,14 +700,14 @@ export class AudiencesService {
 
       // Filtro para source_id
       if (
-        Array.isArray(findSegmentAudienceDto.souce_id) &&
-        findSegmentAudienceDto.souce_id.filter(
+        Array.isArray(findSegmentAudienceDto.source_id) &&
+        findSegmentAudienceDto.source_id.filter(
           (id) => id !== '' && !isNaN(Number(id)),
         ).length > 0
       ) {
         filterCustomerInteration.push({
           source_id: {
-            in: findSegmentAudienceDto.souce_id
+            in: findSegmentAudienceDto.source_id
               .filter((id) => id !== '' && !isNaN(Number(id)))
               .map(Number),
           },
@@ -1012,14 +1012,14 @@ export class AudiencesService {
 
       // Filtro para source_id
       if (
-        Array.isArray(findSegmentAudienceDto.souce_id) &&
-        findSegmentAudienceDto.souce_id.filter(
+        Array.isArray(findSegmentAudienceDto.source_id) &&
+        findSegmentAudienceDto.source_id.filter(
           (id) => id !== '' && !isNaN(Number(id)),
         ).length > 0
       ) {
         filterCustomerInteration.push({
           source_id: {
-            in: findSegmentAudienceDto.souce_id
+            in: findSegmentAudienceDto.source_id
               .filter((id) => id !== '' && !isNaN(Number(id)))
               .map(Number),
           },

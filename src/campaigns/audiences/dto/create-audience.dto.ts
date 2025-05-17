@@ -104,7 +104,7 @@ export class FindSegmentAudienceDto {
   @IsOptional()
   @IsArray({ message: 'O date_birth_start deve ser um array de strings' })
   @IsArray()
-  @IsString({ each: true, message: 'Cada souce_id deve ser uma string' })
+  @IsString({ each: true, message: 'Cada source_id deve ser uma string' })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
@@ -122,7 +122,7 @@ export class FindSegmentAudienceDto {
   @IsOptional()
   @IsArray({ message: 'O date_birth_end deve ser um array de strings' })
   @IsArray()
-  @IsString({ each: true, message: 'Cada souce_id deve ser uma string' })
+  @IsString({ each: true, message: 'Cada source_id deve ser uma string' })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
@@ -235,7 +235,7 @@ export class FindSegmentAudienceDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true, message: 'Cada souce_id deve ser uma string' })
+  @IsString({ each: true, message: 'Cada source_id deve ser uma string' })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
@@ -248,7 +248,7 @@ export class FindSegmentAudienceDto {
     return Array.isArray(value) ? value.map(String) : [String(value)];
   })
   @ApiProperty({ type: [String] })
-  souce_id?: string[];
+  source_id?: string[];
 
   @IsOptional()
   @IsArray()
