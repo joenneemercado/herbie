@@ -346,19 +346,15 @@ export class CampaignsService {
       const limit = Number(campaingDetailsDto.limit) || 10;
       const currentPage = Number(campaingDetailsDto.page) || 1;
 
-      const data = await this.prisma.campaignDetails.findMany({
+      const data = await this.prisma.campaignDetails.findFirst({
         where: {
           campaign_id: Number(campaingDetailsDto.id),
           organization_id: campaingDetailsDto.organization_id,
         },
         select: {
-          id: true,
-          contact_id: true,
           sender: true,
-          sent_at: true,
-          status_id: true,
           created_at: true,
-          updated_at: true,
+          sent_at: true,
           CustomerUnified: {
             select: {
               firstname: true,
@@ -369,14 +365,46 @@ export class CampaignsService {
           },
           CampaignDetailsStatus: {
             select: {
-              id: true,
               name: true,
+            },
+          },
+          Campaigns: {
+            select: {
+              name: true,
+              message: true,
+              date_start: true,
+              date_end: true,
+              priority: true,
+              created_at: true,
+              updated_at: true,
+              updated_by: true,
+              Channels: {
+                select: {
+                  name: true,
+                },
+              },
+              AssociationTags: {
+                select: {
+                  Tags: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+              CampaignStatus: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
             },
           },
         },
         skip,
         take: Number(limit),
       });
+
       if (!data) {
         throw new HttpException('Campanha nao existe', 404);
       }
