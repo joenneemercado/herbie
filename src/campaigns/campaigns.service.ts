@@ -346,7 +346,7 @@ export class CampaignsService {
       const limit = Number(campaingDetailsDto.limit) || 10;
       const currentPage = Number(campaingDetailsDto.page) || 1;
 
-      const data = await this.prisma.campaignDetails.findFirst({
+      const data = await this.prisma.campaignDetails.findMany({
         where: {
           campaign_id: Number(campaingDetailsDto.id),
           organization_id: campaingDetailsDto.organization_id,
@@ -366,38 +366,6 @@ export class CampaignsService {
           CampaignDetailsStatus: {
             select: {
               name: true,
-            },
-          },
-          Campaigns: {
-            select: {
-              name: true,
-              message: true,
-              date_start: true,
-              date_end: true,
-              priority: true,
-              created_at: true,
-              updated_at: true,
-              updated_by: true,
-              Channels: {
-                select: {
-                  name: true,
-                },
-              },
-              AssociationTags: {
-                select: {
-                  Tags: {
-                    select: {
-                      name: true,
-                    },
-                  },
-                },
-              },
-              CampaignStatus: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
             },
           },
         },
@@ -452,14 +420,10 @@ export class CampaignsService {
         },
       });
 
-      const dataWithCampaign = {
-        ...data,
-        Campaign,
-      };
-
       const totalPages = Math.ceil(totalItems / limit);
       return {
-        data: dataWithCampaign,
+        campaingInfo: Campaign,
+        campaingDetails: data,
         pageInfo: {
           totalItems,
           currentPage,
