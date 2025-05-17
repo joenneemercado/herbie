@@ -1105,7 +1105,15 @@ export class AudiencesService {
       // console.log(JSON.stringify(whereConditionCustomerInteration));
       try {
         let countCustomerUnified = 0;
+
         let countInteration = 0;
+
+        const totalCustomerUnified = await this.prisma.customerUnified.count({
+          where: {
+            organization_id: findSegmentAudienceDto.organization_id,
+            status_id: 1,
+          },
+        });
 
         if (whereConditionCustomer.AND.length > 0) {
           countCustomerUnified = await this.prisma.customerUnified.count({
@@ -1115,7 +1123,6 @@ export class AudiencesService {
               ...whereConditionCustomer,
             },
           });
-          // console.log('countCustomerUnified', countCustomerUnified);
         }
 
         if (whereConditionCustomerInteration.AND.length > 0) {
@@ -1125,17 +1132,20 @@ export class AudiencesService {
                 customer_unified_id: null,
               },
               organization_id: findSegmentAudienceDto.organization_id,
-              ...whereConditionCustomerInteration,
               CustomerUnified: {
                 status_id: 1,
               },
+              ...whereConditionCustomerInteration,
             },
           });
-          //console.log('countInteration', countInteration);
         }
+
+        const filters = countCustomerUnified + countInteration;
+        //const totalPages = Math.ceil(total / limit);
+
         return {
-          countCustomerUnified,
-          countInteration,
+          totalCustomerUnified,
+          filters,
         };
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
