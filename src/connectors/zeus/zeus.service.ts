@@ -208,50 +208,6 @@ export class ZeusService {
     createInteractionDto: CreateInteractionAcumularZeusSchema,
     req: Request,
   ) {
-    //console.log('createInteractionDto', createInteractionDto);
-    //TODO JSON QUE EU ENVIEI
-    // {
-    //   "organization_id": "cm0l1u61r00003b6junq2pmbi",
-    //   "cpf": "02525273214",
-    //   "total": 250.75,
-    //   "details": {
-    //     "idVenda": "123456",
-    //     "vlCupom": 150.75,
-    //     "dataVenda": "2024-05-10T12:30:00.000Z",
-    //     "serie": "A1",
-    //     "loja": "Loja 1",
-    //     "celular": "5511912345678",
-    //     "vlCash": 5.75,
-    //     "primeiraCompra": true,
-    //     "rede": "Rede 1",
-    //     "qtProd": 10,
-    //     "cashAtacac": 8.5,
-    //     "tipoPessoa": "F",
-    //     "qtUnidades": 20,
-    //     "vlTroco": 2.75,
-    //     "produtos": [
-    //       {
-    //         "valor_cashback": 10.5,
-    //         "valor": 50.0,
-    //         "codigoEAN": "7891234567890",
-    //         "codigo": "P001",
-    //         "unidade": "UN",
-    //         "quantidade": 2,
-    //         "descricao": "Smartphone XYZ"
-    //       },
-    //       {
-    //         "valor_cashback": 5.0,
-    //         "valor": 30.0,
-    //         "codigoEAN": "7899876543210",
-    //         "codigo": "P001",
-    //         "unidade": "UN",
-    //         "quantidade": 2,
-    //         "descricao": "Fone de ouvido Bluetooth"
-    //       }
-    //     ]
-    //   }
-    // }
-
     const reqToken = req.headers['authorization'];
     if (!reqToken) {
       throw new UnauthorizedException();
@@ -260,25 +216,6 @@ export class ZeusService {
       const token = reqToken.split(' ')[1];
       //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
       const { sub } = await this.jwtService.decode(token);
-
-      const findCustomer = await this.prisma.customer.findFirst({
-        where: {
-          OR: [
-            { cpf: createInteractionDto.cpf },
-            { cnpj: createInteractionDto.cnpj },
-          ],
-          organization_id: createInteractionDto.organization_id,
-          source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-        },
-      });
-      //console.log(findCustomer);
-      if (!findCustomer) {
-        return {
-          code: 404,
-          success: false,
-          message: 'Customer not found',
-        };
-      }
 
       const orFilters = [];
 
@@ -300,6 +237,25 @@ export class ZeusService {
         });
       }
 
+      const findCustomer = await this.prisma.customer.findFirst({
+        where: {
+          OR: [
+            { cpf: createInteractionDto.cpf },
+            { cnpj: createInteractionDto.cnpj },
+          ],
+          organization_id: createInteractionDto.organization_id,
+          source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+        },
+      });
+      //console.log(findCustomer);
+      if (!findCustomer) {
+        return {
+          code: 404,
+          success: false,
+          message: 'Customer not found',
+        };
+      }
+
       const findCustomerUnified = await this.prisma.customerUnified.findFirst({
         where: {
           OR: [
@@ -310,7 +266,44 @@ export class ZeusService {
         },
       });
 
-      if (findCustomer && findCustomerUnified) {
+      const findOrganizationId = await this.prisma.organization.findFirst({
+        where: {
+          public_id: createInteractionDto.organization_id,
+        },
+      });
+
+      const findSeller = await this.prisma.seller.findFirst({
+        where: {
+          organization_id: createInteractionDto.organization_id,
+          seller_ref: createInteractionDto.details.loja,
+        },
+      });
+
+      const findOrder = await this.prisma.order.findFirst({
+        where: {
+          organization_id: findOrganizationId.id,
+          order_ref: createInteractionDto.details.idVenda,
+          seller_id: findSeller.id,
+        },
+      });
+
+      if (!findSeller) {
+        try {
+          await this.prisma.seller.create({
+            data: {
+              organization_id: createInteractionDto.organization_id,
+              seller_ref: createInteractionDto.details.loja,
+              name: createInteractionDto.details.rede,
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      if (findCustomerUnified) {
         const findInteraction = await this.prisma.interaction.findFirst({
           where: {
             organization_id: createInteractionDto.organization_id,
@@ -321,11 +314,6 @@ export class ZeusService {
             total: createInteractionDto.total,
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
-            //details:procurando pelo id da venda para saber se já existe
-            // details: {
-            //   path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
-            //   equals: createInteractionDto.details.idVenda,
-            // },
             OR: orFilters,
             AND: [
               {
@@ -355,23 +343,56 @@ export class ZeusService {
             ],
           },
         });
-        if (findInteraction) {
-          throw new Error('Interacao de acumular já existe');
+        if (!findInteraction) {
+          try {
+            await this.prisma.interaction.create({
+              data: {
+                details: createInteractionDto,
+                organization_id: createInteractionDto.organization_id,
+                customer_unified_id: findCustomerUnified.id,
+                source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+                event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
+                type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
+                total: createInteractionDto.total,
+                created_by: sub,
+                status_id: ZeusConstantes.STATUS_ID,
+              },
+            });
+          } catch (error) {
+            console.log('error', error);
+          }
+        } else if (!findOrder) {
+          try {
+            const createOrder = await this.prisma.order.create({
+              data: {
+                organization_id: findOrganizationId.id,
+                customer_unified_id: findCustomerUnified.id,
+                order_ref: createInteractionDto.details.idVenda,
+                seller_id: findSeller.id,
+                total: createInteractionDto.details.vlCupom,
+                user_id: sub,
+                order_date: new Date(createInteractionDto.details.dataVenda),
+                subtotal: createInteractionDto.details.vlCupom,
+                total_items: createInteractionDto.details.vlCupom,
+              },
+            });
+            for (const item of createInteractionDto.details.produtos) {
+              await this.prisma.orderItem.create({
+                data: {
+                  order_id: createOrder.id,
+                  name: item.descricao,
+                  quantity: item.quantidade,
+                  price: item.valor,
+                  sku: item.codigo,
+                  ean: item.codigoEAN,
+                  total: item.valor,
+                },
+              });
+            }
+          } catch (error) {
+            console.log('error', error);
+          }
         }
-        await this.prisma.interaction.create({
-          data: {
-            details: createInteractionDto,
-            organization_id: createInteractionDto.organization_id,
-            customer_unified_id: findCustomerUnified.id,
-            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-            event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
-            type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
-            total: createInteractionDto.total,
-            created_by: sub,
-            status_id: ZeusConstantes.STATUS_ID,
-          },
-        });
-        //console.log('creatInteractionAcumular', creatInteractionAcumular);
         return {
           code: HttpStatus.CREATED,
           success: true,
@@ -389,10 +410,6 @@ export class ZeusService {
             total: createInteractionDto.total,
             created_by: sub,
             status_id: ZeusConstantes.STATUS_ID,
-            // details: {
-            //   path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
-            //   equals: createInteractionDto.details.idVenda,
-            // },
             OR: orFilters,
             AND: [
               {
@@ -422,24 +439,57 @@ export class ZeusService {
             ],
           },
         });
-        //console.log(findInteraction);
-        if (findInteraction) {
-          throw new Error('Interacao de acumular já existe');
+        if (!findInteraction) {
+          try {
+            await this.prisma.interaction.create({
+              data: {
+                details: createInteractionDto,
+                organization_id: createInteractionDto.organization_id,
+                customer_id: findCustomer.id,
+                source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+                event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
+                type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
+                total: createInteractionDto.total,
+                created_by: sub,
+                status_id: ZeusConstantes.STATUS_ID,
+              },
+            });
+          } catch (error) {
+            console.log(error);
+          }
+        } else if (!findOrder) {
+          try {
+            const createOrder = await this.prisma.order.create({
+              data: {
+                organization_id: findOrganizationId.id,
+                customer_id: findCustomer.id,
+                order_ref: createInteractionDto.details.idVenda,
+                seller_id: findSeller.id,
+                total: createInteractionDto.details.vlCupom,
+                user_id: sub,
+                order_date: new Date(createInteractionDto.details.dataVenda),
+                subtotal: createInteractionDto.details.vlCupom,
+                total_items: createInteractionDto.details.vlCupom,
+              },
+            });
+            for (const item of createInteractionDto.details.produtos) {
+              await this.prisma.orderItem.create({
+                data: {
+                  order_id: createOrder.id,
+                  name: item.descricao,
+                  quantity: item.quantidade,
+                  price: item.valor,
+                  sku: item.codigo,
+                  ean: item.codigoEAN,
+                  total: item.valor,
+                },
+              });
+            }
+          } catch (error) {
+            console.log(error);
+          }
         }
-        await this.prisma.interaction.create({
-          data: {
-            details: createInteractionDto,
-            organization_id: createInteractionDto.organization_id,
-            customer_id: findCustomer.id,
-            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-            event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
-            type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
-            total: createInteractionDto.total,
-            created_by: sub,
-            status_id: ZeusConstantes.STATUS_ID,
-          },
-        });
-        //console.log('creatInteractionAcumular', creatInteractionAcumular);
+
         return {
           code: HttpStatus.CREATED,
           success: true,
