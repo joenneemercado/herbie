@@ -281,7 +281,7 @@ export class ZeusService {
 
       const findOrder = await this.prisma.order.findFirst({
         where: {
-          organization_id: findOrganizationId.id,
+          organization_id: findOrganizationId.public_id,
           order_ref: createInteractionDto.details.idVenda,
           seller_id: findSeller.id,
         },
@@ -365,7 +365,7 @@ export class ZeusService {
           try {
             const createOrder = await this.prisma.order.create({
               data: {
-                organization_id: findOrganizationId.id,
+                organization_id: findOrganizationId.public_id,
                 customer_unified_id: findCustomerUnified.id,
                 order_ref: createInteractionDto.details.idVenda,
                 seller_id: findSeller.id,
@@ -461,7 +461,7 @@ export class ZeusService {
           try {
             const createOrder = await this.prisma.order.create({
               data: {
-                organization_id: findOrganizationId.id,
+                organization_id: findOrganizationId.public_id,
                 customer_id: findCustomer.id,
                 order_ref: createInteractionDto.details.idVenda,
                 seller_id: findSeller.id,
