@@ -17,6 +17,11 @@ import {
   CreateInteractionResgatarZeusSchema,
 } from './dto/interaction-zeus.schema';
 import { Prisma } from '@prisma/client';
+import {
+  genderMap,
+  getNormalizedValue,
+  maritalStatusMap,
+} from '@src/app.utils';
 
 @Injectable()
 export class ZeusService {
@@ -24,34 +29,6 @@ export class ZeusService {
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
-
-  // Mapas de Normalização (adicione mais conforme necessário)
-  genderMap = {
-    Masculino: 'Male',
-    Feminino: 'Female',
-    Outro: 'Other',
-    // Adicione outras variações que podem vir da VTEX
-  };
-
-  maritalStatusMap = {
-    'Solteiro(a)': 'single',
-    Solteiro: 'single',
-    Solteira: 'single',
-    'Casado(a)': 'married',
-    Casado: 'married',
-    Casada: 'married',
-    'Divorciado(a)': 'divorced',
-    'Viúvo(a)': 'widowed',
-    // Adicione outras variações
-  };
-
-  // Função para obter valor normalizado ou o original se não mapeado
-  getNormalizedValue(value, map) {
-    if (value && map[value]) {
-      return map[value];
-    }
-    return value; // Ou null/undefined se preferir não gravar o valor não mapeado
-  }
 
   async create(createZeusDto: CreateZeusSchema, req: Request) {
     const reqToken = req.headers['authorization'];
@@ -100,10 +77,10 @@ export class ZeusService {
         };
       }
 
-      const normalizedGender = this.getNormalizedValue(gender, this.genderMap);
-      const normalizedMaritalStatus = this.getNormalizedValue(
+      const normalizedGender = getNormalizedValue(gender, genderMap);
+      const normalizedMaritalStatus = getNormalizedValue(
         marital_status,
-        this.maritalStatusMap,
+        maritalStatusMap,
       );
 
       const firstName = name?.split(' ')[0];
@@ -181,13 +158,10 @@ export class ZeusService {
       const { sub } = await this.jwtService.decode(token);
       const dados = [];
       for (const dto of createZeusDto) {
-        const normalizedGender = this.getNormalizedValue(
-          dto.gender,
-          this.genderMap,
-        );
-        const normalizedMaritalStatus = this.getNormalizedValue(
+        const normalizedGender = getNormalizedValue(dto.gender, genderMap);
+        const normalizedMaritalStatus = getNormalizedValue(
           dto.marital_status,
-          this.maritalStatusMap,
+          maritalStatusMap,
         );
         const firstName = dto.name?.split(' ')[0];
         const lastName = dto.name?.split(' ').slice(1).join(' ') || null;
