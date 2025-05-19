@@ -31,6 +31,11 @@ export class VtexController {
     return res.json(msg);
   }
 
+  @Post('processarInteracoes')
+  async processarInteracoes(): Promise<any> {
+    await this.vtexService.processarInteraction();
+  }
+
   @Get('order/:orderId')
   getOrderId(
     @Query('organization_id') organization_id: string,
