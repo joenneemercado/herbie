@@ -80,7 +80,7 @@ model TypeEvent {
 }
 
 model Seller {
-  id              Int          @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   name            String
   seller_ref      String
   address_ref     String?
@@ -90,12 +90,13 @@ model Seller {
   state           String?
   country         String?
   postal_code     String?
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
   channel         String?
   organization_id String
+  Interaction     Interaction[]
   orders          Order[]
-  organization    Organization @relation(fields: [organization_id], references: [public_id])
+  organization    Organization  @relation(fields: [organization_id], references: [public_id])
 }
 
 model Event {
@@ -179,7 +180,6 @@ model Customer {
   x                        String?                    @db.VarChar
   whatsapp                 String?                    @db.VarChar
   addresses                Address[]
-  AssociationTags          AssociationTags[]
   organization             Organization               @relation(fields: [organization_id], references: [public_id])
   Source                   Source?                    @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_source_fk")
   customer_fields          CustomerField[]
@@ -220,6 +220,7 @@ model CustomerUnified {
   score_shop               String?                    @db.VarChar
   score                    Int?                       @default(0)
   addresses                Address[]
+  AssociationTags          AssociationTags[]
   AudiencesContacts        AudiencesContacts[]
   CampaignDetails          CampaignDetails[]
   customer_fields          CustomerField[]
@@ -290,10 +291,12 @@ model Interaction {
   updated_at          DateTime?
   created_by          Int?
   status_id           Int?
+  seller_id           Int?
   CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], map: "Interaction_customerUnifiedId_fkey")
   event               Event            @relation(fields: [event_id], references: [id])
   organization        Organization     @relation(fields: [organization_id], references: [public_id])
   Customer            Customer?        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_customer_fk")
+  Seller              Seller?          @relation(fields: [seller_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_seller_fk")
   Source              Source           @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_source_fk")
   Status              Status?          @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "interaction_status_fk")
 }
@@ -491,21 +494,21 @@ model IntegrationTokens {
 }
 
 model AssociationTags {
-  id              Int        @id(map: "Associationtags_pkey") @default(autoincrement())
-  tag_id          Int
-  campaing_id     Int?
-  customer_id     Int?
-  created_at      DateTime?  @default(now())
-  updated_at      DateTime?  @default(now())
-  created_by      Int?
-  organization_id String
-  updated_by      Int?
-  Campaigns       Campaigns? @relation(fields: [campaing_id], references: [id], map: "Associationtags_idCampaing_fkey")
-  Customer        Customer?  @relation(fields: [customer_id], references: [id], map: "Associationtags_idCustomer_fkey")
-  Tags            Tags       @relation(fields: [tag_id], references: [id], map: "Associationtags_idTag_fkey")
+  id                  Int              @id(map: "Associationtags_pkey") @default(autoincrement())
+  tag_id              Int
+  campaing_id         Int?
+  customer_unified_id Int?
+  created_at          DateTime?        @default(now())
+  updated_at          DateTime?        @default(now())
+  created_by          Int?
+  organization_id     String
+  updated_by          Int?
+  Campaigns           Campaigns?       @relation(fields: [campaing_id], references: [id], map: "Associationtags_idCampaing_fkey")
+  Tags                Tags             @relation(fields: [tag_id], references: [id], map: "Associationtags_idTag_fkey")
+  CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "associationtags_customerunified_fk")
 
   @@index([campaing_id], map: "Associationtags_idCampaing_idx")
-  @@index([customer_id], map: "Associationtags_idCustomer_idx")
+  @@index([customer_unified_id], map: "Associationtags_idCustomer_idx")
   @@index([tag_id], map: "Associationtags_idTag_idx")
 }
 
