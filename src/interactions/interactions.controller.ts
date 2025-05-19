@@ -4,6 +4,7 @@ import {
   Request,
   Query,
   BadRequestException,
+  Param,
 } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
@@ -139,6 +140,15 @@ export class InteractionsController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.interactionsService.findInteraction(parsed.data, req);
+  }
+
+  @Get('customerUnified/:id')
+  @ApiOperation({ summary: 'Obtém todas as interações do customerUnified' })
+  getInteractionsByCustomerUnifiedId(
+    @Param('id') id: number,
+    @Query('tz') tz: string,
+  ) {
+    return this.interactionsService.getInteractionsByCustomerUnifiedId(id, tz);
   }
 
   //todo comentando para nao usar por hora

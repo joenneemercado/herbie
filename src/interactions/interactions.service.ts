@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { PrismaService } from '@src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { toZonedTime, format } from 'date-fns-tz';
 
 import {} from './dto/interation.dto';
 import {
@@ -541,6 +542,54 @@ export class InteractionsService {
       };
     } catch (error) {
       console.log('Error in findInteractionCustomerUnified:', error);
+    }
+  }
+
+  async getInteractionsByCustomerUnifiedId(
+    customer_unified_id: number,
+    tz?: string,
+  ) {
+    try {
+      const interactionCustomerUnified =
+        await this.prisma.interaction.findFirst({
+          select: {
+            type: true,
+            total: true,
+            created_at: true,
+            Source: {
+              select: {
+                name: true,
+              },
+            },
+            Seller: {
+              select: {
+                name: true,
+                seller_ref: true,
+              },
+            },
+          },
+          where: {
+            customer_unified_id,
+          },
+        });
+      if (!interactionCustomerUnified) return null;
+
+      // Converte a data se o timezone for informado
+      if (tz && interactionCustomerUnified.created_at) {
+        const zoned = toZonedTime(interactionCustomerUnified.created_at, tz);
+        const formattedDate = format(zoned, 'yyyy-MM-dd HH:mm:ssXXX', {
+          timeZone: tz,
+        });
+
+        return {
+          ...interactionCustomerUnified,
+          created_at: formattedDate, // Agora sim, é string e você controla
+        };
+      }
+
+      return interactionCustomerUnified;
+    } catch (error) {
+      console.log('Error in getCustomerUnified:', error);
     }
   }
 }

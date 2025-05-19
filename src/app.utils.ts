@@ -46,6 +46,7 @@ export const genderMap = {
   Masculino: 'Male',
   Feminino: 'Female',
   Outro: 'Other',
+  others: 'Other',
   // Adicione outras variações que podem vir da VTEX
 };
 
@@ -58,6 +59,7 @@ export const maritalStatusMap = {
   Casada: 'married',
   'Divorciado(a)': 'divorced',
   'Viúvo(a)': 'widowed',
+  'Viuvo(a)': 'widowed',
   // Adicione outras variações
 };
 
