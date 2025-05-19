@@ -1346,7 +1346,6 @@ export class ZeusService {
   async processarInteractionAcumular() {
     try {
       const interactions = await this.prisma.interaction.findMany({
-        take: 3,
         where: {
           source_id: ZeusConstantes.SOURCE_ID_ZEUS,
           event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
