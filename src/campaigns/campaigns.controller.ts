@@ -37,124 +37,15 @@ import {
 export class CampaignsController {
   constructor(private readonly campaignsService: CampaignsService) {}
 
+  //@ApiBody({ type: CreateCampaingDto })
+  //@ApiResponse({ status: 401, description: 'Unauthorized' })
+
   @ApiBody({ type: CreateCampaingDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 201, description: 'Created' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   @Post()
-  // create(
-  //   @Body('organization_id') organization_id: string,
-  //   @Body('idAudience') idAudience: number[],
-  //   @Body('name') name: string,
-  //   @Body('message') message: string,
-  //   @Body('typeMessage') typeMessage: number,
-  //   @Body('sendingBy') sendingBy: string,
-  //   @Body('statusId') statusId: number,
-  //   @Body('createdAt') createdAt: Date,
-  //   @Body('updatedAt') updatedAt: Date,
-  //   @Body('createdBy') createdBy: number,
-  //   @Body('updatedBy') updatedBy: number,
-  //   @Body('priority?') priority: number,
-  //   @Body('channelId') channelId: number,
-  //   @Body('tags') tags: number[],
-  //   @Body('dateStart') dateStart: string,
-  //   @Body('dateEnd') dateEnd: string,
-  //   @Body('jsonMeta') jsonMeta: string,
-  //   @Body('subject') subject: string,
-  // ): Promise<any> {
-  //   if (!organization_id) {
-  //     throw new BadRequestException('Organization ID is required');
-  //   }
-  //   {
-  //     return this.campaignsService.create({
-  //       idAudience,
-  //       organization_id,
-  //       name,
-  //       message,
-  //       typeMessage,
-  //       statusId,
-  //       sendingBy,
-  //       createdAt,
-  //       updatedAt,
-  //       createdBy,
-  //       updatedBy,
-  //       priority,
-  //       channelId,
-  //       tags,
-  //       dateStart,
-  //       dateEnd,
-  //       jsonMeta,
-  //       subject,
-  //     });
-  //   }
-  // }
-  @ApiBody({
-    description: 'Create Campaign Payload',
-    required: true,
-    schema: {
-      type: 'object',
-      properties: {
-        name: {
-          type: 'string',
-          example: 'campanha what teste eM',
-        },
-        tags: {
-          type: 'array',
-          items: {
-            type: 'number',
-          },
-          example: [1, 2],
-        },
-        typeMessage: {
-          type: 'number',
-          example: 1,
-        },
-        message: {
-          type: 'string',
-          example: "ola, ['NOME'] apenas teste",
-        },
-        idAudience: {
-          type: 'array',
-          items: {
-            type: 'number',
-          },
-          example: [29],
-        },
-        createdBy: {
-          type: 'number',
-          example: 1,
-        },
-        channelId: {
-          type: 'number',
-          example: 2,
-        },
-        file: {
-          type: 'string',
-          nullable: true,
-          example: null,
-        },
-        timeZone: {
-          type: 'string',
-          example: '-4',
-        },
-        organization_id: {
-          type: 'string',
-          example: 'aaaau6100003b6junq2222',
-        },
-        statusId: {
-          type: 'number',
-          example: 2,
-        },
-      },
-      required: [
-        'name',
-        'typeMessage',
-        'message',
-        'idAudience',
-        'createdBy',
-        'channelId',
-        'organization_id',
-      ],
-    },
-  })
   create(
     @Body() createCampaingDto: CreateCampaingDto,
     @Request() req: Request,

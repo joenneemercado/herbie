@@ -7,82 +7,82 @@ export class CreateCampaingDto {
   @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true, message: 'Cada idAudience deve ser um número' })
-  @ApiProperty({ type: [Number] })
+  @ApiProperty({ type: [Number], example: [1] })
   idAudience?: number[];
 
   @IsOptional()
   @IsString({ message: 'O name deve ser um UUID válido' })
-  @ApiProperty()
+  @ApiProperty({ example: 'campanha-de-inverno' })
   name?: string;
 
   @IsOptional()
   @IsString({ message: 'O name do cliente' })
-  @ApiProperty()
+  @ApiProperty({ example: 'Olá, cliente! Aproveite nossa promoção.' })
   message?: string;
 
   @IsOptional()
   @IsNumber({}, { message: 'O typeMessage deve ser um number' })
-  @ApiProperty()
+  @ApiProperty({ example: 1 })
   typeMessage?: number;
 
   @IsOptional()
-  @IsString({ message: 'O sendingBy deve ser um UUID válido' })
-  @ApiProperty()
+  @IsString({ message: 'O sendingBy deve ser uma string' })
+  @ApiProperty({ example: 'sms' })
   sendingBy?: string;
 
   @IsOptional()
   @IsNumber({}, { message: 'O statusId deve ser um número' })
-  @ApiProperty()
+  @ApiProperty({ example: 2 })
   statusId?: number;
 
   @IsOptional()
   @IsString({ message: 'O statusId deve ser um UUID válido' })
-  @ApiProperty()
+  @ApiProperty({ example: new Date().toISOString() })
   createdAt?: Date;
 
   @IsOptional()
   @IsNumber({}, { message: 'O createdBy deve ser um número' })
-  @ApiProperty()
+  @ApiProperty({ example: 123 })
   createdBy?: number;
 
   @IsOptional()
   @IsNumber({}, { message: 'O priority deve ser um número' })
-  @ApiProperty()
+  @ApiProperty({ example: 5 })
   priority?: number;
 
   @IsOptional()
   @IsNumber({}, { message: 'O channelId deve ser um número' })
-  @ApiProperty()
+  @ApiProperty({ example: 10 })
   channelId?: number;
 
   @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true, message: 'Cada tag deve ser um número' })
-  @ApiProperty({ type: [Number] })
+  @ApiProperty({ type: [Number], example: [101, 102] })
   tags?: number[];
 
   @IsOptional()
   @IsString({ message: 'O dateStart deve ser uma string' })
-  @ApiProperty()
+  @ApiProperty({ example: '2025-05-20T08:00:00.000Z' })
   dateStart?: string;
 
   @IsOptional()
   @IsString({ message: 'O dateEnd deve ser uma string' })
-  @ApiProperty()
+  @ApiProperty({ example: '2025-05-30T23:59:59.000Z' })
   dateEnd?: string;
 
   @IsOptional()
   @IsString({ message: 'O jsonMeta deve ser uma string' })
-  @ApiProperty()
+  @ApiProperty({ example: '{"segmento":"varejo","tipo":"oferta"}' })
   jsonMeta?: string;
 
   @IsOptional()
   @IsString({ message: 'O subject deve ser uma string' })
-  @ApiProperty()
+  @ApiProperty({ example: 'Oferta imperdível!' })
   subject?: string;
 
   @IsString({ message: 'O organization_id deve ser um UUID válido' })
-  @ApiProperty()
+  @ApiProperty({ example: 'cm0l1u61r00003b6junq2pmbi' })
   organization_id: string;
 
   @IsOptional() // O campo cursor é opcional

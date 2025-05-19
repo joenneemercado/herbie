@@ -1,4 +1,3 @@
-import { Tag } from './../tags/entities/tag.entity';
 import {
   CampaingContactDtochema,
   CampaingDetailsDtochema,
