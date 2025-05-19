@@ -1,8 +1,27 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  BadRequestException,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { TagsService } from './tags.service';
-import { CreateTagDto, CreateTagWithAssociationDto } from './dto/create-tag.dto';
+import {
+  CreateTagDto,
+  CreateTagWithAssociationDto,
+} from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
-import { ApiBearerAuth, ApiBody, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
 
 @ApiTags('tags')
@@ -10,7 +29,7 @@ import { JwtAuthGuard } from '@src/auth/jwt.guard';
 @UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 @Controller('tags')
 export class TagsController {
-  constructor(private readonly tagsService: TagsService) { }
+  constructor(private readonly tagsService: TagsService) {}
 
   // @Post()
   // create(@Body() createTagDto: CreateTagDto) {
@@ -24,17 +43,17 @@ export class TagsController {
     @Body('organization_id') organization_id: string,
     @Body('name') name: string,
     @Body('createdBy') createdBy: number,
-
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.tagsService.create({
         name,
         organization_id,
-        createdBy
-      })
-    };
+        createdBy,
+      });
+    }
   }
 
   @ApiBody({ type: CreateTagWithAssociationDto })
@@ -46,19 +65,19 @@ export class TagsController {
     @Body('idCustomer') idCustomer: number,
     @Body('idCampaing') idCampaing: number,
     @Body('createdBy') createdBy: number,
-
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.tagsService.createTagCustomer({
         idCampaing,
         organization_id,
         createdBy,
         idTag,
         idCustomer,
-      })
-    };
+      });
+    }
   }
 
   @ApiQuery({
@@ -101,7 +120,6 @@ export class TagsController {
     description: 'Page numbe',
     example: 1,
   })
-
   @Get('/all')
   findAll(
     @Query('page') page = 1,
@@ -109,45 +127,44 @@ export class TagsController {
     @Query('organization_id') organization_id: string,
     @Query('name') name: string,
     @Query('createdBy') createdBy: number,
-  )
-    : Promise<any> {
+  ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.tagsService.findAll({
         page,
         limit,
         organization_id,
         name,
         createdBy,
-      })
-    };
+      });
+    }
   }
 
-  
-    @ApiQuery({
-      name: 'organization_id',
-      required: true,
-      description: 'Organization ID (public_id)',
-      example: 'cm0l1u61r00003b6junq2pmbi',
-      type: String,
-    })
-    @ApiParam({
-      name: 'id',
-      required: true,
-      description: 'id of tag',
-      example: 1,
-      type: Number,
-    })
-  
+  @ApiQuery({
+    name: 'organization_id',
+    required: true,
+    description: 'Organization ID (public_id)',
+    example: 'cm0l1u61r00003b6junq2pmbi',
+    type: String,
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'id of tag',
+    example: 1,
+    type: Number,
+  })
   @Get(':id')
   findOne(
     @Param('id') id: number,
-    @Query('organization_id') organization_id: string
+    @Query('organization_id') organization_id: string,
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
-    } {
+    }
+    {
       return this.tagsService.findOne(id, organization_id);
     }
   }

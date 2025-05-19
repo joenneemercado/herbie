@@ -2,6 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { PrismaService } from '@src/database/prisma.service';
+import { boolean } from 'zod';
 
 @Injectable()
 export class TagsService {
@@ -90,12 +91,12 @@ export class TagsService {
     const { page, limit, organization_id, name, createdBy } = params;
 
     const skip = (page - 1) * limit;
-    const filters = {
+    const filters: any = {
       AND: [
-        organization_id ? { organization_id: organization_id } : {},
-        name ? { name: { contains: name } } : {},
-        createdBy ? { created_by: createdBy } : {},
-      ],
+        organization_id && { organization_id },
+        name && { name: { contains: name, mode: 'insensitive' as const } },
+        createdBy && { created_by: createdBy },
+      ].filter(Boolean),
     };
     try {
       const [tags, total] = await Promise.all([
@@ -108,10 +109,12 @@ export class TagsService {
       ]);
       return {
         data: tags,
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / limit),
+        pageInfo: {
+          totalItems: total,
+          currentPage: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / limit),
+        },
       };
     } catch (error) {
       console.log(`erro ao procurar tags `, error);
