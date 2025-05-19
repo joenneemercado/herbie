@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as fastcsv from 'fast-csv';
 import * as xlsx from 'xlsx';
 import * as fs from 'fs';
-import { fixEncodingIssues } from '@src/app.utils';
+import { fixEncodingIssues, getNormalizedValue } from '@src/app.utils';
 import { Customer, Prisma } from '@prisma/client';
 import { PrismaService } from '@src/database/prisma.service';
 import { InjectQueue } from '@nestjs/bull';
@@ -321,8 +321,16 @@ export class VtexService {
       return; // Ou throw new Error dependendo da sua estratégia
     }
 
-    const { document, phone, firstName, lastName, email, documentType } =
-      pedido.clientProfileData;
+    const {
+      document,
+      phone,
+      firstName,
+      lastName,
+      email,
+      documentType,
+      gender,
+      marital_status,
+    } = pedido.clientProfileData;
     const shippingAddressPayload = pedido.shippingData?.address;
 
     return this.prisma.$transaction(
@@ -357,6 +365,11 @@ export class VtexService {
             internalCustomerId = verifyCustomer.id;
           } else {
             // Criar novo Customer (não unificado)
+            const normalizedGender = getNormalizedValue(gender, this.genderMap);
+            const normalizedMaritalStatus = getNormalizedValue(
+              marital_status,
+              this.maritalStatusMap,
+            );
             const newCustomerData = {
               organization_id,
               cpf: documentType === 'cpf' ? document : undefined,
@@ -365,6 +378,9 @@ export class VtexService {
               firstname: firstName,
               lastname: lastName,
               email,
+              gender: normalizedGender ?? null,
+              marital_status: normalizedMaritalStatus ?? null,
+
               source_id: VtexConstantes.SOURCE_ID_VTEX,
               created_by: VtexConstantes.SISTEM_USER,
               // public_id é gerado automaticamente

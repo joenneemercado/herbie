@@ -40,3 +40,31 @@ export function splitName(fullName: string): {
     return { firstname: nameParts[0], lastname: '' };
   }
 }
+
+// Mapas de Normalização (adicione mais conforme necessário)
+export const genderMap = {
+  Masculino: 'Male',
+  Feminino: 'Female',
+  Outro: 'Other',
+  // Adicione outras variações que podem vir da VTEX
+};
+
+export const maritalStatusMap = {
+  'Solteiro(a)': 'single',
+  Solteiro: 'single',
+  Solteira: 'single',
+  'Casado(a)': 'married',
+  Casado: 'married',
+  Casada: 'married',
+  'Divorciado(a)': 'divorced',
+  'Viúvo(a)': 'widowed',
+  // Adicione outras variações
+};
+
+// Função para obter valor normalizado ou o original se não mapeado
+export function getNormalizedValue(value, map) {
+  if (value && map[value]) {
+    return map[value];
+  }
+  return value; // Ou null/undefined se preferir não gravar o valor não mapeado
+}

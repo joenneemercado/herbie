@@ -33,8 +33,8 @@ import { CreateInteractionZeusDto } from './dto/interaction-zeus.dto';
 // 3 - Wifi
 // 4 - Card
 //@ApiTags('zeus')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
+//@ApiBearerAuth()
+//@UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 @Controller('connectors/zeus')
 export class ZeusController {
   constructor(private readonly zeusService: ZeusService) {}
@@ -74,6 +74,7 @@ export class ZeusController {
     @Request() req: Request,
   ) {
     const parsed = createZeusSchema.safeParse(createZeusDto);
+    console.log(parsed);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors);
     }
@@ -90,6 +91,7 @@ export class ZeusController {
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors);
     }
+    console.log('teste');
     return this.zeusService.interationAcumularPontos(parsed.data, req);
   }
 
@@ -104,5 +106,10 @@ export class ZeusController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.zeusService.interationResgatarPontos(parsed.data, req);
+  }
+
+  @Post('processarInteracoesAcumular')
+  async processarInteracoes(): Promise<any> {
+    await this.zeusService.processarInteractionAcumular();
   }
 }
