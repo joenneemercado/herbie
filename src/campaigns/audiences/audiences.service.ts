@@ -1088,17 +1088,22 @@ export class AudiencesService {
       // Contagem filtrada de interações
       let countInteration = 0;
       if (whereConditionCustomerInteration?.AND?.length > 0) {
-        countInteration = await this.prisma.interaction.count({
+        const interations = await this.prisma.interaction.findMany({
           where: {
             NOT: { customer_unified_id: null },
             organization_id: findSegmentAudienceDto.organization_id,
             CustomerUnified: { status_id: 1 },
             ...whereConditionCustomerInteration,
           },
+          select: {
+            customer_unified_id: true,
+          },
+          distinct: ['customer_unified_id'],
         });
+        countInteration = interations.length;
       }
-      console.log('countCustomerUnified', countCustomerUnified);
-      console.log('countInteration', countInteration);
+      // console.log('countCustomerUnified', countCustomerUnified);
+      // console.log('countInteration', countInteration);
 
       return {
         totalCustomerUnified,
