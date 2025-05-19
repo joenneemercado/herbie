@@ -6,14 +6,11 @@ import {
   Param,
   BadRequestException,
   Query,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { TagsService } from './tags.service';
-import {
-  CreateTagDto,
-  CreateTagWithAssociationDto,
-} from './dto/create-tag.dto';
-import { UpdateTagDto } from './dto/update-tag.dto';
+import { CreateContactTagsDto, CreateTagDto } from './dto/create-tag.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -23,6 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/jwt.guard';
+import { createContactTagschema } from './dto/tag.schema';
 
 @ApiTags('tags')
 @ApiBearerAuth()
@@ -52,30 +50,6 @@ export class TagsController {
         name,
         organization_id,
         createdBy,
-      });
-    }
-  }
-
-  @ApiBody({ type: CreateTagWithAssociationDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Post('/association')
-  createTagCustomer(
-    @Body('organization_id') organization_id: string,
-    @Body('idTag') idTag: number,
-    @Body('idCustomer') idCustomer: number,
-    @Body('idCampaing') idCampaing: number,
-    @Body('createdBy') createdBy: number,
-  ): Promise<any> {
-    if (!organization_id) {
-      throw new BadRequestException('Organization ID is required');
-    }
-    {
-      return this.tagsService.createTagCustomer({
-        idCampaing,
-        organization_id,
-        createdBy,
-        idTag,
-        idCustomer,
       });
     }
   }
@@ -167,6 +141,24 @@ export class TagsController {
     {
       return this.tagsService.findOne(id, organization_id);
     }
+  }
+
+  @ApiBody({ type: CreateContactTagsDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 201, description: 'Created' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  @Post('/create/contacts')
+  createTagContact(
+    @Body() createContactTagsDto: CreateContactTagsDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createContactTagsDto', createContactTagsDto);
+    const parsed = createContactTagschema.safeParse(createContactTagsDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.tagsService.createTagContact(parsed.data, req);
   }
 
   // @Patch(':id')

@@ -1,12 +1,21 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { PrismaService } from '@src/database/prisma.service';
-import { boolean } from 'zod';
+import { CreateContactTagsSchema } from './dto/tag.schema';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class TagsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
   // create(createTagDto: CreateTagDto) {
   //   return 'This action adds a new tag';
@@ -38,43 +47,6 @@ export class TagsService {
       return tag;
     } catch (error) {
       console.log(`erro ao criar tag`, error);
-      throw new HttpException(error.message, error.status);
-    }
-
-    //return 'This action adds a new tag';
-  }
-
-  async createTagCustomer(Body: {
-    idTag: number;
-    idCustomer?: number;
-    idCampaing?: number;
-    createdBy: number;
-    organization_id: string;
-  }) {
-    const { organization_id, idTag, createdBy, idCustomer, idCampaing } = Body;
-    try {
-      const existingtag = await this.prisma.associationTags.findFirst({
-        where: {
-          tag_id: idTag,
-          organization_id: organization_id,
-        },
-      });
-      if (existingtag) {
-        throw new HttpException('id tag já existe', 409);
-      }
-      const tag = await this.prisma.associationTags.create({
-        data: {
-          tag_id: idTag,
-          organization_id: organization_id,
-          created_by: createdBy ? createdBy : 1,
-          customer_id: idCustomer,
-          campaing_id: idCampaing,
-        },
-      });
-
-      return tag;
-    } catch (error) {
-      console.log(`erro ao associar criar tag`, error);
       throw new HttpException(error.message, error.status);
     }
 
@@ -140,6 +112,55 @@ export class TagsService {
       throw new HttpException(error.message, error.status);
     }
     //return `This action returns a #${id} tag`;
+  }
+
+  async createTagContact(
+    createContactTagsDto: CreateContactTagsSchema,
+    req: Request,
+  ) {
+    //console.log('createContactTagsDto', createContactTagsDto);
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+    const token = reqToken.split(' ')[1];
+    //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
+    const { sub } = await this.jwtService.decode(token);
+
+    const findTag = await this.prisma.tags.findFirst({
+      where: {
+        id: createContactTagsDto.idTag,
+        organization_id: createContactTagsDto.organization_id,
+      },
+    });
+    if (!findTag) {
+      throw new HttpException('tag nao existe', 404);
+    }
+
+    const findTagContact = await this.prisma.associationTags.findFirst({
+      where: {
+        tag_id: createContactTagsDto.idTag,
+        customer_unified_id: createContactTagsDto.customer_unified_id,
+        organization_id: createContactTagsDto.organization_id,
+      },
+    });
+    // console.log('findTagContact', findTagContact);
+    if (!findTagContact) {
+      await this.prisma.associationTags.create({
+        data: {
+          tag_id: createContactTagsDto.idTag,
+          organization_id: createContactTagsDto.organization_id,
+          created_by: sub,
+          customer_unified_id: createContactTagsDto.customer_unified_id,
+        },
+      });
+      //console.log('create', create);
+    }
+    return {
+      code: HttpStatus.CREATED,
+      success: true,
+      message: 'tag associada ao contato com sucesso',
+    };
   }
 
   update(id: number, updateTagDto: UpdateTagDto) {
