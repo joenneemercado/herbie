@@ -547,51 +547,80 @@ export class InteractionsService {
 
   async getInteractionsByCustomerUnifiedId(
     customer_unified_id: number,
+    page = 1,
+    limit = 10,
     tz?: string,
   ) {
     try {
-      const interactions = await this.prisma.interaction.findMany({
-        select: {
-          type: true,
-          total: true,
-          created_at: true,
-          Source: {
-            select: {
-              name: true,
+      const skip = (page - 1) * limit;
+
+      const [interactions, totalItems] = await Promise.all([
+        this.prisma.interaction.findMany({
+          select: {
+            type: true,
+            total: true,
+            created_at: true,
+            Source: {
+              select: {
+                name: true,
+              },
+            },
+            Seller: {
+              select: {
+                name: true,
+                seller_ref: true,
+              },
             },
           },
-          Seller: {
-            select: {
-              name: true,
-              seller_ref: true,
-            },
+          where: {
+            customer_unified_id,
           },
-        },
-        where: {
-          customer_unified_id,
-        },
-      });
+          skip,
+          take: limit,
+        }),
+        this.prisma.interaction.count({
+          where: {
+            customer_unified_id,
+          },
+        }),
+      ]);
 
-      if (!interactions || interactions.length === 0) return [];
-
-      // Se o timezone foi informado, formata as datas individualmente
-      if (tz) {
-        return interactions.map((item) => {
-          const zoned = toZonedTime(item.created_at, tz);
-          const formattedDate = format(zoned, 'yyyy-MM-dd HH:mm:ssXXX', {
-            timeZone: tz,
-          });
-
-          return {
-            ...item,
-            created_at: formattedDate,
-          };
-        });
+      if (!interactions || interactions.length === 0) {
+        return {
+          data: [],
+          pageInfo: {
+            totalItems: 0,
+            currentPage: page,
+            limit,
+            totalPages: 0,
+          },
+        };
       }
 
-      return interactions;
+      const data = tz
+        ? interactions.map((item) => {
+            const zoned = toZonedTime(item.created_at, tz);
+            const formattedDate = format(zoned, 'yyyy-MM-dd HH:mm:ssXXX', {
+              timeZone: tz,
+            });
+            return {
+              ...item,
+              created_at: formattedDate,
+            };
+          })
+        : interactions;
+
+      return {
+        data,
+        pageInfo: {
+          totalItems,
+          currentPage: page,
+          limit,
+          totalPages: Math.ceil(totalItems / limit),
+        },
+      };
     } catch (error) {
-      console.log('Error in getCustomerUnified:', error);
+      console.log('Error in getInteractionsByCustomerUnifiedId:', error);
       throw error;
     }
   }

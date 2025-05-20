@@ -146,9 +146,16 @@ export class InteractionsController {
   @ApiOperation({ summary: 'Obtém todas as interações do customerUnified' })
   getInteractionsByCustomerUnifiedId(
     @Param('id') id: number,
-    @Query('tz') tz: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('tz') tz?: string,
   ) {
-    return this.interactionsService.getInteractionsByCustomerUnifiedId(id, tz);
+    return this.interactionsService.getInteractionsByCustomerUnifiedId(
+      id,
+      page,
+      limit,
+      tz,
+    );
   }
 
   //todo comentando para nao usar por hora
