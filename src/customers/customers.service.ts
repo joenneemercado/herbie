@@ -1713,6 +1713,8 @@ export class CustomersService {
             select: {
               name: true,
               sku: true,
+              quantity: true,
+              total: true,
             },
           },
         },
@@ -1721,20 +1723,43 @@ export class CustomersService {
         },
       });
 
-      // Flatten array de order_items
-      const allItems = products.flatMap((order) => order.order_items);
+      // Flatten e agregação por SKU
+      const itemMap = new Map<
+        string,
+        { sku: string; name: string; quantity: number; total: number }
+      >();
 
-      // Remover duplicados com base no SKU
-      const uniqueItems = allItems.filter(
-        (item, index, self) =>
-          index === self.findIndex((i) => i.sku === item.sku),
-      );
+      for (const order of products) {
+        for (const item of order.order_items) {
+          const key = item.sku;
+          const existing = itemMap.get(key);
+          if (existing) {
+            existing.quantity += item.quantity;
+            existing.total += item.total;
+          } else {
+            itemMap.set(key, {
+              sku: item.sku,
+              name: item.name,
+              quantity: item.quantity,
+              total: item.total,
+            });
+          }
+        }
+      }
 
-      // Paginação
-      const totalItems = uniqueItems.length;
+      const aggregatedItems = Array.from(itemMap.values()).map((item) => ({
+        ...item,
+        average_price: item.quantity > 0 ? item.total / item.quantity : 0,
+      }));
+
+      // Paginação baseada em aggregatedItems
+      const totalItems = aggregatedItems.length;
       const totalPages = Math.ceil(totalItems / limit);
       const startIndex = (page - 1) * limit;
-      const paginatedItems = uniqueItems.slice(startIndex, startIndex + limit);
+      const paginatedItems = aggregatedItems.slice(
+        startIndex,
+        startIndex + limit,
+      );
 
       return {
         data: paginatedItems,
