@@ -1705,6 +1705,8 @@ export class CustomersService {
     id: number,
     page = 1,
     limit = 10,
+    orderBy: 'quantity' | 'total' = 'quantity',
+    order: 'asc' | 'desc' = 'desc',
   ) {
     try {
       const products = await this.prisma.order.findMany({
@@ -1751,6 +1753,13 @@ export class CustomersService {
         ...item,
         average_price: item.quantity > 0 ? item.total / item.quantity : 0,
       }));
+
+      // Ordenação conforme parâmetros orderBy e order
+      aggregatedItems.sort((a, b) => {
+        const fieldA = a[orderBy];
+        const fieldB = b[orderBy];
+        return order === 'asc' ? fieldA - fieldB : fieldB - fieldA;
+      });
 
       // Paginação baseada em aggregatedItems
       const totalItems = aggregatedItems.length;

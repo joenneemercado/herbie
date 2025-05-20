@@ -318,14 +318,18 @@ export class CustomersController {
   getAllProductsCustomer(
     @Query('organization_id') organization_id: string,
     @Query('id') id: number,
-    @Query('page') page: number,
-    @Query('limit') limit: number,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('orderBy') orderBy: 'quantity' | 'total' = 'quantity',
+    @Query('order') order: 'asc' | 'desc' = 'desc',
   ) {
     return this.customersService.getAllProductsCustomer(
       organization_id,
       id,
       page,
       limit,
+      orderBy,
+      order,
     );
   }
 }
