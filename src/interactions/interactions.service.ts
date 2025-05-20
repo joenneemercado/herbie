@@ -550,46 +550,49 @@ export class InteractionsService {
     tz?: string,
   ) {
     try {
-      const interactionCustomerUnified =
-        await this.prisma.interaction.findFirst({
-          select: {
-            type: true,
-            total: true,
-            created_at: true,
-            Source: {
-              select: {
-                name: true,
-              },
-            },
-            Seller: {
-              select: {
-                name: true,
-                seller_ref: true,
-              },
+      const interactions = await this.prisma.interaction.findMany({
+        select: {
+          type: true,
+          total: true,
+          created_at: true,
+          Source: {
+            select: {
+              name: true,
             },
           },
-          where: {
-            customer_unified_id,
+          Seller: {
+            select: {
+              name: true,
+              seller_ref: true,
+            },
           },
-        });
-      if (!interactionCustomerUnified) return null;
+        },
+        where: {
+          customer_unified_id,
+        },
+      });
 
-      // Converte a data se o timezone for informado
-      if (tz && interactionCustomerUnified.created_at) {
-        const zoned = toZonedTime(interactionCustomerUnified.created_at, tz);
-        const formattedDate = format(zoned, 'yyyy-MM-dd HH:mm:ssXXX', {
-          timeZone: tz,
-        });
+      if (!interactions || interactions.length === 0) return [];
 
-        return {
-          ...interactionCustomerUnified,
-          created_at: formattedDate, // Agora sim, é string e você controla
-        };
+      // Se o timezone foi informado, formata as datas individualmente
+      if (tz) {
+        return interactions.map((item) => {
+          const zoned = toZonedTime(item.created_at, tz);
+          const formattedDate = format(zoned, 'yyyy-MM-dd HH:mm:ssXXX', {
+            timeZone: tz,
+          });
+
+          return {
+            ...item,
+            created_at: formattedDate,
+          };
+        });
       }
 
-      return interactionCustomerUnified;
+      return interactions;
     } catch (error) {
       console.log('Error in getCustomerUnified:', error);
+      throw error;
     }
   }
 }
