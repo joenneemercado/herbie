@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@src/database/prisma.service';
 import { Prisma } from '@prisma/client';
+import { toZonedTime, format } from 'date-fns-tz';
 
 @Injectable()
 export class CampaignsService {
@@ -516,6 +517,77 @@ export class CampaignsService {
     } catch (error) {
       console.log(`erro ao procurar detalhes da campanha`, error);
       throw new HttpException(error.message, error.status);
+    }
+  }
+
+  async getCampaingCustomer(
+    organization_id: string,
+    contact_id: string, // id do contato
+    page = 1,
+    limit = 10,
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+
+      // Busca as campanhas onde o contato faz parte (JOIN com campaignDetails)
+      const data = await this.prisma.campaigns.findMany({
+        where: {
+          organization_id,
+          CampaignDetails: {
+            some: {
+              organization_id,
+              contact_id: Number(contact_id),
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          message: true,
+          created_at: true,
+          Channels: {
+            select: {
+              name: true,
+            },
+          },
+          CampaignStatus: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        skip,
+        take: limit,
+        orderBy: { updated_at: 'desc' }, // opcional
+      });
+
+      // Conta total para paginação
+      const totalItems = await this.prisma.campaigns.count({
+        where: {
+          organization_id,
+          CampaignDetails: {
+            some: {
+              organization_id,
+              contact_id: Number(contact_id),
+            },
+          },
+        },
+      });
+
+      const totalPages = Math.ceil(totalItems / limit);
+
+      return {
+        data,
+        pageInfo: {
+          totalItems,
+          currentPage: page,
+          limit,
+          totalPages,
+        },
+      };
+    } catch (error) {
+      console.log('falhou ao buscar campanhas do usuário', error);
+      throw new HttpException(error.message, error.status || 500);
     }
   }
 }

@@ -7,6 +7,7 @@ import {
   BadRequestException,
   Query,
   UseGuards,
+  Param,
 } from '@nestjs/common';
 import { CampaignsService } from './campaigns.service';
 import {
@@ -36,9 +37,6 @@ import {
 @Controller('campaigns')
 export class CampaignsController {
   constructor(private readonly campaignsService: CampaignsService) {}
-
-  //@ApiBody({ type: CreateCampaingDto })
-  //@ApiResponse({ status: 401, description: 'Unauthorized' })
 
   @ApiBody({ type: CreateCampaingDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -95,28 +93,6 @@ export class CampaignsController {
     description: 'Page numbe',
     example: 1,
   })
-  // findAll(
-  //   @Query('page') page = 1,
-  //   @Query('limit') limit = 10,
-  //   @Query('organization_id') organization_id: string,
-  //   @Query('statusId') statusId: number,
-  //   @Query('createdBy') createdBy: number,
-  //   @Query('name') name: string,
-  // ): Promise<any> {
-  //   if (!organization_id) {
-  //     throw new BadRequestException('Organization ID is required');
-  //   }
-  //   {
-  //     return this.campaignsService.findAll({
-  //       page,
-  //       limit,
-  //       organization_id,
-  //       statusId,
-  //       name,
-  //       createdBy,
-  //     });
-  //   }
-  // }
   findAll(@Query() findCampaingDto: FindCampaingDto, @Request() req: Request) {
     //console.log('createInteractionCampaing', intrationDto);
     const parsed = findCampaignchema.safeParse(findCampaingDto);
@@ -125,33 +101,6 @@ export class CampaignsController {
     }
     return this.campaignsService.findAll(parsed.data, req);
   }
-
-  // @ApiQuery({
-  //   name: 'organization_id',
-  //   required: true,
-  //   description: 'Organization ID (public_id)',
-  //   example: 'cm0l1u61r00003b6junq2pmbi',
-  //   type: String,
-  // })
-  // @ApiQuery({
-  //   name: 'id',
-  //   required: true,
-  //   description: 'id of Campaing',
-  //   example: 1,
-  //   type: Number,
-  // })
-  // @Get(':id')
-  // findOne(
-  //   @Param('id') id: number,
-  //   @Query('organization_id') organization_id: string,
-  // ): Promise<any> {
-  //   if (!organization_id) {
-  //     throw new BadRequestException('Organization ID is required');
-  //   }
-  //   {
-  //     return this.campaignsService.findOne(id, organization_id);
-  //   }
-  // }
 
   @Get('/info/details')
   @ApiQuery({
@@ -200,5 +149,20 @@ export class CampaignsController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.campaignsService.findCampaignContacts(parsed.data, req);
+  }
+
+  @Get('/customer')
+  getCampaingCustomer(
+    @Query('id') id: string,
+    @Query('organization_id') organization_id: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return this.campaignsService.getCampaingCustomer(
+      organization_id,
+      id,
+      page,
+      limit,
+    );
   }
 }
