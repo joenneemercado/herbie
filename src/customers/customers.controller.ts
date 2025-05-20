@@ -312,4 +312,20 @@ export class CustomersController {
   ) {
     return this.customersService.unifiedCustomerId(organization_id, id);
   }
+
+  @Get('product/list')
+  @ApiOperation({ summary: 'Obtém todas as interações do customerUnified' })
+  getAllProductsCustomer(
+    @Query('organization_id') organization_id: string,
+    @Query('id') id: number,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return this.customersService.getAllProductsCustomer(
+      organization_id,
+      id,
+      page,
+      limit,
+    );
+  }
 }

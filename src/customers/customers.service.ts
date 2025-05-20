@@ -1602,6 +1602,10 @@ export class CustomersService {
               status_id: 1,
               trading_name: customer.trading_name,
               organization_id: customer.organization_id,
+              whatsapp: customer.whatsapp,
+              instagram: customer.instagram,
+              facebook: customer.facebook,
+              x: customer.x,
             },
           });
           const associado =
@@ -1693,6 +1697,57 @@ export class CustomersService {
       };
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  async getAllProductsCustomer(
+    organization: string,
+    id: number,
+    page = 1,
+    limit = 10,
+  ) {
+    try {
+      const products = await this.prisma.order.findMany({
+        select: {
+          order_items: {
+            select: {
+              name: true,
+              sku: true,
+            },
+          },
+        },
+        where: {
+          customer_unified_id: Number(id),
+        },
+      });
+
+      // Flatten array de order_items
+      const allItems = products.flatMap((order) => order.order_items);
+
+      // Remover duplicados com base no SKU
+      const uniqueItems = allItems.filter(
+        (item, index, self) =>
+          index === self.findIndex((i) => i.sku === item.sku),
+      );
+
+      // Paginação
+      const totalItems = uniqueItems.length;
+      const totalPages = Math.ceil(totalItems / limit);
+      const startIndex = (page - 1) * limit;
+      const paginatedItems = uniqueItems.slice(startIndex, startIndex + limit);
+
+      return {
+        data: paginatedItems,
+        pageInfo: {
+          totalItems,
+          currentPage: page,
+          limit,
+          totalPages,
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
   }
 

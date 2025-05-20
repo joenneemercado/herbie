@@ -219,6 +219,11 @@ model CustomerUnified {
   score_behavior           Int?                       @default(0)
   score_shop               String?                    @db.VarChar
   score                    Int?                       @default(0)
+  facebook                 String?                    @db.VarChar
+  instagram                String?                    @db.VarChar
+  tiktok                   String?                    @db.VarChar
+  whatsapp                 String?                    @db.VarChar
+  x                        String?                    @db.VarChar
   addresses                Address[]
   AssociationTags          AssociationTags[]
   AudiencesContacts        AudiencesContacts[]
