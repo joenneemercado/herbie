@@ -1669,8 +1669,19 @@ export class CustomersService {
         },
         include: {
           addresses: true,
+          AssociationTags: {
+            select: {
+              Tags: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
+
       const customersIds = await this.prisma.customer_CustomerUnified.findMany({
         where: {
           customer_unified_id: customerUnified.id,
