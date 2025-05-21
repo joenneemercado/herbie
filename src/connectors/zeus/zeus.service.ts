@@ -36,6 +36,7 @@ export class ZeusService {
       throw new UnauthorizedException();
     }
     try {
+      console.log('createZeusDto', createZeusDto);
       const token = reqToken.split(' ')[1];
       //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
       const { sub } = await this.jwtService.decode(token);
@@ -118,7 +119,7 @@ export class ZeusService {
           },
         },
       });
-
+      console.log('customer', customer.id, customer.cpf);
       await this.prisma.interaction.create({
         data: {
           details: createZeusDto,
@@ -140,6 +141,7 @@ export class ZeusService {
         //message:"sucess"
       };
     } catch (error) {
+      console.log('errorData', error?.response?.data);
       console.log(error.message);
       throw error;
     }
