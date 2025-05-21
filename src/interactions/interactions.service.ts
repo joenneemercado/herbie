@@ -547,11 +547,14 @@ export class InteractionsService {
 
   async getInteractionsByCustomerUnifiedId(
     customer_unified_id: number,
-    page = 1,
-    limit = 10,
+    pageReq = 1,
+    limitReq = 10,
     tz?: string,
   ) {
     try {
+      const limit = Number(limitReq) || 10;
+      const page = Number(pageReq) || 1;
+
       const skip = (page - 1) * limit;
 
       const [interactions, totalItems] = await Promise.all([
