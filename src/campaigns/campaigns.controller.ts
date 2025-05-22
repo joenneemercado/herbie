@@ -8,6 +8,8 @@ import {
   Query,
   UseGuards,
   Param,
+  Patch,
+  Put,
 } from '@nestjs/common';
 import { CampaignsService } from './campaigns.service';
 import {
@@ -29,7 +31,9 @@ import {
   campaingDetailsDtochema,
   createCampaignDtochema,
   findCampaignchema,
+  updateCampaignDtoSchema,
 } from './dto/campaign.schema';
+import { UpdateCampaignDto } from './dto/update-campaign.dto';
 
 @ApiTags('campaigns')
 @ApiBearerAuth()
@@ -137,6 +141,24 @@ export class CampaignsController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.campaignsService.findCampaignDetails(parsed.data, req);
+  }
+
+  @ApiBody({ type: UpdateCampaignDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 201, description: 'Created' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  @Patch('/update/status')
+  update(
+    @Body() updateCampaignDto: UpdateCampaignDto,
+    @Request() req: Request,
+  ) {
+    console.log('updateCampaignDto', updateCampaignDto);
+    const parsed = updateCampaignDtoSchema.safeParse(updateCampaignDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.campaignsService.update(parsed.data, req);
   }
 
   @Get('/info/contacts')

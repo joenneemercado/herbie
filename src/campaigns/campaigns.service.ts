@@ -3,19 +3,25 @@ import {
   CampaingDetailsDtochema,
   CreateCampaignDtoSchema,
   FindCampaignchema,
+  UpdateCampaignDtoSchema,
 } from './dto/campaign.schema';
 import {
   HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '@src/database/prisma.service';
 import { Prisma } from '@prisma/client';
-import { toZonedTime, format } from 'date-fns-tz';
+
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class CampaignsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
   async create(createCampaingDto: CreateCampaignDtoSchema, req: Request) {
     const reqToken = req.headers['authorization'];
@@ -221,7 +227,7 @@ export class CampaignsService {
       throw new UnauthorizedException();
     }
     try {
-      //console.log(findCampaingDto);
+      // console.log(findCampaingDto);
       const skip = (findCampaingDto.page - 1) * findCampaingDto.limit;
       const limit = Number(findCampaingDto.limit) || 10;
       const currentPage = Number(findCampaingDto.page) || 1;
@@ -232,7 +238,12 @@ export class CampaignsService {
         filtersCampaing.push({ id: findCampaingDto.id });
       }
       if (findCampaingDto.name) {
-        filtersCampaing.push({ name: { contains: findCampaingDto.name } });
+        filtersCampaing.push({
+          name: {
+            contains: findCampaingDto.name,
+            mode: 'insensitive', // faz com que o filtro ignore maiúsculas/minúsculas
+          },
+        });
       }
       if (findCampaingDto.status_id) {
         filtersCampaing.push({ status_id: findCampaingDto.status_id });
@@ -247,6 +258,7 @@ export class CampaignsService {
       const whereConditionCampaing = {
         AND: [...filtersCampaing],
       };
+      // console.log(JSON.stringify(whereConditionCampaing));
 
       const data = await this.prisma.campaigns.findMany({
         where: {
@@ -259,7 +271,6 @@ export class CampaignsService {
           message: true,
           date_start: true,
           date_end: true,
-
           CampaignStatus: {
             select: {
               id: true,
@@ -588,6 +599,54 @@ export class CampaignsService {
     } catch (error) {
       console.log('falhou ao buscar campanhas do usuário', error);
       throw new HttpException(error.message, error.status || 500);
+    }
+  }
+
+  async update(updateCampaignDto: UpdateCampaignDtoSchema, req: Request) {
+    try {
+      // console.log('updateCampaignDto', updateCampaignDto);
+      const reqToken = req.headers['authorization'];
+      if (!reqToken) {
+        throw new UnauthorizedException();
+      }
+      const token = reqToken.split(' ')[1];
+      //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
+      const { sub } = await this.jwtService.decode(token);
+
+      const findCampaign = await this.prisma.campaigns.findFirst({
+        where: {
+          id: updateCampaignDto.id,
+          organization_id: updateCampaignDto.organization_id,
+        },
+      });
+      if (findCampaign) {
+        await this.prisma.campaigns.update({
+          where: {
+            id: findCampaign.id,
+          },
+          data: {
+            status_id: updateCampaignDto.status_id
+              ? updateCampaignDto.status_id
+              : findCampaign.status_id,
+            priority: updateCampaignDto.priority
+              ? updateCampaignDto.priority
+              : findCampaign.priority,
+            updated_by: sub,
+          },
+        });
+        return {
+          code: HttpStatus.CREATED,
+          message: 'Campanha atualizada com sucesso',
+        };
+      } else {
+        return {
+          code: HttpStatus.NOT_FOUND,
+          message: 'Campanha não encontrada',
+        };
+      }
+    } catch (error) {
+      console.log('Erro ao atualizar campanha:', error);
+      throw new HttpException('Erro ao atualizar campanha', error.status);
     }
   }
 }

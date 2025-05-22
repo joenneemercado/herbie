@@ -66,6 +66,20 @@ export class CreateAudienceDto {
   marital_status?: string;
 }
 
+export class CreateAudienceCustomerUnifiedDto {
+  @IsString({ message: 'O audiencia deve ser uma string' })
+  @ApiProperty({ description: 'Nome da audiência', example: 'Nova audiência' })
+  name: string;
+
+  @IsString({ message: 'O organization_id deve ser uma string' })
+  @ApiProperty({ description: 'ID da organização', example: 'org-abc123' })
+  organization_id: string;
+
+  @IsArray()
+  @ApiProperty({ description: 'ID do customer unified', example: [1] })
+  id_customer_unified: number[];
+}
+
 export class FindSegmentAudienceDto {
   @IsOptional()
   @IsString({ message: 'O nome da audiencia deve ser um string' })

@@ -127,8 +127,13 @@ export const campaingContactDtochema = z.object({
 
 export type CampaingContactDtochema = z.infer<typeof campaingContactDtochema>;
 
-export const UpdateCampaignSchema = z.object({
+export const updateCampaignDtoSchema = z.object({
   id: z.number(),
+  organization_id: z
+    .string()
+    .min(1, { message: 'ID da organização é obrigatório.' }),
+  priority: z.number().optional(),
+  status_id: z.number().optional(),
 });
 
-export type updateCampaignSchema = z.infer<typeof UpdateCampaignSchema>;
+export type UpdateCampaignDtoSchema = z.infer<typeof updateCampaignDtoSchema>;

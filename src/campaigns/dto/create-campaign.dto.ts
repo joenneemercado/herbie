@@ -160,6 +160,11 @@ export class FindCampaingDto {
     example: 10,
   })
   limit?: number;
+
+  @IsOptional() // O campo limit é opcional
+  @IsString({ message: 'O name deve ser uma string' })
+  @ApiProperty({ description: 'name', example: 'Campanha de Natal' })
+  name?: string;
 }
 
 export class CampaingDetailsDto {
