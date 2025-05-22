@@ -1270,20 +1270,20 @@ export class AudiencesService {
       // Valor da Compra (total)
       if (
         (typeof findSegmentAudienceDto.total_start === 'number' &&
-          findSegmentAudienceDto.total_start >= 0) ||
+          findSegmentAudienceDto.total_start > 0) ||
         (typeof findSegmentAudienceDto.total_end === 'number' &&
-          findSegmentAudienceDto.total_end >= 0)
+          findSegmentAudienceDto.total_end > 0)
       ) {
         const totalFilter: { gte?: number; lte?: number } = {};
         if (
           typeof findSegmentAudienceDto.total_start === 'number' &&
-          findSegmentAudienceDto.total_start >= 0
+          findSegmentAudienceDto.total_start > 0
         ) {
           totalFilter.gte = findSegmentAudienceDto.total_start;
         }
         if (
           typeof findSegmentAudienceDto.total_end === 'number' &&
-          findSegmentAudienceDto.total_end >= 0
+          findSegmentAudienceDto.total_end > 0
         ) {
           totalFilter.lte = findSegmentAudienceDto.total_end;
         }
