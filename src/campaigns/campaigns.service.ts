@@ -433,8 +433,8 @@ export class CampaignsService {
 
       const totalPages = Math.ceil(totalItems / limit);
       return {
-        campaingInfo: Campaign,
-        campaingDetails: data,
+        campaignInfo: Campaign,
+        campaignDetails: data,
         pageInfo: {
           totalItems,
           currentPage,
