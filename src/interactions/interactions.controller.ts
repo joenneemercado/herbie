@@ -5,6 +5,7 @@ import {
   Query,
   BadRequestException,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
@@ -20,9 +21,11 @@ import {
 } from './dto/interation.dto';
 import { interactionCompraSchema } from './dto/interation-compra-schema';
 import { interactionTeucardSchema } from './dto/interation-teucard.schema';
+import { JwtAuthGuard } from '@src/auth/jwt.guard';
 
 @ApiTags('Interactions')
 @Controller('interactions')
+@UseGuards(JwtAuthGuard)
 export class InteractionsController {
   constructor(private readonly interactionsService: InteractionsService) {}
 
