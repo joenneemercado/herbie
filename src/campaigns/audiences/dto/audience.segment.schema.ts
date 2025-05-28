@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const findSegmentAudienceSchema = z.object({
   status_id: z.number().nullish().optional(),
-  sellerName: z.string().optional(),
   total_start: z
     .number()
     .optional()
@@ -29,6 +28,37 @@ export const findSegmentAudienceSchema = z.object({
     .optional(),
   //gender: z.string().nullish().optional(),
   gender: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
+  seller_name: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
+
+  tag_id: z
     .union([z.string(), z.array(z.string())])
     .optional()
     .transform((val) => {
