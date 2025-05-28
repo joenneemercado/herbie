@@ -86,13 +86,13 @@ export class CampaignsService {
 
           // console.log('findTags', findTags);
 
-          // Verifica se o array está vazio
-          if (findTags.length === 0) {
-            throw new HttpException(
-              `this tags: ${createCampaingDto.tags} not found`,
-              404,
-            );
-          }
+          // // Verifica se o array está vazio
+          // if (findTags.length === 0) {
+          //   throw new HttpException(
+          //     `this tags: ${createCampaingDto.tags} not found`,
+          //     404,
+          //   );
+          // }
 
           const findAudience = await trxCampaing.audiences.findMany({
             where: {
@@ -312,7 +312,7 @@ export class CampaignsService {
         //   //CampaignDetails: true,
         // },
         orderBy: [
-          { updated_at: 'desc' },
+          { created_at: 'desc' },
           { priority: 'desc' },
           { status_id: 'asc' },
         ],
