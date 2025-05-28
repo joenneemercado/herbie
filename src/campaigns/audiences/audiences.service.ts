@@ -995,9 +995,10 @@ export class AudiencesService {
   }
 
   async buildSegmentFilters(findSegmentAudienceDto: FindSegmentAudienceSchema) {
+    // console.log('findSegmentAudienceDto', findSegmentAudienceDto);
     const filterCustomerUnified: any[] = [];
 
-    // Data de Nascimento
+    //TODO: FILTRO DE ANIVERSÁRIO BUSCA NA TABELA DE CUSTOMER UNIFIED
     const dateBirthFilter: any[] = [];
     const datesStart = findSegmentAudienceDto.date_birth_start
       ? Array.isArray(findSegmentAudienceDto.date_birth_start)
@@ -1013,9 +1014,6 @@ export class AudiencesService {
             .replace(/[^\d, -]/g, '')
             .split(',')
       : [];
-
-    //console.log('📅 Datas Iniciais:', datesStart);
-    //console.log('📅 Datas Finais:', datesEnd);
     const cleanDate = (d: string) => d.replace(/[\[\]\s]/g, '');
     for (let i = 0; i < Math.min(datesStart.length, datesEnd.length); i++) {
       const startDate = new Date(cleanDate(datesStart[i]));
@@ -1030,7 +1028,8 @@ export class AudiencesService {
     if (dateBirthFilter.length > 0) {
       filterCustomerUnified.push({ OR: dateBirthFilter });
     }
-    // Gênero
+
+    //TODO: FILTRO DE GÊNERO BUSCA NA TABELA DE CUSTOMER UNIFIED
     if (
       Array.isArray(findSegmentAudienceDto.gender) &&
       findSegmentAudienceDto.gender.some((g) => g.trim())
@@ -1042,7 +1041,7 @@ export class AudiencesService {
       });
     }
 
-    // Estado Civil
+    //TODO: FILTRO DE MARITAL_STATUS BUSCA NA TABELA DE CUSTOMER UNIFIED
     if (
       Array.isArray(findSegmentAudienceDto.marital_status) &&
       findSegmentAudienceDto.marital_status.some((m) => m.trim())
@@ -1058,6 +1057,7 @@ export class AudiencesService {
     //   JSON.stringify(filterCustomerUnified, null, 2),
     // );
 
+    //TODO: FILTRO DE ORDERS PARA BUSCAR TOTAL DE COMPRAS DO UNIFIED
     const filterOrders: any[] = [];
     if (
       findSegmentAudienceDto.total_start > 0 ||
@@ -1073,51 +1073,51 @@ export class AudiencesService {
       filterOrders.push({ total: totalFilter });
     }
 
-    //const filterOrdersItens: any[] = [];
+    //TODO: FILTRO DE TAGS TABELA ASSOCIATIONTAGS BUSCA QUAL UNIFIED TEM A TAG
+    const filterTags: any[] = [];
+    if (
+      Array.isArray(findSegmentAudienceDto.tag_id) &&
+      findSegmentAudienceDto.tag_id.filter((t) => t.trim() !== '').length > 0
+    ) {
+      filterTags.push({
+        tag_id: {
+          in: findSegmentAudienceDto.tag_id
+            .filter((id) => id !== '' && !isNaN(Number(id)))
+            .map(Number),
+        },
+      });
+    }
+
+    //TODO: FILTRO DE ORDERS ITENS BUSCA NA TABELA ORDERITEMS
+    const filterOrdersItens: any[] = [];
     //const interactionConditions: any[] = [];
-
-    // if (
-    //   Array.isArray(findSegmentAudienceDto.refId) &&
-    //   findSegmentAudienceDto.refId.filter((r) => r.trim() !== '').length > 0
-    // ) {
-    //   filterOrdersItens.push({
-    //     sku: {
-    //       in: findSegmentAudienceDto.refId.filter((r) => r.trim() !== ''),
-    //     },
-    //   });
-    // }
-
-    // if (findSegmentAudienceDto.sellerName?.trim()) {
-    //   interactionConditions.push({
-    //     details: {
-    //       path: ['hostname'],
-    //       equals: findSegmentAudienceDto.sellerName.trim(),
-    //     },
-    //   });
-    // }
-    const filterInteraction: any[] = [];
     if (
       Array.isArray(findSegmentAudienceDto.refId) &&
       findSegmentAudienceDto.refId.filter((r) => r.trim() !== '').length > 0
     ) {
-      const refIdConditions = findSegmentAudienceDto.refId
-        .filter((r) => r.trim() !== '')
-        .flatMap((refId) => [
-          {
-            details: {
-              path: ['items'],
-              array_contains: [{ refId }],
-            },
-          },
-          {
-            details: {
-              path: ['details', 'produtos'],
-              array_contains: [{ codigo: refId }],
-            },
-          },
-        ]);
-      filterInteraction.push({ OR: refIdConditions });
+      filterOrdersItens.push({
+        sku: {
+          in: findSegmentAudienceDto.refId.filter((r) => r.trim() !== ''),
+        },
+      });
     }
+    // console.log('OrderItens', JSON.stringify(filterOrdersItens, null, 2));
+
+    //TODO: FILTRO PARA BUSCAR A LOJA QUE O UNIFIED COMPROU
+    const filterSeller: any[] = [];
+    if (
+      Array.isArray(findSegmentAudienceDto.seller_name) &&
+      findSegmentAudienceDto.seller_name.length > 0
+    ) {
+      filterSeller.push({
+        name: {
+          in: findSegmentAudienceDto.seller_name.map((name) => name.trim()),
+        },
+      });
+    }
+
+    //TODO: FILTRO DE EVENTO BUSCA NA TABELA INTERACTION
+    const filterInteraction: any[] = [];
 
     if (
       Array.isArray(findSegmentAudienceDto.event_id) &&
@@ -1134,28 +1134,7 @@ export class AudiencesService {
       });
     }
 
-    // if (
-    //   (typeof findSegmentAudienceDto.total_start === 'number' &&
-    //     findSegmentAudienceDto.total_start > 0) ||
-    //   (typeof findSegmentAudienceDto.total_end === 'number' &&
-    //     findSegmentAudienceDto.total_end > 0)
-    // ) {
-    //   const totalFilter: { gte?: number; lte?: number } = {};
-    //   if (
-    //     typeof findSegmentAudienceDto.total_start === 'number' &&
-    //     findSegmentAudienceDto.total_start > 0
-    //   ) {
-    //     totalFilter.gte = findSegmentAudienceDto.total_start;
-    //   }
-    //   if (
-    //     typeof findSegmentAudienceDto.total_end === 'number' &&
-    //     findSegmentAudienceDto.total_end > 0
-    //   ) {
-    //     totalFilter.lte = findSegmentAudienceDto.total_end;
-    //   }
-    //   interactionConditions.push({ total: totalFilter });
-    // }
-
+    //TODO: FILTRO DE FONTES BUSCA NA TABELA DE CUSTOMER
     const sourceDataConditions: any[] = [];
     if (
       Array.isArray(findSegmentAudienceDto.source_id) &&
@@ -1209,19 +1188,41 @@ export class AudiencesService {
       });
     }
 
-    // if (filterOrdersItens.length > 0) {
-    //   allSegmentConditions.push({
-    //     Order: {
-    //       some: {
-    //         OrderItem: {
-    //           some: {
-    //             AND: filterOrdersItens,
-    //           },
-    //         },
-    //       },
-    //     },
-    //   });
-    // }
+    if (filterOrdersItens.length > 0) {
+      allSegmentConditions.push({
+        Order: {
+          some: {
+            order_items: {
+              some: {
+                AND: filterOrdersItens,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (filterSeller.length > 0) {
+      allSegmentConditions.push({
+        Order: {
+          some: {
+            seller: {
+              AND: filterSeller,
+            },
+          },
+        },
+      });
+    }
+
+    if (filterTags.length > 0) {
+      allSegmentConditions.push({
+        AssociationTags: {
+          some: {
+            AND: filterTags,
+          },
+        },
+      });
+    }
 
     const finalSegmentWhere: any = {
       organization_id: findSegmentAudienceDto.organization_id,
@@ -1231,6 +1232,7 @@ export class AudiencesService {
     if (allSegmentConditions.length > 0) {
       finalSegmentWhere.AND = allSegmentConditions;
     }
+
     // console.log(
     //   '✅ Filtro Final (finalSegmentWhere):',
     //   JSON.stringify(finalSegmentWhere, null, 2),
