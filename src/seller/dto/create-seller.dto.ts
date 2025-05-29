@@ -9,7 +9,7 @@ export class FindSellerDto {
   @IsString({ message: 'O name deve ser um string' })
   @ApiProperty({
     description: 'nome do seller',
-    example: 1,
+    example: 'Cash Flores',
   })
   name?: string;
 
@@ -17,7 +17,7 @@ export class FindSellerDto {
   @IsString({ message: 'O ref deve ser um string' })
   @ApiProperty({
     description: 'ref do seller',
-    example: 1,
+    example: '10',
   })
   ref?: string;
 
