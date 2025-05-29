@@ -34,6 +34,7 @@ import { ChannelsModule } from './channels/channels.module';
 import { EventsModule } from './events/events.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { SellerModule } from './seller/seller.module';
 
 @Injectable()
 export class UserThrottlerGuard extends ThrottlerGuard {
@@ -100,6 +101,7 @@ export class UserThrottlerGuard extends ThrottlerGuard {
     SourceModule,
     ChannelsModule,
     EventsModule,
+    SellerModule,
   ],
   controllers: [AppController],
   providers: [
