@@ -995,7 +995,7 @@ export class AudiencesService {
   }
 
   async buildSegmentFilters(findSegmentAudienceDto: FindSegmentAudienceSchema) {
-    // console.log('findSegmentAudienceDto', findSegmentAudienceDto);
+    //console.log('findSegmentAudienceDto', findSegmentAudienceDto);
     const filterCustomerUnified: any[] = [];
 
     //TODO: FILTRO DE ANIVERSÁRIO BUSCA NA TABELA DE CUSTOMER UNIFIED
@@ -1106,12 +1106,12 @@ export class AudiencesService {
     //TODO: FILTRO PARA BUSCAR A LOJA QUE O UNIFIED COMPROU
     const filterSeller: any[] = [];
     if (
-      Array.isArray(findSegmentAudienceDto.seller_name) &&
-      findSegmentAudienceDto.seller_name.length > 0
+      Array.isArray(findSegmentAudienceDto.seller_ref) &&
+      findSegmentAudienceDto.seller_ref.length > 0
     ) {
       filterSeller.push({
-        name: {
-          in: findSegmentAudienceDto.seller_name.map((name) => name.trim()),
+        seller_ref: {
+          in: findSegmentAudienceDto.seller_ref.map((name) => name.trim()),
         },
       });
     }

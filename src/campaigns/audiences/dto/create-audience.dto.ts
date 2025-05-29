@@ -18,10 +18,10 @@ export class CreateAudienceDto {
   @IsOptional()
   @IsString({ message: 'O audiencia deve ser uma string' })
   @ApiProperty({
-    description: 'Nome do seller',
+    description: 'Nome do seller_ref',
     example: 'mercantilnovaera',
   })
-  sellerName?: string;
+  seller_ref?: string;
 
   @IsOptional()
   @IsNumber({}, { message: 'O statusId deve ser um número' })
@@ -232,7 +232,7 @@ export class FindSegmentAudienceDto {
     return [String(value)];
   })
   @ApiProperty({ type: [String] })
-  seller_name?: string[];
+  seller_ref?: string[];
   // @IsOptional()
   // @IsString({ message: 'O marital_status deve ser uma string' })
   // @ApiProperty({ description: 'Estado civil', example: 'single' })

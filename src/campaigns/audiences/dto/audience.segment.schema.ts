@@ -42,7 +42,7 @@ export const findSegmentAudienceSchema = z.object({
       }
       return val.map(String);
     }),
-  seller_name: z
+  seller_ref: z
     .union([z.string(), z.array(z.string())])
     .optional()
     .transform((val) => {
