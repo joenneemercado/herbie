@@ -50,7 +50,7 @@ export class ZeusController {
   }
 
   @ApiExcludeEndpoint()
-  @Post('/create/array/customer')
+  @Post('/create/list/customer')
   createListCustumers(
     @Body() createZeusDto: CreateClienteZeusDto[],
     @Request() req: Request,
