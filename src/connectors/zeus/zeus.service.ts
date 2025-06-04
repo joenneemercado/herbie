@@ -185,11 +185,13 @@ export class ZeusService {
           source_id: ZeusConstantes.SOURCE_ID_ZEUS,
         };
         dados.push(data);
+        // console.log('cadastro', data);
       }
       const dadosEnderecos = [];
+      const dadosInteraction = [];
       await this.prisma.$transaction(async (trx) => {
         const createCustomer = await trx.customer.createManyAndReturn({
-          select: { public_id: true, cpf: true },
+          select: { public_id: true, cpf: true, id: true },
           data: dados,
           skipDuplicates: true,
         });
@@ -210,10 +212,31 @@ export class ZeusService {
           if (!data.customer_id) {
             continue;
           }
+          //console.log('endereco', data);
           dadosEnderecos.push(data);
+          const createInteraction = {
+            details: dto,
+            organization_id: dto.organization_id,
+            customer_id: createCustomer.find((c) => c.cpf === dto.cpf)?.id,
+            source_id: ZeusConstantes.SOURCE_ID_ZEUS,
+            event_id: ZeusConstantes.EVENT_ID_CADASTRO, //cadastro
+            type: ZeusConstantes.EVENT_TYPE_CADASTRO,
+            total: null,
+            created_by: sub,
+            status_id: ZeusConstantes.STATUS_ID,
+          };
+          if (!createInteraction.customer_id) {
+            continue;
+          }
+          dadosInteraction.push(createInteraction);
+          //console.log('createInteration', createInteraction);
         }
         await trx.address.createMany({
           data: dadosEnderecos,
+          skipDuplicates: true,
+        });
+        await trx.interaction.createMany({
+          data: dadosInteraction,
           skipDuplicates: true,
         });
       });
@@ -225,308 +248,13 @@ export class ZeusService {
       };
     } catch (error) {
       console.log(error.message);
-      throw error;
+      return {
+        code: HttpStatus.BAD_REQUEST,
+        success: false,
+        message: error.message,
+      };
     }
   }
-
-  // async interationAcumularPontos(
-  //   createInteractionDto: CreateInteractionAcumularZeusSchema,
-  //   req: Request,
-  // ) {
-  //   const reqToken = req.headers['authorization'];
-  //   if (!reqToken) {
-  //     throw new UnauthorizedException();
-  //   }
-  //   try {
-  //     const token = reqToken.split(' ')[1];
-  //     //const decodedToken = this.jwtService.decode(token) as { sub: number, org: string };
-  //     const { sub } = await this.jwtService.decode(token);
-
-  //     const orFilters = [];
-
-  //     if (createInteractionDto.cpf) {
-  //       orFilters.push({
-  //         details: {
-  //           path: ['cpf'],
-  //           equals: createInteractionDto.cpf,
-  //         },
-  //       });
-  //     }
-
-  //     if (createInteractionDto.cnpj) {
-  //       orFilters.push({
-  //         details: {
-  //           path: ['cnpj'],
-  //           equals: createInteractionDto.cnpj,
-  //         },
-  //       });
-  //     }
-
-  //     const findCustomer = await this.prisma.customer.findFirst({
-  //       where: {
-  //         OR: [
-  //           { cpf: createInteractionDto.cpf },
-  //           { cnpj: createInteractionDto.cnpj },
-  //         ],
-  //         organization_id: createInteractionDto.organization_id,
-  //         source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-  //       },
-  //     });
-  //     //console.log(findCustomer);
-  //     if (!findCustomer) {
-  //       return {
-  //         code: 404,
-  //         success: false,
-  //         message: 'Customer not found',
-  //       };
-  //     }
-
-  //     const findCustomerUnified = await this.prisma.customerUnified.findFirst({
-  //       where: {
-  //         OR: [
-  //           { cpf: createInteractionDto.cpf },
-  //           { cnpj: createInteractionDto.cnpj },
-  //         ],
-  //         organization_id: createInteractionDto.organization_id,
-  //       },
-  //     });
-
-  //     const findOrganizationId = await this.prisma.organization.findFirst({
-  //       where: {
-  //         public_id: createInteractionDto.organization_id,
-  //       },
-  //     });
-
-  //     const findSeller = await this.prisma.seller.findFirst({
-  //       where: {
-  //         organization_id: createInteractionDto.organization_id,
-  //         seller_ref: createInteractionDto.details.loja,
-  //       },
-  //     });
-
-  //     const findOrder = await this.prisma.order.findFirst({
-  //       where: {
-  //         organization_id: findOrganizationId.public_id,
-  //         order_ref: createInteractionDto.details.idVenda,
-  //         seller_id: findSeller.id,
-  //       },
-  //     });
-
-  //     if (!findSeller) {
-  //       try {
-  //         await this.prisma.seller.create({
-  //           data: {
-  //             organization_id: createInteractionDto.organization_id,
-  //             seller_ref: createInteractionDto.details.loja,
-  //             name: createInteractionDto.details.rede,
-  //             created_at: new Date(),
-  //             updated_at: new Date(),
-  //           },
-  //         });
-  //       } catch (error) {
-  //         console.log(error);
-  //       }
-  //     }
-
-  //     if (findCustomerUnified) {
-  //       const findInteraction = await this.prisma.interaction.findFirst({
-  //         where: {
-  //           organization_id: createInteractionDto.organization_id,
-  //           customer_unified_id: findCustomerUnified.id,
-  //           source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-  //           event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
-  //           type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
-  //           total: createInteractionDto.total,
-  //           created_by: sub,
-  //           status_id: ZeusConstantes.STATUS_ID,
-  //           OR: orFilters,
-  //           AND: [
-  //             {
-  //               details: {
-  //                 path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
-  //                 equals: createInteractionDto.details.idVenda,
-  //               },
-  //             },
-  //             {
-  //               details: {
-  //                 path: ['details', 'dataVenda'], // Caminho correto para acessar "dataVenda" dentro de "details"
-  //                 equals: createInteractionDto.details.dataVenda,
-  //               },
-  //             },
-  //             {
-  //               details: {
-  //                 path: ['details', 'loja'], // Caminho correto para acessar "loja" dentro de "details"
-  //                 equals: createInteractionDto.details.loja,
-  //               },
-  //             },
-  //             {
-  //               details: {
-  //                 path: ['details', 'rede'], // Caminho correto para acessar "rede" dentro de "details"
-  //                 equals: createInteractionDto.details.rede,
-  //               },
-  //             },
-  //           ],
-  //         },
-  //       });
-  //       if (!findInteraction) {
-  //         try {
-  //           await this.prisma.interaction.create({
-  //             data: {
-  //               details: createInteractionDto,
-  //               organization_id: createInteractionDto.organization_id,
-  //               customer_unified_id: findCustomerUnified.id,
-  //               source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-  //               event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
-  //               type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
-  //               total: createInteractionDto.total,
-  //               created_by: sub,
-  //               status_id: ZeusConstantes.STATUS_ID,
-  //             },
-  //           });
-  //         } catch (error) {
-  //           console.log('error', error);
-  //         }
-  //       } else if (!findOrder) {
-  //         try {
-  //           const createOrder = await this.prisma.order.create({
-  //             data: {
-  //               organization_id: findOrganizationId.public_id,
-  //               customer_unified_id: findCustomerUnified.id,
-  //               order_ref: createInteractionDto.details.idVenda,
-  //               seller_id: findSeller.id,
-  //               total: createInteractionDto.details.vlCupom,
-  //               user_id: sub,
-  //               order_date: new Date(createInteractionDto.details.dataVenda),
-  //               subtotal: createInteractionDto.details.vlCupom,
-  //               total_items: createInteractionDto.details.vlCupom,
-  //             },
-  //           });
-  //           for (const item of createInteractionDto.details.produtos) {
-  //             await this.prisma.orderItem.create({
-  //               data: {
-  //                 order_id: createOrder.id,
-  //                 name: item.descricao,
-  //                 quantity: item.quantidade,
-  //                 price: item.valor,
-  //                 sku: item.codigo,
-  //                 ean: item.codigoEAN,
-  //                 total: item.valor,
-  //               },
-  //             });
-  //           }
-  //         } catch (error) {
-  //           console.log('error', error);
-  //         }
-  //       }
-  //       return {
-  //         code: HttpStatus.CREATED,
-  //         success: true,
-  //         message: 'Event created successfully',
-  //         //message:"sucess"
-  //       };
-  //     } else {
-  //       const findInteraction = await this.prisma.interaction.findFirst({
-  //         where: {
-  //           organization_id: createInteractionDto.organization_id,
-  //           customer_id: findCustomer.id,
-  //           source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-  //           event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
-  //           type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
-  //           total: createInteractionDto.total,
-  //           created_by: sub,
-  //           status_id: ZeusConstantes.STATUS_ID,
-  //           OR: orFilters,
-  //           AND: [
-  //             {
-  //               details: {
-  //                 path: ['details', 'idVenda'], // Caminho correto para acessar "loja" dentro de "details"
-  //                 equals: createInteractionDto.details.idVenda,
-  //               },
-  //             },
-  //             {
-  //               details: {
-  //                 path: ['details', 'dataVenda'], // Caminho correto para acessar "dataVenda" dentro de "details"
-  //                 equals: createInteractionDto.details.dataVenda,
-  //               },
-  //             },
-  //             {
-  //               details: {
-  //                 path: ['details', 'loja'], // Caminho correto para acessar "loja" dentro de "details"
-  //                 equals: createInteractionDto.details.loja,
-  //               },
-  //             },
-  //             {
-  //               details: {
-  //                 path: ['details', 'rede'], // Caminho correto para acessar "rede" dentro de "details"
-  //                 equals: createInteractionDto.details.rede,
-  //               },
-  //             },
-  //           ],
-  //         },
-  //       });
-  //       if (!findInteraction) {
-  //         try {
-  //           await this.prisma.interaction.create({
-  //             data: {
-  //               details: createInteractionDto,
-  //               organization_id: createInteractionDto.organization_id,
-  //               customer_id: findCustomer.id,
-  //               source_id: ZeusConstantes.SOURCE_ID_ZEUS,
-  //               event_id: ZeusConstantes.EVENT_ID_ACUMULAR,
-  //               type: ZeusConstantes.EVENT_TYPE_ACUMULAR,
-  //               total: createInteractionDto.total,
-  //               created_by: sub,
-  //               status_id: ZeusConstantes.STATUS_ID,
-  //             },
-  //           });
-  //         } catch (error) {
-  //           console.log(error);
-  //         }
-  //       } else if (!findOrder) {
-  //         try {
-  //           const createOrder = await this.prisma.order.create({
-  //             data: {
-  //               organization_id: findOrganizationId.public_id,
-  //               customer_id: findCustomer.id,
-  //               order_ref: createInteractionDto.details.idVenda,
-  //               seller_id: findSeller.id,
-  //               total: createInteractionDto.details.vlCupom,
-  //               user_id: sub,
-  //               order_date: new Date(createInteractionDto.details.dataVenda),
-  //               subtotal: createInteractionDto.details.vlCupom,
-  //               total_items: createInteractionDto.details.vlCupom,
-  //             },
-  //           });
-  //           for (const item of createInteractionDto.details.produtos) {
-  //             await this.prisma.orderItem.create({
-  //               data: {
-  //                 order_id: createOrder.id,
-  //                 name: item.descricao,
-  //                 quantity: item.quantidade,
-  //                 price: item.valor,
-  //                 sku: item.codigo,
-  //                 ean: item.codigoEAN,
-  //                 total: item.valor,
-  //               },
-  //             });
-  //           }
-  //         } catch (error) {
-  //           console.log(error);
-  //         }
-  //       }
-
-  //       return {
-  //         code: HttpStatus.CREATED,
-  //         success: true,
-  //         message: 'Event created successfully',
-  //         //message:"sucess"
-  //       };
-  //     }
-  //   } catch (error) {
-  //     console.log(error.message);
-  //     throw error;
-  //   }
-  // }
 
   async interationAcumularPontos(
     createInteractionDto: CreateInteractionAcumularZeusSchema,

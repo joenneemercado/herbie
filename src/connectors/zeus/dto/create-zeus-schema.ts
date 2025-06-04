@@ -5,7 +5,7 @@ export const createZeusSchema = z
     name: z
       .string()
       .min(1, { message: 'Nome deve ter pelo menos 1 caracteres.' }),
-    email: z.string().email({ message: 'E-mail inválido.' }),
+    email: z.string({ message: 'E-mail inválido.' }),
     phone: z.string(),
     cpf: z
       .string()
