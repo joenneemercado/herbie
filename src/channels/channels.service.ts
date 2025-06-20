@@ -48,6 +48,7 @@ export class ChannelsService {
           name: true,
           type: true,
           status_id: true,
+          cost: true,
         },
         skip: skip,
         take: limit,

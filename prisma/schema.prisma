@@ -224,6 +224,7 @@ model CustomerUnified {
   tiktok                   String?                    @db.VarChar
   whatsapp                 String?                    @db.VarChar
   x                        String?                    @db.VarChar
+  divergent_fields         Json?                      @db.Json
   addresses                Address[]
   AssociationTags          AssociationTags[]
   AudiencesContacts        AudiencesContacts[]
@@ -246,6 +247,8 @@ model Customer_CustomerUnified {
   updated_at          DateTime?       @updatedAt
   Customer            Customer        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_customerunified_customer_fk")
   CustomerUnified     CustomerUnified @relation(fields: [customer_unified_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customer_customerunified_customerunified_fk")
+
+  @@unique([customer_unified_id, customer_id], map: "customer_customerunified_customer_unified_id_idx")
 }
 
 model Address {
@@ -333,6 +336,7 @@ model Source {
   description String?       @db.VarChar
   color_code  String?       @db.VarChar
   status_id   Int?
+  trust_score Int?          @default(0)
   Customer    Customer[]
   Interaction Interaction[]
 }
@@ -436,6 +440,7 @@ model Channels {
   updated_by            Int?
   organization_id       String
   provider              String?                 @db.VarChar
+  cost                  Float?                  @db.Real
   Campaigns             Campaigns[]
   organization          Organization            @relation(fields: [organization_id], references: [public_id])
   ConfigurationsChannel ConfigurationsChannel[]
