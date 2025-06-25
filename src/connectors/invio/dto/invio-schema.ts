@@ -8,6 +8,8 @@ export const findAllInvioDtoDtoSchema = z.object({
 
   channelId: z.string().min(1, { message: 'ChannelId é obrigatório.' }),
   name: z.string().optional(),
+  nameOrderBy: z.string().optional(),
+  orderDirection: z.string().optional(),
   page: z
     .union([z.string(), z.number()])
     .transform((val) => Number(val))

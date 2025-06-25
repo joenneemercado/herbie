@@ -29,16 +29,13 @@ export class InvioService {
       Name: findAllInvioDto.name,
       pagesize: findAllInvioDto.limit,
       pageNumber: findAllInvioDto.page,
+      OrderBy: findAllInvioDto.nameOrderBy
+        ? findAllInvioDto.nameOrderBy
+        : 'updatedAt',
+      OrderDirection: findAllInvioDto.orderDirection
+        ? findAllInvioDto.orderDirection
+        : 'DESCENDING',
     };
-    // const queryString = Object.keys(queryParams)
-    //   .map(
-    //     (key) =>
-    //       `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`,
-    //   )
-    //   .join('&');
-
-    //const finalUrl = `${API_URL}?${queryString}`;
-    //console.log('URL final da requisição:', finalUrl);
 
     const response = await axios.get(API_URL, {
       headers: {

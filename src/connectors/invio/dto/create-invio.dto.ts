@@ -20,6 +20,22 @@ export class FindAllInvioDto {
   })
   name?: string;
 
+  @IsOptional()
+  @IsString({ message: 'O nameOrderBy deve ser uma string' })
+  @ApiProperty({
+    description: 'name camp order by',
+    example: 'updatedAt',
+  })
+  nameOrderBy?: string;
+
+  @IsOptional()
+  @IsString({ message: 'O orderDirection deve ser uma string' })
+  @ApiProperty({
+    description: 'order direction',
+    example: 'DESCENDING',
+  })
+  orderDirection?: string;
+
   @IsOptional() // O campo limit é opcional
   @IsString({ message: 'O limit deve ser uma string' })
   @IsString({ message: 'O limit deve ser um número válido' }) // Adicionando a verificação se for número
