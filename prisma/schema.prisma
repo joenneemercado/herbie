@@ -283,6 +283,8 @@ model CustomerField {
   CustomerUnified     CustomerUnified? @relation(fields: [customer_unified_id], references: [id], map: "CustomerField_customerUnifiedId_fkey")
   customer            Customer?        @relation(fields: [customer_id], references: [public_id], onDelete: Restrict)
   organization        Organization     @relation(fields: [organization_id], references: [public_id])
+
+  @@unique([type, organization_id, customer_unified_id], map: "customerfield_type_idx")
 }
 
 model Interaction {

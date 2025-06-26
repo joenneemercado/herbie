@@ -32,7 +32,7 @@ import { findAudienceStatuschema } from './dto/audience.status.schema';
 @UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 @Controller('campaigns/audiences')
 export class AudiencesController {
-  constructor(private readonly audiencesService: AudiencesService) {}
+  constructor(private readonly audiencesService: AudiencesService) { }
 
   @ApiQuery({
     name: 'organization_id',
@@ -160,6 +160,27 @@ export class AudiencesController {
     required: false,
     description: 'Page numbe',
     example: 1,
+  })
+  @ApiQuery({
+    name: 'birth_day',
+    required: false,
+    description: 'Dia de nascimento',
+    example: 15,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'birth_month',
+    required: false,
+    description: 'Mês de nascimento',
+    example: 6,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'birth_year',
+    required: false,
+    description: 'Ano de nascimento',
+    example: 1990,
+    type: Number,
   })
   @Get('/segment/interation')
   findAllSegmentedInteration(
