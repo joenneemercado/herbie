@@ -10,7 +10,6 @@ import { FindSegmentAudienceSchema } from './dto/audience.segment.schema';
 import { FindAudienceContactsSchema } from './dto/audience.contacts.schema';
 import { UpdateAudienceSchema } from './dto/audience.schema';
 import { FindAudienceStatuschema } from './dto/audience.status.schema';
-import { find } from 'rxjs';
 @Injectable()
 export class AudiencesService {
   jwtService: any;
@@ -18,7 +17,7 @@ export class AudiencesService {
   constructor(
     private prisma: PrismaService,
     private interaction: InteractionsService,
-  ) { }
+  ) {}
 
   //Todo create audience com validacao
 
@@ -156,7 +155,7 @@ export class AudiencesService {
         audience,
         contatcs: idCustomerUnified.length,
       };
-    } catch (error) { }
+    } catch (error) {}
   }
 
   //TODO FIND ALL CONTACTS OF CUSTOMER UNIFIED
@@ -853,15 +852,15 @@ export class AudiencesService {
       ? Array.isArray(findSegmentAudienceDto.date_birth_start)
         ? findSegmentAudienceDto.date_birth_start
         : findSegmentAudienceDto.date_birth_start
-          .replace(/[^\d, -]/g, '')
-          .split(',')
+            .replace(/[^\d, -]/g, '')
+            .split(',')
       : [];
     const datesEnd = findSegmentAudienceDto.date_birth_end
       ? Array.isArray(findSegmentAudienceDto.date_birth_end)
         ? findSegmentAudienceDto.date_birth_end
         : findSegmentAudienceDto.date_birth_end
-          .replace(/[^\d, -]/g, '')
-          .split(',')
+            .replace(/[^\d, -]/g, '')
+            .split(',')
       : [];
     const cleanDate = (d: string) => d.replace(/[\[\]\s]/g, '');
     for (let i = 0; i < Math.min(datesStart.length, datesEnd.length); i++) {
@@ -970,14 +969,26 @@ export class AudiencesService {
     // console.log('OrderItens', JSON.stringify(filterOrdersItens, null, 2));
 
     //TODO: FILTRO PARA BUSCAR A LOJA QUE O UNIFIED COMPROU
+    // const filterSeller: any[] = [];
+    // if (
+    //   Array.isArray(findSegmentAudienceDto.seller_ref) &&
+    //   findSegmentAudienceDto.seller_ref.length > 0
+    // ) {
+    //   filterSeller.push({
+    //     seller_ref: {
+    //       in: findSegmentAudienceDto.seller_ref.map((name) => name.trim()),
+    //     },
+    //   });
+    // }
     const filterSeller: any[] = [];
     if (
       Array.isArray(findSegmentAudienceDto.seller_ref) &&
-      findSegmentAudienceDto.seller_ref.length > 0
+      findSegmentAudienceDto.seller_ref.filter((r) => r.trim() !== '').length >
+        0
     ) {
       filterSeller.push({
         seller_ref: {
-          in: findSegmentAudienceDto.seller_ref.map((name) => name.trim()),
+          in: findSegmentAudienceDto.seller_ref.filter((r) => r.trim() !== ''),
         },
       });
     }
