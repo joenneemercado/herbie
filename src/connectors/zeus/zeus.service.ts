@@ -454,9 +454,7 @@ export class ZeusService {
           });
 
           newInteractionId = createdInteraction.id;
-          console.log(
-            `Interação ${newInteractionId} criada. ${createInteractionDto.seller_id}`,
-          );
+          console.log(`Interação ${newInteractionId} criada. `);
         }
 
         // 5. VERIFICAR/CRIAR ORDER E ORDER_ITEMS
