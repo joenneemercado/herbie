@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 //todo criar campanha
 export class CreateCampaingDto {
@@ -72,9 +78,9 @@ export class CreateCampaingDto {
   dateEnd?: string;
 
   @IsOptional()
-  @IsString({ message: 'O jsonMeta deve ser uma string' })
-  @ApiProperty({ example: '{"segmento":"varejo","tipo":"oferta"}' })
-  jsonMeta?: string;
+  @IsObject({ message: 'O jsonMeta deve ser um objeto' }) // <-- Corrigir a mensagem aqui
+  @ApiProperty({ example: { segmento: 'varejo', tipo: 'oferta' } }) // Exemplo continua sendo um objeto
+  jsonMeta?: object;
 
   @IsOptional()
   @IsString({ message: 'O subject deve ser uma string' })

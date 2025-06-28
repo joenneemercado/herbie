@@ -20,7 +20,7 @@ export class VtexService {
   constructor(
     private prisma: PrismaService,
     @InjectQueue('vtex-queue') private vtexQueue: Queue,
-  ) {}
+  ) { }
 
   //Funcoes e tipo para ajudar na normalizacao
   // Mapas de Normalização (adicione mais conforme necessário)
@@ -414,6 +414,30 @@ export class VtexService {
           }
         }
 
+        //Precisa localizar o SELLER para colocar no interaction tb
+
+        if (!pedido.sellers || pedido.sellers.length === 0) {
+          throw new Error(
+            `Pedido VTEX ${pedido.orderId} não contém informações do vendedor.`,
+          );
+        }
+        const sellerRef = this.extrairSellerRef(pedido.sellers[0].name);
+
+        // Supondo que você tem um Seller no seu DB e ele tem um campo `vtex_seller_id`
+        const sellerFromDb = await tx.seller.findFirst({
+          where: {
+            seller_ref: sellerRef, // Ou busque pelo nome, se for mais confiável/único
+            organization_id: organization_id,
+          },
+        });
+
+        if (!sellerFromDb) {
+          throw new Error(
+            `Vendedor '${pedido.sellers[0].name}' (VTEX ID: ${pedido.sellers[0].id}) não encontrado no sistema para a organização ${organization_id}. Cadastre o vendedor primeiro.`,
+          );
+        }
+        const internalSellerId = sellerFromDb.id;
+
         // 2. VERIFICAR/CRIAR INTERAÇÃO
         const interactionWhere: Prisma.InteractionWhereInput = {
           organization_id,
@@ -423,6 +447,7 @@ export class VtexService {
           created_by: VtexConstantes.SISTEM_USER, // Assumindo que é um usuário do sistema
           status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
           details: { path: ['orderId'], equals: pedido.orderId },
+          seller_id: internalSellerId,
         };
 
         if (customerUnifiedId) {
@@ -539,24 +564,24 @@ export class VtexService {
             `Pedido VTEX ${pedido.orderId} não contém informações do vendedor.`,
           );
         }
-        const sellerRef = this.extrairSellerRef(pedido.sellers[0].name);
+        // const sellerRef = this.extrairSellerRef(pedido.sellers[0].name);
 
-        // Supondo que você tem um Seller no seu DB e ele tem um campo `vtex_seller_id`
-        const sellerFromDb = await tx.seller.findFirst({
-          // ou findUnique se vtex_seller_id for unique
-          where: {
-            // vtex_id: pedido.sellers[0].id, // ID do seller da VTEX
-            seller_ref: sellerRef, // Ou busque pelo nome, se for mais confiável/único
-            organization_id: organization_id,
-          },
-        });
+        // // Supondo que você tem um Seller no seu DB e ele tem um campo `vtex_seller_id`
+        // const sellerFromDb = await tx.seller.findFirst({
+        //   // ou findUnique se vtex_seller_id for unique
+        //   where: {
+        //     // vtex_id: pedido.sellers[0].id, // ID do seller da VTEX
+        //     seller_ref: sellerRef, // Ou busque pelo nome, se for mais confiável/único
+        //     organization_id: organization_id,
+        //   },
+        // });
 
-        if (!sellerFromDb) {
-          throw new Error(
-            `Vendedor '${pedido.sellers[0].name}' (VTEX ID: ${pedido.sellers[0].id}) não encontrado no sistema para a organização ${organization_id}. Cadastre o vendedor primeiro.`,
-          );
-        }
-        const internalSellerId = sellerFromDb.id;
+        // if (!sellerFromDb) {
+        //   throw new Error(
+        //     `Vendedor '${pedido.sellers[0].name}' (VTEX ID: ${pedido.sellers[0].id}) não encontrado no sistema para a organização ${organization_id}. Cadastre o vendedor primeiro.`,
+        //   );
+        // }
+        // const internalSellerId = sellerFromDb.id;
 
         const orderData: Prisma.OrderCreateInput = {
           order_ref: pedido.orderId,
@@ -669,7 +694,7 @@ export class VtexService {
           console.log('Order ja existe');
         }
       }
-    } catch (error) {}
+    } catch (error) { }
   }
 
   async addFileToQueue(

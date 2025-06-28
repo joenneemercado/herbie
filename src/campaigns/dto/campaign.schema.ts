@@ -18,7 +18,7 @@ export const createCampaignDtochema = z.object({
     .min(1, { message: 'ID da organização é obrigatório.' }),
   dateStart: z.string().nullish(),
   dateEnd: z.string().nullish(),
-  jsonMeta: z.string().nullish(),
+  jsonMeta: z.record(z.string(), z.any()).nullish().optional(),
   subject: z.string().nullish(),
   tags: z.union([z.number(), z.array(z.number())]).optional(),
   idAudience: z.union([z.number(), z.array(z.number())]).optional(),

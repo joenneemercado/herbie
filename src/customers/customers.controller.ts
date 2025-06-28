@@ -41,7 +41,7 @@ import { JwtAuthGuard } from '@src/auth/jwt.guard';
 @Controller('customers')
 //@UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 export class CustomersController {
-  constructor(private readonly customersService: CustomersService) {}
+  constructor(private readonly customersService: CustomersService) { }
 
   @ApiExcludeEndpoint()
   @Post()
@@ -278,6 +278,7 @@ export class CustomersController {
     @Query('email') email?: string,
     @Query('phone') phone?: string,
     @Query('cpf') cpf?: string,
+    @Query('store') store?: string,
   ): Promise<any> {
     if (!organization_id) {
       throw new BadRequestException('Organization ID is required');
@@ -294,6 +295,7 @@ export class CustomersController {
       phone,
       cpf,
       organization_id,
+      store,
     });
   }
 

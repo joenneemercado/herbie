@@ -115,7 +115,9 @@ export class CampaignsService {
           const camp = await trxCampaing.campaigns.create({
             data: {
               name: createCampaingDto.name,
-              message: createCampaingDto.message,
+              message: createCampaingDto.jsonMeta.text
+                ? createCampaingDto.jsonMeta.text
+                : createCampaingDto.message,
               type_message: createCampaingDto.typeMessage,
               channel_id: createCampaingDto.channelId,
               sending_by: findChannel.type,

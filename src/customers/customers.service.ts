@@ -40,7 +40,7 @@ export class CustomersService {
   constructor(
     private readonly prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async create(dataCustomer: createCustomerSchema, req: Request) {
     //console.log(req)
@@ -550,64 +550,64 @@ export class CustomersService {
     }
   }
 
-  async findUnifiedAll(params: {
-    page: number;
-    limit: number;
-    name?: string;
-    email?: string;
-    phone?: string;
-    cpf?: string;
-    organization_id?: string;
-  }) {
-    const { page, limit, name, email, phone, cpf, organization_id } = params;
-    const skip = (page - 1) * limit;
+  // async findUnifiedAll(params: {
+  //   page: number;
+  //   limit: number;
+  //   name?: string;
+  //   email?: string;
+  //   phone?: string;
+  //   cpf?: string;
+  //   organization_id?: string;
+  //   store?: string;
+  // }) {
+  //   const { page, limit, name, email, phone, cpf, organization_id, store } =
+  //     params;
+  //   const skip = (page - 1) * limit;
 
-    const filters: Prisma.CustomerUnifiedWhereInput = {
-      AND: [
-        name ? { firstname: { contains: name, mode: 'insensitive' } } : {},
-        phone ? { phone: { contains: phone, mode: 'insensitive' } } : {},
-        cpf ? { cpf: cpf } : {},
-        email ? { email: { contains: email, mode: 'insensitive' } } : {},
-        organization_id ? { organization_id: organization_id } : {},
-      ],
-    };
+  //   const filters: Prisma.CustomerUnifiedWhereInput = {
+  //     AND: [
+  //       name ? { firstname: { contains: name, mode: 'insensitive' } } : {},
+  //       phone ? { phone: { contains: phone, mode: 'insensitive' } } : {},
+  //       cpf ? { cpf: cpf } : {},
+  //       email ? { email: { contains: email, mode: 'insensitive' } } : {},
+  //       organization_id ? { organization_id: organization_id } : {},
+  //       store
+  //         ? { customer_fields: { some: { type: 'STORE', value: store } } }
+  //         : {},
+  //     ],
+  //   };
 
-    try {
-      const [result, total] = await Promise.all([
-        this.prisma.customerUnified.findMany({
-          include: {
-            addresses: {
-              take: 1,
-              orderBy: {
-                id: 'desc',
-              },
-            },
-            // Source: {
-            //   select: {
-            //     id: true,
-            //     name: true,
-            //   },
-            // },
-          },
-          skip,
-          take: Number(limit),
-          where: filters,
-        }),
-        this.prisma.customerUnified.count({ where: filters }),
-      ]);
+  //   try {
+  //     const [result, total] = await Promise.all([
+  //       this.prisma.customerUnified.findMany({
+  //         include: {
+  //           addresses: {
+  //             take: 1,
+  //             orderBy: {
+  //               id: 'desc',
+  //             },
+  //           },
+  //           customer_fields: true,
+  //         },
+  //         skip,
+  //         take: Number(limit),
+  //         where: filters,
+  //       }),
+  //       this.prisma.customerUnified.count({ where: filters }),
+  //     ]);
 
-      return {
-        data: result,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      };
-    } catch (error) {
-      console.error('Error fetching customers Unified:', error);
-      throw error;
-    }
-  }
+  //     return {
+  //       data: result,
+  //       total,
+  //       page,
+  //       limit,
+  //       totalPages: Math.ceil(total / limit),
+  //     };
+  //   } catch (error) {
+  //     console.error('Error fetching customers Unified:', error);
+  //     throw error;
+  //   }
+  // }
 
   // async unifyExactDuplicates() {
   //   console.log('Passo 1: Encontrar duplicatas exatas');
@@ -941,6 +941,128 @@ export class CustomersService {
   //   }
   // }
 
+  async findUnifiedAll(params: {
+    page: number;
+    limit: number;
+    name?: string;
+    email?: string;
+    phone?: string;
+    cpf?: string;
+    organization_id?: string;
+    store?: string;
+  }) {
+    const { page, limit, name, email, phone, cpf, organization_id, store } =
+      params;
+    const skip = (page - 1) * limit;
+
+    const filters: Prisma.CustomerUnifiedWhereInput = {
+      AND: [
+        name ? { firstname: { contains: name, mode: 'insensitive' } } : {},
+        phone ? { phone: { contains: phone, mode: 'insensitive' } } : {},
+        cpf ? { cpf: cpf } : {},
+        email ? { email: { contains: email, mode: 'insensitive' } } : {},
+        organization_id ? { organization_id: organization_id } : {},
+        store
+          ? { customer_fields: { some: { type: 'STORE', value: store } } }
+          : {},
+      ],
+    };
+
+    try {
+      // Passo 1: Executar as consultas de clientes e contagem total em paralelo
+      const [customers, total] = await Promise.all([
+        this.prisma.customerUnified.findMany({
+          include: {
+            addresses: {
+              take: 1,
+              orderBy: {
+                id: 'desc',
+              },
+            },
+            customer_fields: {
+              select: {
+                type: true,
+                description: true,
+                value: true,
+              },
+            },
+          },
+          skip,
+          take: Number(limit),
+          where: filters,
+        }),
+        this.prisma.customerUnified.count({ where: filters }),
+      ]);
+
+      if (customers.length === 0) {
+        return {
+          data: [],
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        };
+      }
+
+      // Passo 2: Coletar todos os IDs de loja (sellers) únicos dos resultados
+      const storeIds = [
+        ...new Set( // Usa Set para garantir que os IDs sejam únicos
+          customers
+            .flatMap((customer) => customer.customer_fields) // Pega todos os fields de todos os customers
+            .filter((field) => field.type === 'STORE' && field.value) // Filtra apenas os do tipo STORE com valor
+            .map((field) => parseInt(field.value, 10)), // Converte o ID para número
+        ),
+      ];
+
+      // Passo 3: Buscar todos os sellers necessários em uma única query
+      const sellers = await this.prisma.seller.findMany({
+        where: {
+          id: {
+            in: storeIds,
+          },
+        },
+        select: {
+          // Seleciona apenas os campos que você precisa
+          id: true,
+          name: true,
+        },
+      });
+
+      // Criar um mapa para busca rápida (O(1)) dos sellers por ID
+      const sellersMap = new Map(sellers.map((seller) => [seller.id, seller]));
+
+      // Passo 4: Mapear os dados dos sellers de volta para a estrutura dos clientes
+      const enrichedData = customers.map((customer) => {
+        const enrichedFields = customer.customer_fields.map((field) => {
+          if (field.type === 'STORE') {
+            const sellerId = parseInt(field.value, 10);
+            const sellerInfo = sellersMap.get(sellerId);
+            return {
+              ...field, // Mantém os campos originais de customer_field
+              Seller: sellerInfo || null, // Adiciona o objeto Seller
+            };
+          }
+          return field;
+        });
+
+        return {
+          ...customer, // Mantém os campos originais do customer
+          customer_fields: enrichedFields, // Substitui pelos fields enriquecidos
+        };
+      });
+
+      return {
+        data: enrichedData, // Retorna os dados já com as informações do Seller
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      console.error('Error fetching customers Unified:', error);
+      throw error;
+    }
+  }
   async unifyExactDuplicates() {
     console.log('Passo 1: Encontrar duplicatas exatas');
 
@@ -1409,8 +1531,8 @@ export class CustomersService {
         [existCustomUnifield.firstname, status, result] = unifyField(
           'firstname',
           existCustomUnifield.firstname?.split(' ')[0].toLocaleLowerCase() as
-            | string
-            | null,
+          | string
+          | null,
           customer.firstname.split(' ')[0].toLowerCase(),
           3, // Código de status específico para `firstname`
           status,
@@ -1660,15 +1782,110 @@ export class CustomersService {
     };
   }
 
+  // async unifiedCustomerId(organization: string, id: number) {
+  //   try {
+  //     const customerUnified = await this.prisma.customerUnified.findFirst({
+  //       where: {
+  //         id: Number(id),
+  //         organization_id: String(organization),
+  //       },
+  //       include: {
+  //         customer_fields: {
+  //           select: {
+  //             type: true,
+  //             description: true,
+  //             value: true,
+  //           },
+  //         },
+  //         addresses: true,
+  //         AssociationTags: {
+  //           select: {
+  //             Tags: {
+  //               select: {
+  //                 id: true,
+  //                 name: true,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+
+  //     const customersIds = await this.prisma.customer_CustomerUnified.findMany({
+  //       where: {
+  //         customer_unified_id: customerUnified.id,
+  //       },
+  //       select: {
+  //         customer_id: true,
+  //       },
+  //     });
+  //     const customerOriginal = await this.prisma.customer.findMany({
+  //       where: {
+  //         id: {
+  //           in: customersIds.map((c) => Number(c.customer_id)),
+  //         },
+  //         organization_id: String(organization),
+  //       },
+  //       include: {
+  //         Source: true,
+  //         addresses: true,
+  //       },
+  //     });
+
+  //     Passo 4: Mapear os dados dos sellers de volta para a estrutura dos clientes
+
+  //     const idSeler = customerUnified.customer_fields.find(
+  //       (field) => field.type === 'STORE',
+  //     )?.value;
+
+  //     const seller = await this.prisma.seller.findFirst({
+  //       where: {
+  //         id: Number(idSeler),
+  //       },
+  //       select: {
+  //         name: true,
+  //         id: true,
+  //       },
+  //     });
+
+  //     customerUnified['Seller'] = seller;
+  //     const enrichedFields = customerUnified.customer_fields.map((field) => {
+  //       if (field.type === 'STORE') {
+  //         return {
+  //           ...field, // Mantém os campos originais de customer_field
+  //           Seller: seller || null, // Adiciona o objeto Seller
+  //         };
+  //       }
+  //       return field;
+  //     });
+  //     customerUnified.customer_fields = enrichedFields;
+
+  //     return {
+  //       CustomerUnified: customerUnified,
+  //       CustomersOriginal: customerOriginal,
+  //     };
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
   async unifiedCustomerId(organization: string, id: number) {
     try {
-      const customerUnified = await this.prisma.customerUnified.findFirst({
+      // Passo 1: Consulta ÚNICA e consolidada para o cliente unificado e seus clientes originais.
+      const customerUnifiedData = await this.prisma.customerUnified.findFirst({
         where: {
           id: Number(id),
           organization_id: String(organization),
         },
         include: {
-          addresses: true,
+          // Seleciona campos específicos para performance
+          customer_fields: {
+            select: {
+              type: true,
+              description: true,
+              value: true,
+            },
+          },
+          addresses: true, // Se possível, use select aqui também
           AssociationTags: {
             select: {
               Tags: {
@@ -1679,35 +1896,81 @@ export class CustomersService {
               },
             },
           },
+          // A GRANDE MELHORIA: Busca os clientes originais em uma única query
+          Customer_CustomerUnified: {
+            select: {
+              Customer: {
+                // Seleciona o registro 'customer' relacionado
+                include: {
+                  // Inclui os dados aninhados do 'customer'
+                  Source: true,
+                  addresses: true, // Se possível, use select aqui também
+                },
+              },
+            },
+          },
         },
       });
 
-      const customersIds = await this.prisma.customer_CustomerUnified.findMany({
-        where: {
-          customer_unified_id: customerUnified.id,
-        },
-        select: {
-          customer_id: true,
-        },
-      });
-      const customerOriginal = await this.prisma.customer.findMany({
-        where: {
-          id: {
-            in: customersIds.map((c) => Number(c.customer_id)),
+      if (!customerUnifiedData) {
+        // É uma boa prática tratar o caso de não encontrar o cliente
+        return null; // ou throw new NotFoundException('Cliente não encontrado');
+      }
+
+      // Extrai e formata os dados já buscados
+      const customersOriginal =
+        customerUnifiedData.Customer_CustomerUnified.map(
+          (relation) => relation.Customer,
+        );
+
+      // Passo 2: Busca pelo vendedor (Seller) - esta chamada continua necessária.
+      const sellerId = customerUnifiedData.customer_fields.find(
+        (field) => field.type === 'STORE',
+      )?.value;
+
+      let sellerInfo = null;
+      if (sellerId) {
+        sellerInfo = await this.prisma.seller.findFirst({
+          where: {
+            id: Number(sellerId),
           },
-          organization_id: String(organization),
+          select: {
+            name: true,
+            id: true,
+          },
+        });
+      }
+
+      // Passo 3: Enriquecer os campos do cliente com a informação do vendedor (forma imutável)
+      const enrichedFields = customerUnifiedData.customer_fields.map(
+        (field) => {
+          if (field.type === 'STORE') {
+            return {
+              ...field,
+              Seller: sellerInfo, // Adiciona o objeto Seller
+            };
+          }
+          return field;
         },
-        include: {
-          Source: true,
-          addresses: true,
+      );
+
+      // Passo 4: Monta o objeto de resposta final de forma limpa
+      const result = {
+        CustomerUnified: {
+          ...customerUnifiedData,
+          customer_fields: enrichedFields, // Usa os campos enriquecidos
+          // Remove a tabela de junção do resultado final para limpeza
+          Customer_CustomerUnified: undefined,
         },
-      });
-      return {
-        CustomerUnified: customerUnified,
-        CustomersOriginal: customerOriginal,
+        CustomersOriginal: customersOriginal,
       };
+
+      return result;
     } catch (error) {
-      console.log(error);
+      // Use um logger mais robusto em produção (ex: Sentry, DataDog, Pino)
+      console.error('Erro ao buscar cliente unificado:', error);
+      // Propague o erro ou retorne uma resposta de erro padronizada
+      throw new Error('Ocorreu um erro ao processar sua solicitação.');
     }
   }
 

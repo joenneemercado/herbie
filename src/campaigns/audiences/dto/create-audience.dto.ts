@@ -159,10 +159,23 @@ export class FindSegmentAudienceDto {
   })
   date_created_end?: string;
 
-  // @IsOptional()
-  // @IsString({ message: 'O gender deve ser uma string' })
-  // @ApiProperty({ description: 'Gênero', example: 'male' })
-  // gender?: string;
+  @IsOptional()
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O dia de nascimento deve ser um número' })
+  @ApiProperty({ description: 'Dia de nascimento', example: 15 })
+  birth_day?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O mês de nascimento deve ser um número' })
+  @ApiProperty({ description: 'Mês de nascimento', example: 6 })
+  birth_month?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
+  @IsNumber({}, { message: 'O ano de nascimento deve ser um número' })
+  @ApiProperty({ description: 'Ano de nascimento', example: 1990 })
+  birth_year?: number;
 
   @IsOptional()
   @IsArray()

@@ -9,7 +9,7 @@ services:
     #restart: always
 
     environment:
-      DATABASE_URL: ${DATABASE_URL} 
+      DATABASE_URL: ${DATABASE_URL}
       PORT: ${PORT}
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
@@ -24,6 +24,7 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       UPLOAD_DIR: ${UPLOAD_DIR}
+      TOKEN_INVIO: ${TOKEN_INVIO}
 
     ports:
       - '3014:3014'
