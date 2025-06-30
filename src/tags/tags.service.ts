@@ -4,11 +4,11 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { CreateContactTagsSchema } from './dto/tag.schema';
 import { JwtService } from '@nestjs/jwt';
+import { HttpStatusCode } from 'axios';
 
 @Injectable()
 export class TagsService {
@@ -144,7 +144,13 @@ export class TagsService {
         organization_id: createContactTagsDto.organization_id,
       },
     });
-    // console.log('findTagContact', findTagContact);
+    if (findTagContact) {
+      return {
+        code: HttpStatusCode.Conflict,
+        sucesse: false,
+        message: `tagId: ${findTag.id} ja existe para o contato: ${findTagContact.customer_unified_id}`,
+      };
+    }
     if (!findTagContact) {
       await this.prisma.associationTags.create({
         data: {
@@ -159,7 +165,7 @@ export class TagsService {
     return {
       code: HttpStatus.CREATED,
       success: true,
-      message: 'tag associada ao contato com sucesso',
+      message: 'tagId associada ao contato com sucesso',
     };
   }
 
@@ -167,7 +173,34 @@ export class TagsService {
     return `This action updates a #${id} tag`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} tag`;
+  async deleteTagContact(
+    createContactTagsDto: CreateContactTagsSchema,
+    req: Request,
+  ) {
+    //console.log('createContactTagsDto', createContactTagsDto);
+    const reqToken = req.headers['authorization'];
+    if (!reqToken) {
+      throw new UnauthorizedException();
+    }
+
+    const findTagContact = await this.prisma.associationTags.findFirst({
+      where: {
+        tag_id: createContactTagsDto.idTag,
+        customer_unified_id: createContactTagsDto.customer_unified_id,
+        organization_id: createContactTagsDto.organization_id,
+      },
+    });
+    if (findTagContact) {
+      await this.prisma.associationTags.delete({
+        where: {
+          id: findTagContact.id,
+        },
+      });
+      return {
+        status: HttpStatus.CREATED,
+        success: true,
+        message: 'tagId excluida do contato com sucesso',
+      };
+    }
   }
 }

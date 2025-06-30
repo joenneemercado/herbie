@@ -8,6 +8,7 @@ import {
   Query,
   Request,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { TagsService } from './tags.service';
 import { CreateContactTagsDto, CreateTagDto } from './dto/create-tag.dto';
@@ -166,8 +167,21 @@ export class TagsController {
   //   return this.tagsService.update(+id, updateTagDto);
   // }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.tagsService.remove(+id);
-  // }
+  @ApiBody({ type: CreateContactTagsDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 201, description: 'Delete' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  @Delete('/delete/contacts')
+  deleteTagContact(
+    @Body() createContactTagsDto: CreateContactTagsDto,
+    @Request() req: Request,
+  ) {
+    //console.log('createContactTagsDto', createContactTagsDto);
+    const parsed = createContactTagschema.safeParse(createContactTagsDto);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.errors);
+    }
+    return this.tagsService.deleteTagContact(parsed.data, req);
+  }
 }
