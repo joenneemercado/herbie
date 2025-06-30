@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: hebie-novaera-vps
+    container_name: emercado.azurecr.io/emercado/hebie-novaera-vps
     #restart: always
 
     environment:

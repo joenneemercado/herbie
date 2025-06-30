@@ -28,7 +28,7 @@ export class ZeusService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async create(createZeusDto: CreateZeusSchema, req: Request) {
     const reqToken = req.headers['authorization'];
@@ -436,6 +436,9 @@ export class ZeusService {
               connect: { id: ZeusConstantes.STATUS_ID },
             },
             created_by: systemUserId, // Conectando 'created_by' à tabela User
+            Seller: {
+              connect: { id: seller.id },
+            },
           };
 
           if (customerUnifiedId) {
@@ -449,8 +452,9 @@ export class ZeusService {
           const createdInteraction = await tx.interaction.create({
             data: interactionData,
           });
+
           newInteractionId = createdInteraction.id;
-          console.log(`Interação ${newInteractionId} criada.`);
+          console.log(`Interação ${newInteractionId} criada. `);
         }
 
         // 5. VERIFICAR/CRIAR ORDER E ORDER_ITEMS
