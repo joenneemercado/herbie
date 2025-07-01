@@ -497,3 +497,13 @@ export class FindAudienceStatusDto {
   })
   limit?: number;
 }
+
+export class UploadCSVDto {
+  @IsString({ message: 'O organization_id deve ser uma string' })
+  @ApiProperty({ description: 'ID da organização', example: 'org-abc123' })
+  organization_id: string;
+
+  @IsString({ message: 'O audiencia deve ser uma string' })
+  @ApiProperty({ description: 'Nome da audiência', example: 'Nova audiência' })
+  audienceName: string;
+}

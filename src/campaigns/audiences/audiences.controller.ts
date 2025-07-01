@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Param,
   Request,
   BadRequestException,
   Query,
@@ -9,30 +8,41 @@ import {
   Post,
   Body,
   Put,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { AudiencesService } from './audiences.service';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@src/auth/jwt.guard';
 import {
-  createAudienceSchema,
-  updateAudienceSchema,
-} from './dto/audience.schema';
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '@src/auth/jwt.guard';
+import { updateAudienceSchema } from './dto/audience.schema';
 import { findSegmentAudienceSchema } from './dto/audience.segment.schema';
 import {
   FindAudienceContactDto,
   FindAudienceStatusDto,
   FindSegmentAudienceDto,
+  UploadCSVDto,
 } from './dto/create-audience.dto';
 import { findAudienceContactsSchema } from './dto/audience.contacts.schema';
 import { UpdateAudienceDto } from './dto/update-audience.dto';
 import { findAudienceStatuschema } from './dto/audience.status.schema';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { v4 as uuid } from 'uuid';
+import { bucket } from '@src/firebase';
+//import { bucket } from '@src/firebase';
 
 @ApiTags('Audiences')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard) // Aplica apenas neste controlador
 @Controller('campaigns/audiences')
 export class AudiencesController {
-  constructor(private readonly audiencesService: AudiencesService) { }
+  constructor(private readonly audiencesService: AudiencesService) {}
 
   @ApiQuery({
     name: 'organization_id',
@@ -286,5 +296,90 @@ export class AudiencesController {
       throw new BadRequestException(parsed.error.errors);
     }
     return this.audiencesService.updateAudienceSegment(parsed.data, req);
+  }
+
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Upload de arquivo CSV para criar uma audiência',
+    schema: {
+      type: 'object',
+      properties: {
+        // Descreve os campos que já estão no seu DTO
+        organization_id: {
+          type: 'string',
+          description: 'ID da organização',
+          example: 'org-abc123',
+        },
+        audienceName: {
+          type: 'string',
+          description: 'Nome da audiência',
+          example: 'Nova audiência',
+        },
+        // Descreve o campo do arquivo
+        files: {
+          type: 'array', // Use 'array' pois você está usando FilesInterceptor (plural)
+          items: {
+            type: 'string',
+            format: 'binary', // O formato 'binary' indica que é um arquivo
+          },
+          description: 'Arquivo CSV a ser enviado',
+        },
+      },
+      required: ['organization_id', 'audienceName', 'files'], // Marque os campos como obrigatórios
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 201, description: 'Created' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  @Post('upload-csv')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadCSV(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() dados: UploadCSVDto,
+  ) {
+    for (const file of files) {
+      if (file) {
+        const findAudiencie = await this.audiencesService.findExistingAudience(
+          dados.organization_id,
+          dados.audienceName,
+        );
+        if (findAudiencie) {
+          return {
+            message: 'Audience ja existe',
+            audience_id: findAudiencie.id,
+          };
+        }
+        const fileName = `imports/${uuid()}-${file.originalname}`;
+        const fileRef = bucket.file(fileName);
+
+        await fileRef.save(file.buffer, {
+          contentType: file.mimetype,
+          public: false, // true se quiser expor publicamente
+          metadata: {
+            firebaseStorageDownloadTokens: uuid(), // Para gerar URL de download
+          },
+        });
+        const [url] = await fileRef.getSignedUrl({
+          action: 'read',
+          expires: Date.now() + 1000 * 60 * 60, // 1h
+        });
+        //console.log('url', url);
+
+        const { organization_id, audienceName } = dados;
+        // console.log({
+        //   filePath: file.path,
+        //   fileType: 'csv',
+        //   organization_id,
+        // });
+        await this.audiencesService.addFileToQueue(
+          fileName, // ou 'url' se quiser passar a URL assinada
+          'csv',
+          organization_id,
+          audienceName,
+        );
+      }
+    }
+    return { message: 'File has been uploaded and is being processed.' };
   }
 }

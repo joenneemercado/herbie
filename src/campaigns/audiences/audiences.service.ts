@@ -4,12 +4,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '@src/database/prisma.service';
-
 import { InteractionsService } from '@src/interactions/interactions.service';
 import { FindSegmentAudienceSchema } from './dto/audience.segment.schema';
 import { FindAudienceContactsSchema } from './dto/audience.contacts.schema';
 import { UpdateAudienceSchema } from './dto/audience.schema';
 import { FindAudienceStatuschema } from './dto/audience.status.schema';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 @Injectable()
 export class AudiencesService {
   jwtService: any;
@@ -17,9 +18,38 @@ export class AudiencesService {
   constructor(
     private prisma: PrismaService,
     private interaction: InteractionsService,
+    @InjectQueue('audience-queue') private audienceQueue: Queue,
   ) {}
 
   //Todo create audience com validacao
+
+  async addFileToQueue(
+    filePath: string,
+    fileType: 'csv' | 'xlsx',
+    organization_id: string,
+    audienceName: string,
+  ): Promise<void> {
+    try {
+      await this.audienceQueue.add(
+        'import-audience-file-queue',
+        {
+          filePath,
+          fileType,
+          organization_id,
+          audienceName,
+        },
+        {
+          attempts: 1,
+          delay: 5000,
+        },
+      );
+
+      //console.log('terminou');
+    } catch (error) {
+      console.error('Erro ao adicionar à fila:', error);
+      throw error.message;
+    }
+  }
 
   //TODO FIND ALL AUDIENCE
   async findAll(params: {
@@ -1304,6 +1334,21 @@ export class AudiencesService {
         message: 'Audiência atualizada com sucesso',
         audience,
       };
+    } catch (error) {
+      console.log(`erro ao procurar id da audiência`, error);
+      throw new HttpException(error.message, error.status);
+    }
+  }
+
+  async findExistingAudience(organization_id: string, audienceName: string) {
+    try {
+      const findAudience = await this.prisma.audiences.findFirst({
+        where: {
+          organization_id: organization_id,
+          name: audienceName,
+        },
+      });
+      return findAudience;
     } catch (error) {
       console.log(`erro ao procurar id da audiência`, error);
       throw new HttpException(error.message, error.status);
