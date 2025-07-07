@@ -359,322 +359,6 @@ export class AudiencesService {
     //return `This action returns all audiences`;
   }
 
-  //TODO: CODIGO AJUSTADO PARA PROCURAR NAS DUAS TABELAS DE INTERACAO E CUSTOMER
-  // async findAllSegmentedInteration(
-  //   findSegmentAudienceDto: FindSegmentAudienceSchema,
-  //   req: Request,
-  //   nolimit = false,
-  // ) {
-  //   //console.log('findSegmentAudienceDto', findSegmentAudienceDto);
-  //   const reqToken = req.headers['authorization'];
-  //   if (!reqToken) {
-  //     throw new UnauthorizedException();
-  //   }
-  //   try {
-  //     const skip =
-  //       (findSegmentAudienceDto.page - 1) * findSegmentAudienceDto.limit;
-  //     const limit = Number(findSegmentAudienceDto.limit) || 10;
-  //     const page = Number(findSegmentAudienceDto.page) || 1;
-
-  //     const dateBirthFilter = { OR: [] };
-
-  //     // Garantindo que os inputs sejam arrays ou lidando com undefined
-  //     const dates1 = findSegmentAudienceDto.date_birth_start
-  //       ? Array.isArray(findSegmentAudienceDto.date_birth_start)
-  //         ? findSegmentAudienceDto.date_birth_start
-  //         : findSegmentAudienceDto.date_birth_start
-  //             .replace(/[^\d, -]/g, '')
-  //             .split(',')
-  //       : []; // Caso date_birth_start seja undefined, retorna um array vazio
-
-  //     const datesEnd = findSegmentAudienceDto.date_birth_end
-  //       ? Array.isArray(findSegmentAudienceDto.date_birth_end)
-  //         ? findSegmentAudienceDto.date_birth_end
-  //         : findSegmentAudienceDto.date_birth_end
-  //             .replace(/[^\d, -]/g, '')
-  //             .split(',')
-  //       : []; // Caso date_birth_end seja undefined, retorna um array vazio
-
-  //     const cleanDate = (d: string) => d.replace(/[\[\]\s]/g, '');
-
-  //     for (let i = 0; i < Math.min(dates1.length, datesEnd.length); i++) {
-  //       const startDate = new Date(cleanDate(dates1[i]));
-  //       const endDate = new Date(cleanDate(datesEnd[i]));
-
-  //       // console.log(`Processing pair [${i}]:`);
-  //       // console.log(`  startDate: ${dates1[i]} -> Parsed: ${startDate}`);
-  //       // console.log(`  endDate: ${datesEnd[i]} -> Parsed: ${endDate}`);
-
-  //       if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-  //         dateBirthFilter.OR.push({
-  //           date_birth: { gte: startDate, lte: endDate },
-  //         });
-
-  //         // console.log('  Valid pair added to filter:', {
-  //         //   date_birth: { gte: startDate, lte: endDate },
-  //         // });
-  //       }
-  //       // else {
-  //       //console.log('Invalid date pair, skipped.');
-  //       // }
-  //     }
-
-  //     const filterCustomerInteration = [];
-
-  //     if (
-  //       findSegmentAudienceDto.sellerName &&
-  //       findSegmentAudienceDto.sellerName.trim().length > 0
-  //     ) {
-  //       filterCustomerInteration.push({
-  //         details: {
-  //           path: ['hostname'],
-  //           equals: findSegmentAudienceDto.sellerName.trim(),
-  //         },
-  //       });
-  //     }
-
-  //     if (
-  //       Array.isArray(findSegmentAudienceDto.refId) &&
-  //       findSegmentAudienceDto.refId.filter((r) => r.trim() !== '').length > 0
-  //     ) {
-  //       const refIdConditions = findSegmentAudienceDto.refId
-  //         .filter((r) => r.trim() !== '')
-  //         .flatMap((refId) => [
-  //           {
-  //             details: {
-  //               path: ['items'],
-  //               array_contains: [{ refId }],
-  //             },
-  //           },
-  //           {
-  //             details: {
-  //               path: ['details', 'produtos'],
-  //               array_contains: [{ codigo: refId }],
-  //             },
-  //           },
-  //         ]);
-
-  //       filterCustomerInteration.push({ OR: refIdConditions });
-  //     }
-
-  //     // Filtro para source_id
-  //     if (
-  //       Array.isArray(findSegmentAudienceDto.source_id) &&
-  //       findSegmentAudienceDto.source_id.filter(
-  //         (id) => id !== '' && !isNaN(Number(id)),
-  //       ).length > 0
-  //     ) {
-  //       filterCustomerInteration.push({
-  //         source_id: {
-  //           in: findSegmentAudienceDto.source_id
-  //             .filter((id) => id !== '' && !isNaN(Number(id)))
-  //             .map(Number),
-  //         },
-  //       });
-  //     }
-
-  //     // Filtro para event_id
-  //     if (
-  //       Array.isArray(findSegmentAudienceDto.event_id) &&
-  //       findSegmentAudienceDto.event_id.filter(
-  //         (id) => id !== '' && !isNaN(Number(id)),
-  //       ).length > 0
-  //     ) {
-  //       filterCustomerInteration.push({
-  //         event_id: {
-  //           in: findSegmentAudienceDto.event_id
-  //             .filter((id) => id !== '' && !isNaN(Number(id)))
-  //             .map(Number),
-  //         },
-  //       });
-  //     }
-
-  //     if (
-  //       (typeof findSegmentAudienceDto.total_start === 'number' &&
-  //         findSegmentAudienceDto.total_start > 0) ||
-  //       (typeof findSegmentAudienceDto.total_end === 'number' &&
-  //         findSegmentAudienceDto.total_end > 0)
-  //     ) {
-  //       filterCustomerInteration.push({
-  //         total: {
-  //           gte: findSegmentAudienceDto.total_start,
-  //           lte: findSegmentAudienceDto.total_end,
-  //         },
-  //       });
-  //     }
-
-  //     const filterCustomer = [];
-
-  //     if (
-  //       Array.isArray(findSegmentAudienceDto.gender) &&
-  //       findSegmentAudienceDto.gender.filter((g) => g.trim() !== '').length > 0
-  //     ) {
-  //       const genderConditions = findSegmentAudienceDto.gender
-  //         .filter((g) => g.trim() !== '')
-  //         .map((gender) => ({
-  //           gender,
-  //         }));
-
-  //       filterCustomer.push({
-  //         OR: genderConditions,
-  //       });
-  //     }
-
-  //     if (
-  //       Array.isArray(findSegmentAudienceDto.marital_status) &&
-  //       findSegmentAudienceDto.marital_status.filter((m) => m.trim() !== '')
-  //         .length > 0
-  //     ) {
-  //       const maritalConditions = findSegmentAudienceDto.marital_status
-  //         .filter((m) => m.trim() !== '')
-  //         .map((marital_status) => ({
-  //           marital_status,
-  //         }));
-
-  //       filterCustomer.push({
-  //         OR: maritalConditions,
-  //       });
-  //     }
-
-  //     const whereConditionCustomer = {
-  //       AND: [
-  //         ...filterCustomer,
-  //         ...(dateBirthFilter.OR.length > 0
-  //           ? [{ OR: dateBirthFilter.OR }]
-  //           : []),
-  //       ],
-  //     };
-
-  //     const whereConditionCustomerInteration = {
-  //       AND: [...filterCustomerInteration],
-  //     };
-  //     // console.log(JSON.stringify(whereConditionCustomer));
-  //     // console.log(JSON.stringify(whereConditionCustomerInteration));
-  //     try {
-  //       let findCustomerUnified = [];
-  //       //const countCustomerUnified = 0;
-
-  //       let findInteration = [];
-  //       // const countInteration = 0;
-
-  //       let mergedUniqueCustomers = [];
-
-  //       if (whereConditionCustomer.AND.length > 0) {
-  //         findCustomerUnified = await this.prisma.customerUnified.findMany({
-  //           where: {
-  //             organization_id: findSegmentAudienceDto.organization_id,
-  //             status_id: 1,
-  //             ...whereConditionCustomer,
-  //           },
-  //           select: {
-  //             id: true,
-  //             firstname: true,
-  //             lastname: true,
-  //             email: true,
-  //             phone: true,
-  //             date_birth: true,
-  //             gender: true,
-  //             marital_status: true,
-  //             created_at: true,
-  //           },
-  //           skip,
-  //           take: nolimit ? undefined : Number(limit),
-  //         });
-  //         // countCustomerUnified = await this.prisma.customerUnified.count({
-  //         //   where: {
-  //         //     organization_id: findSegmentAudienceDto.organization_id,
-  //         //     status_id: 1,
-  //         //     ...whereConditionCustomer,
-  //         //   },
-  //         // });
-
-  //         // console.log('countCustomerUnified', countCustomerUnified);
-  //       }
-
-  //       if (whereConditionCustomerInteration.AND.length > 0) {
-  //         findInteration = await this.prisma.interaction.findMany({
-  //           where: {
-  //             NOT: {
-  //               customer_unified_id: null,
-  //             },
-  //             organization_id: findSegmentAudienceDto.organization_id,
-  //             ...whereConditionCustomerInteration,
-  //             CustomerUnified: {
-  //               status_id: 1,
-  //             },
-  //           },
-  //           select: {
-  //             CustomerUnified: {
-  //               select: {
-  //                 id: true,
-  //                 firstname: true,
-  //                 lastname: true,
-  //                 email: true,
-  //                 phone: true,
-  //                 date_birth: true,
-  //                 gender: true,
-  //                 marital_status: true,
-  //                 created_at: true,
-  //               },
-  //             },
-  //           },
-  //           skip,
-  //           take: nolimit ? undefined : Number(limit),
-  //         });
-  //         //console.log('findInteration', findInteration);
-
-  //         const interationCustomers = findInteration
-  //           .map((i) => i.CustomerUnified)
-  //           .filter(Boolean);
-
-  //         const allCustomers = [...findCustomerUnified, ...interationCustomers];
-
-  //         mergedUniqueCustomers = Array.from(
-  //           new Map(allCustomers.map((c) => [c.id, c])).values(),
-  //         );
-
-  //         // countInteration = await this.prisma.interaction.count({
-  //         //   where: {
-  //         //     NOT: {
-  //         //       customer_unified_id: null,
-  //         //     },
-  //         //     organization_id: findSegmentAudienceDto.organization_id,
-  //         //     ...whereConditionCustomerInteration,
-  //         //     CustomerUnified: {
-  //         //       status_id: 1,
-  //         //     },
-  //         //   },
-  //         // });
-
-  //         // console.log('countInteration', countInteration);
-  //       }
-
-  //       const total = mergedUniqueCustomers.length;
-  //       const totalPages = Math.ceil(total / limit);
-
-  //       return {
-  //         // findCustomerUnified,
-  //         // findInteration,
-  //         mergedCustomers: mergedUniqueCustomers,
-  //         // countCustomerUnified,
-  //         // countInteration,
-  //         pageInfo: {
-  //           total,
-  //           page,
-  //           limit,
-  //           totalPages,
-  //         },
-  //       };
-  //     } catch (error) {
-  //       console.error('Erro ao buscar dados:', error);
-  //       throw new Error(
-  //         'Erro ao buscar dados de clientes unificados ou interações.',
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
   async findAllSegmentedInteration(
     findSegmentAudienceDto: FindSegmentAudienceSchema,
     req: Request,
@@ -768,47 +452,6 @@ export class AudiencesService {
     }
   }
 
-  // async findAllSegmentedInterationCount(
-  //   findSegmentAudienceDto: FindSegmentAudienceSchema,
-  //   req: Request,
-  // ) {
-  //   const reqToken = req.headers['authorization'];
-  //   if (!reqToken) {
-  //     throw new UnauthorizedException('Token de autenticação não fornecido.');
-  //   }
-
-  //   try {
-  //     const finalSegmentWhere = await this.buildSegmentFilters(
-  //       findSegmentAudienceDto,
-  //     );
-  //     // console.log(
-  //     //   'findAllSegmentedInterationCount',
-  //     //   JSON.stringify(finalSegmentWhere, null, 2),
-  //     // );
-
-  //     const totalCustomerUnified = await this.prisma.customerUnified.count({
-  //       where: {
-  //         organization_id: findSegmentAudienceDto.organization_id,
-  //         status_id: 1,
-  //       },
-  //     });
-
-  //     const segmentedAudienceCount = await this.prisma.customerUnified.count({
-  //       where: finalSegmentWhere,
-  //     });
-
-  //     return {
-  //       totalCustomerUnified,
-  //       filters: segmentedAudienceCount,
-  //     };
-  //   } catch (error) {
-  //     console.error('Erro ao buscar dados para segmentação:', error);
-  //     throw new Error(
-  //       'Erro ao buscar dados de clientes unificados ou interações para segmentação.',
-  //     );
-  //   }
-  // }
-
   async findAllSegmentedInterationCount(
     findSegmentAudienceDto: FindSegmentAudienceSchema,
     req: Request,
@@ -822,6 +465,7 @@ export class AudiencesService {
       const finalSegmentWhere = await this.buildSegmentFilters(
         findSegmentAudienceDto,
       );
+      //console.log('finalSegmentWhere', JSON.stringify(finalSegmentWhere));
 
       const allFiltered = await this.prisma.customerUnified.findMany({
         where: finalSegmentWhere,
@@ -856,7 +500,6 @@ export class AudiencesService {
       const totalCustomerUnified = await this.prisma.customerUnified.count({
         where: {
           organization_id: findSegmentAudienceDto.organization_id,
-          status_id: 1,
         },
       });
 
@@ -1022,6 +665,7 @@ export class AudiencesService {
         },
       });
     }
+    //console.log('filterSeller', filterSeller);
 
     //TODO: FILTRO DE EVENTO BUSCA NA TABELA INTERACTION
     const filterInteraction: any[] = [];
@@ -1133,7 +777,6 @@ export class AudiencesService {
 
     const finalSegmentWhere: any = {
       organization_id: findSegmentAudienceDto.organization_id,
-      status_id: 1,
     };
 
     if (allSegmentConditions.length > 0) {
