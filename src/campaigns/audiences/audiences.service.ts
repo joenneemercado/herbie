@@ -465,7 +465,7 @@ export class AudiencesService {
       const finalSegmentWhere = await this.buildSegmentFilters(
         findSegmentAudienceDto,
       );
-      //console.log('finalSegmentWhere', JSON.stringify(finalSegmentWhere));
+      // console.log('finalSegmentWhere', JSON.stringify(finalSegmentWhere));
 
       const allFiltered = await this.prisma.customerUnified.findMany({
         where: finalSegmentWhere,
@@ -516,57 +516,9 @@ export class AudiencesService {
   }
 
   async buildSegmentFilters(findSegmentAudienceDto: FindSegmentAudienceSchema) {
-    //console.log('findSegmentAudienceDto', findSegmentAudienceDto);
+    //console.log('buildSegmentFilters', findSegmentAudienceDto);
     const filterCustomerUnified: any[] = [];
 
-    //TODO: FILTRO DE ANIVERSÁRIO BUSCA NA TABELA DE CUSTOMER UNIFIED
-    const dateBirthFilter: any[] = [];
-    const datesStart = findSegmentAudienceDto.date_birth_start
-      ? Array.isArray(findSegmentAudienceDto.date_birth_start)
-        ? findSegmentAudienceDto.date_birth_start
-        : findSegmentAudienceDto.date_birth_start
-            .replace(/[^\d, -]/g, '')
-            .split(',')
-      : [];
-    const datesEnd = findSegmentAudienceDto.date_birth_end
-      ? Array.isArray(findSegmentAudienceDto.date_birth_end)
-        ? findSegmentAudienceDto.date_birth_end
-        : findSegmentAudienceDto.date_birth_end
-            .replace(/[^\d, -]/g, '')
-            .split(',')
-      : [];
-    const cleanDate = (d: string) => d.replace(/[\[\]\s]/g, '');
-    for (let i = 0; i < Math.min(datesStart.length, datesEnd.length); i++) {
-      const startDate = new Date(cleanDate(datesStart[i]));
-      const endDate = new Date(cleanDate(datesEnd[i]));
-      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-        dateBirthFilter.push({
-          date_birth: { gte: startDate, lte: endDate },
-        });
-      }
-    }
-    //console.log('📊 Filtros de Data de Nascimento:', dateBirthFilter);
-    if (dateBirthFilter.length > 0) {
-      filterCustomerUnified.push({ OR: dateBirthFilter });
-    }
-    // --- Filtro em memória para birth_year ---
-    if (
-      Array.isArray(findSegmentAudienceDto.birth_year) &&
-      findSegmentAudienceDto.birth_year.length > 0
-    ) {
-      const birthYearConditions = findSegmentAudienceDto.birth_year
-        .map(Number)
-        .filter((year) => !isNaN(year))
-        .map((year) => ({
-          date_birth: {
-            gte: new Date(year, 0, 1),
-            lte: new Date(year, 11, 31, 23, 59, 59, 999),
-          },
-        }));
-      if (birthYearConditions.length > 0) {
-        filterCustomerUnified.push({ OR: birthYearConditions });
-      }
-    }
     //TODO: FILTRO DE GÊNERO BUSCA NA TABELA DE CUSTOMER UNIFIED
     if (
       Array.isArray(findSegmentAudienceDto.gender) &&
@@ -610,6 +562,30 @@ export class AudiencesService {
       }
       filterOrders.push({ total: totalFilter });
     }
+    const filterOrderDateCreate: any[] = [];
+    if (
+      findSegmentAudienceDto.date_order_start ||
+      findSegmentAudienceDto.date_order_end
+    ) {
+      const dateFilter: { gte?: Date; lte?: Date } = {};
+
+      if (findSegmentAudienceDto.date_order_start) {
+        dateFilter.gte = new Date(findSegmentAudienceDto.date_order_start);
+      }
+      if (findSegmentAudienceDto.date_order_end) {
+        //dateFilter.lte = new Date(findSegmentAudienceDto.date_order_end);
+        const endDate = new Date(findSegmentAudienceDto.date_order_end);
+        endDate.setUTCHours(23, 59, 59, 999);
+        dateFilter.lte = endDate;
+      }
+      filterOrderDateCreate.push({
+        order_date: dateFilter,
+      });
+    }
+    // console.log(
+    //   'filterOrderDateCreate:',
+    //   JSON.stringify(filterOrderDateCreate, null, 2),
+    // );
 
     //TODO: FILTRO DE TAGS TABELA ASSOCIATIONTAGS BUSCA QUAL UNIFIED TEM A TAG
     const filterTags: any[] = [];
@@ -642,17 +618,6 @@ export class AudiencesService {
     // console.log('OrderItens', JSON.stringify(filterOrdersItens, null, 2));
 
     //TODO: FILTRO PARA BUSCAR A LOJA QUE O UNIFIED COMPROU
-    // const filterSeller: any[] = [];
-    // if (
-    //   Array.isArray(findSegmentAudienceDto.seller_ref) &&
-    //   findSegmentAudienceDto.seller_ref.length > 0
-    // ) {
-    //   filterSeller.push({
-    //     seller_ref: {
-    //       in: findSegmentAudienceDto.seller_ref.map((name) => name.trim()),
-    //     },
-    //   });
-    // }
     const filterSeller: any[] = [];
     if (
       Array.isArray(findSegmentAudienceDto.seller_ref) &&
@@ -665,7 +630,21 @@ export class AudiencesService {
         },
       });
     }
-    //console.log('filterSeller', filterSeller);
+
+    //TODO: GRUPO DO SELLER
+    const filterSellerChain: any[] = [];
+    if (
+      Array.isArray(findSegmentAudienceDto.store_chain) &&
+      findSegmentAudienceDto.store_chain.filter((r) => r.trim() !== '').length >
+        0
+    ) {
+      filterSellerChain.push({
+        store_chain: {
+          in: findSegmentAudienceDto.store_chain.filter((r) => r.trim() !== ''),
+        },
+      });
+    }
+    //console.log('filterSellerChain', filterSellerChain);
 
     //TODO: FILTRO DE EVENTO BUSCA NA TABELA INTERACTION
     const filterInteraction: any[] = [];
@@ -760,6 +739,27 @@ export class AudiencesService {
             seller: {
               AND: filterSeller,
             },
+          },
+        },
+      });
+    }
+
+    if (filterSellerChain.length > 0) {
+      allSegmentConditions.push({
+        Order: {
+          some: {
+            seller: {
+              AND: filterSellerChain,
+            },
+          },
+        },
+      });
+    }
+    if (filterOrderDateCreate.length > 0) {
+      allSegmentConditions.push({
+        Order: {
+          some: {
+            AND: filterOrderDateCreate,
           },
         },
       });
