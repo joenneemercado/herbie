@@ -94,6 +94,7 @@ model Seller {
   updated_at      DateTime      @updatedAt
   channel         String?
   organization_id String
+  store_chain     String?
   Interaction     Interaction[]
   orders          Order[]
   organization    Organization  @relation(fields: [organization_id], references: [public_id])
@@ -137,7 +138,7 @@ model Order {
 
 model OrderItem {
   id       Int     @id @default(autoincrement())
-  quantity Int
+  quantity Float   @db.Real
   price    Int
   discount Int?
   total    Int
@@ -189,7 +190,6 @@ model Customer {
   segments                 SegmentCustomer[]
 
   @@unique([cnpj, source_id], map: "customer_cnpj_idx")
-  @@unique([cpf, source_id], map: "customer_cpf_idx")
 }
 
 model CustomerUnified {
