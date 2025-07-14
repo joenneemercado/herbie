@@ -108,7 +108,6 @@ export class UserThrottlerGuard extends ThrottlerGuard {
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
     {
       provide: APP_GUARD,
       useClass: UserThrottlerGuard, // Throttler por usuário

@@ -1,17 +1,17 @@
 import {
   forwardRef,
-  INestApplication,
+  //INestApplication,
   Module,
   OnModuleInit,
 } from '@nestjs/common';
 import { QueueService } from './queue.service';
 import { BullModule, InjectQueue } from '@nestjs/bull';
-import { ImportProcessor } from './import.processor';
 import { ImportModule } from '@src/import/import.module';
-import { ExpressAdapter } from '@bull-board/express';
-import { BullAdapter } from '@bull-board/api/bullAdapter';
-import { Queue } from 'bull';
-import { createBullBoard } from '@bull-board/api';
+//import { ExpressAdapter } from '@bull-board/express';
+//import { BullAdapter } from '@bull-board/api/bullAdapter';
+//import { Queue } from 'bull';
+//import { createBullBoard } from '@bull-board/api';
+import { ImportProcessor } from './import.processor';
 import { VtexProcessor } from './vtex.processor';
 import { VtexModule } from '@src/connectors/vtex/vtex.module';
 import { WifiModule } from '@src/connectors/wifi/wifi.module';
@@ -22,9 +22,11 @@ import { ConfigModule } from '@nestjs/config';
 import { AudienceFileProcessor } from './audience-file.processor';
 import { AudiencesModule } from '@src/campaigns/audiences/audiences.module';
 import { PrismaService } from '@src/database/prisma.service';
+import { DatabaseModule } from '@src/database/database.module';
 
 @Module({
   imports: [
+    DatabaseModule,
     ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRoot({
       redis: {
@@ -74,24 +76,23 @@ import { PrismaService } from '@src/database/prisma.service';
     WifiProcessor,
     OpahProcessor,
     AudienceFileProcessor,
-    PrismaService,
+    
   ],
   exports: [BullModule],
 })
 export class QueueModule implements OnModuleInit {
-  private serverAdapter: ExpressAdapter = new ExpressAdapter();
+  //private serverAdapter: ExpressAdapter = new ExpressAdapter();
 
   constructor(
-    @InjectQueue('import-queue') private readonly importQueue: Queue,
+   /* @InjectQueue('import-queue') private readonly importQueue: Queue,
     @InjectQueue('vtex-queue') private readonly vtexQueue: Queue,
     @InjectQueue('wifi-queue') private readonly wifiQueue: Queue,
     @InjectQueue('opah-queue') private readonly opahQueue: Queue,
-    @InjectQueue('audience-queue')
-    private readonly audienceFileQueue: Queue,
+    @InjectQueue('audience-queue') private readonly audienceFileQueue: Queue, */
   ) {}
 
   onModuleInit() {
-    console.log('Initializing Bull Board...');
+   /* console.log('Initializing Bull Board...');
     //this.serverAdapter = new ExpressAdapter();
     createBullBoard({
       queues: [
@@ -116,6 +117,6 @@ export class QueueModule implements OnModuleInit {
       console.log('Bull Board route registered successfully');
     } else {
       console.log('ServerAdapter not initialized');
-    }
+    }*/
   }
 }

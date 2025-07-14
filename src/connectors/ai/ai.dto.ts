@@ -11,3 +11,14 @@ export class AiMessageDto {
   @IsString()
   message: string;
 }
+
+export class AiAskDto {
+  @ApiProperty({
+    name: 'ask',
+    description: 'The content of the ask',
+    type: String,
+    required: true,
+  })
+  @IsString()
+  ask: string;
+}
