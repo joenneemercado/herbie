@@ -1,43 +1,120 @@
-# herbie
+# Herbie - Customer Data Platform (CDP)
 
-CDP - Customer Data Platform (CDP) é uma plataforma projetada para coletar, unificar, gerenciar e enriquecer dados e informações sobre os customeres de uma empresa.
+Herbie é uma plataforma backend desenvolvida em Node.js/NestJS para centralizar, unificar, enriquecer e ativar dados de clientes (Customer Data Platform - CDP). O sistema é modular, escalável e pronto para integrações com múltiplos canais e sistemas externos.
 
-Customer Data Platform (CDP), Deve considerar as funcionalidades e os requisitos típicos, como coleta, unificação, análise e ativação de dados de customeres.
+## Principais Tecnologias
 
-### Coleta de Dados de Customeres:
+- **Node.js** + **NestJS**: Framework backend modular e escalável.
+- **TypeScript**: Tipagem estática para maior robustez.
+- **Prisma ORM**: Mapeamento objeto-relacional para bancos SQL.
+- **JWT (JSON Web Token)**: Autenticação e autorização segura.
+- **Passport**: Estratégias de autenticação (local, JWT).
+- **Bcrypt**: Hash de senhas.
+- **Docker**: Containerização e orquestração de ambiente.
+- **Swagger**: Documentação automática da API.
+- **Cache (ex: Redis)**: Armazenamento temporário de tokens e dados.
 
-Customere (Customer): Armazena informações pessoais e de contato dos customeres.
-Endereço (Address): Contém informações de endereço associadas a cada customere.
-Campos Personalizados do Customere (CustomerField): Permite a adição de campos personalizados para armazenar informações adicionais sobre o customere.
-Unificação de Dados:
+## Estrutura de Pastas
 
-As relações entre Customer, Address e CustomerField parecem adequadas para unificar dados relacionados ao customere.
-O modelo também inclui informações sobre pedidos (Order) e itens de pedido (OrderItem), que são cruciais para entender o comportamento de compra do customere.
-Análise de Dados:
+```
+src/
+  auth/         # Autenticação e autorização
+  brands/       # Marcas
+  campaigns/    # Campanhas e audiências
+  categories/   # Categorias de produtos
+  channels/     # Canais de comunicação
+  connectors/   # Integrações externas (AI, Vtex, Invio, etc)
+  customers/    # Clientes, endereços, campos customizados
+  database/     # Módulo de acesso ao banco (Prisma)
+  events/       # Eventos do sistema
+  orders/       # Pedidos e itens
+  products/     # Produtos e SKUs
+  queue/        # Processamento assíncrono
+  seller/       # Vendedores
+  tags/         # Tags e segmentação
+  users/        # Usuários do sistema
+  ...           # Outros módulos
+```
 
-Os modelos de Order, OrderItem, Product, Category, Brand, e Sku fornecem uma boa base para análises de comportamento de compra e preferências de produto.
-Ativação de Dados:
+## Setup do Projeto
 
-As informações detalhadas sobre Order e OrderItem podem ser usadas para campanhas de marketing segmentadas e recomendações personalizadas.
+### Pré-requisitos
+- Node.js >= 18.x
+- Docker e Docker Compose (recomendado para banco e cache)
+- Yarn ou npm
 
-Dados de Interação:
+### Instalação
 
-Considerar adicionar um modelo para registrar interações dos customeres com diferentes canais (ex.: visitas ao site, cliques em e-mails, interações com suporte).
-Integração com Outros Sistemas:
+1. **Clone o repositório:**
+   ```bash
+   git clone <repo-url>
+   cd herbie
+   ```
 
-Incluir modelos para armazenar dados de integrações com sistemas de CRM, automação de marketing, etc.
-Dados Temporais:
+2. **Instale as dependências:**
+   ```bash
+   npm install
+   # ou
+   yarn install
+   ```
 
-Incluir modelos para capturar mudanças ao longo do tempo, como histórico de preços de produtos, histórico de alterações de perfil do customere, etc.
-Segmentação:
+3. **Configure as variáveis de ambiente:**
+   - Copie `.env.example` para `.env` e ajuste conforme necessário (banco, JWT, etc).
 
-Adicionar um modelo para segmentação de customeres, permitindo a criação de grupos de customeres baseados em critérios específicos.
-GDPR e Compliance:
+4. **Suba os serviços de infraestrutura (opcional):**
+   ```bash
+   docker-compose up -d
+   ```
 
-Incluir campos e modelos para gerenciar consentimento e preferências de privacidade dos customeres.
+5. **Rode as migrations do banco:**
+   ```bash
+   npx prisma migrate deploy
+   # ou para desenvolvimento
+   npx prisma migrate dev
+   ```
 
-/\*\*\*
-Interaction para registrar interações dos customeres e um modelo de Segment para gerenciar a segmentação de customeres.
-Com essas melhorias e considerações, o modelo estará mais robusto e preparado para atender às necessidades de um CDP completo.
+6. **Inicie o servidor:**
+   ```bash
+   npm run start:dev
+   # ou
+   yarn start:dev
+   ```
 
-\*\*\*/
+7. **Acesse a documentação da API:**
+   - Swagger: [http://localhost:3000/api](http://localhost:3000/api)
+
+## Comandos Úteis
+
+- `start:dev` - Inicia o servidor em modo desenvolvimento
+- `start` - Inicia em produção
+- `test` - Executa os testes automatizados
+- `lint` - Checa o padrão de código
+- `prisma studio` - Interface visual para o banco de dados
+
+## Funcionalidades Principais
+- Cadastro e gestão de clientes, endereços e campos customizados
+- Gestão de produtos, categorias, marcas e SKUs
+- Processamento de pedidos e itens
+- Segmentação e campanhas
+- Integração com múltiplos canais e sistemas externos
+- Autenticação JWT, roles e escopos
+- Processamento assíncrono via filas
+
+## Contribuição
+1. Crie um fork do projeto
+2. Crie uma branch para sua feature/fix
+3. Faça commit das suas alterações
+4. Envie um Pull Request
+
+## Sobre CDP (Customer Data Platform)
+
+Uma CDP é uma plataforma projetada para coletar, unificar, gerenciar e enriquecer dados dos clientes de uma empresa. O Herbie implementa:
+- Coleta e unificação de dados de clientes, endereços e campos personalizados
+- Análise de comportamento de compra (pedidos, produtos, categorias)
+- Ativação de dados para campanhas e recomendações
+- Registro de interações e integrações com sistemas externos
+- Suporte a segmentação, histórico e compliance (LGPD/GDPR)
+
+---
+
+Para dúvidas ou sugestões, abra uma issue ou entre em contato com os mantenedores.
