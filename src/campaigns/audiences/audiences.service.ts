@@ -589,16 +589,47 @@ export class AudiencesService {
     // );
 
     //TODO: FILTRO DE TICKE MEDIO BUSCA NA TABELA CUSTOMER FIELD
-    const filterOrderTicket: any[] = [{ type: 'AVERAGE_TICKET' }];
-    if (
-      findSegmentAudienceDto.ticket_order_start ||
-      findSegmentAudienceDto.ticket_order_end
-    ) {
-      const valueFilter: { gte?: string; lte?: string } = {};
-      valueFilter.gte = findSegmentAudienceDto.ticket_order_start;
-      valueFilter.lte = findSegmentAudienceDto.ticket_order_end;
+    const filterOrderTicket: any[] = [];
+    // if (
+    //   findSegmentAudienceDto.ticket_order_start ||
+    //   findSegmentAudienceDto.ticket_order_end
+    // ) {
+    //   const valueFilter: { gte?: string; lte?: string } = {};
+    //   valueFilter.gte = findSegmentAudienceDto.ticket_order_start;
+    //   valueFilter.lte = findSegmentAudienceDto.ticket_order_end;
 
+    //   if (Object.keys(valueFilter).length > 0) {
+    //     filterOrderTicket.push({ type: 'AVERAGE_TICKET' });
+    //     filterOrderTicket.push({ value: valueFilter });
+    //   }
+    // }
+
+    // 1. Converte os valores do DTO para números para uma comparação segura.
+    const ticketStart = findSegmentAudienceDto.ticket_order_start
+      ? parseFloat(findSegmentAudienceDto.ticket_order_start)
+      : 0;
+    const ticketEnd = findSegmentAudienceDto.ticket_order_end
+      ? parseFloat(findSegmentAudienceDto.ticket_order_end)
+      : 0;
+
+    // Só prossiga se houver pelo menos um filtro de ticket válido.
+    if (ticketStart > 0 || ticketEnd > 0) {
+      // 2. Cria o objeto de filtro.
+      const valueFilter: { gte?: string; lte?: string } = {};
+
+      // 3. Adiciona 'gte' ao filtro APENAS se for maior que zero.
+      if (ticketStart > 0) {
+        valueFilter.gte = ticketStart.toString();
+      }
+
+      // 4. Adiciona 'lte' ao filtro APENAS se for maior que zero.
+      if (ticketEnd > 0) {
+        valueFilter.lte = ticketEnd.toString();
+      }
+
+      // 5. Adiciona o filtro à query principal apenas se alguma condição foi de fato adicionada.
       if (Object.keys(valueFilter).length > 0) {
+        filterOrderTicket.push({ type: 'AVERAGE_TICKET' });
         filterOrderTicket.push({ value: valueFilter });
       }
     }
@@ -606,12 +637,13 @@ export class AudiencesService {
     //console.log('filterOrderTicket', JSON.stringify(filterOrderTicket));
 
     //TODO: FILTRO DE SELLER PREFERENCE BUSCA NA TABELA CUSTOMER FIELD
-    const filterSellerPreference: any[] = [{ type: 'STORE' }];
+    const filterSellerPreference: any[] = [];
     if (
       Array.isArray(findSegmentAudienceDto.seller_preference_id) &&
       findSegmentAudienceDto.seller_preference_id.filter((r) => r.trim() !== '')
         .length > 0
     ) {
+      filterSellerPreference.push({ type: 'STORE' });
       filterSellerPreference.push({
         value: {
           in: findSegmentAudienceDto.seller_preference_id.filter(
@@ -620,10 +652,20 @@ export class AudiencesService {
         },
       });
     }
-    // console.log(
-    //   'filterSellerPreference',
-    //   JSON.stringify(filterSellerPreference),
-    // );
+
+    const filterRfmName: any[] = [];
+    if (
+      Array.isArray(findSegmentAudienceDto.rfm_name) &&
+      findSegmentAudienceDto.rfm_name.filter((r) => r.trim() !== '').length > 0
+    ) {
+      filterRfmName.push({ type: 'SEGMENT' });
+      filterRfmName.push({
+        value: {
+          in: findSegmentAudienceDto.rfm_name.filter((r) => r.trim() !== ''),
+        },
+      });
+    }
+    //console.log('filterRfmName', JSON.stringify(filterRfmName));
 
     //TODO: FILTRO DE TAGS TABELA ASSOCIATIONTAGS BUSCA QUAL UNIFIED TEM A TAG
     const filterTags: any[] = [];
@@ -819,6 +861,15 @@ export class AudiencesService {
         customer_fields: {
           some: {
             AND: filterSellerPreference,
+          },
+        },
+      });
+    }
+    if (filterRfmName.length > 0) {
+      allSegmentConditions.push({
+        customer_fields: {
+          some: {
+            AND: filterRfmName,
           },
         },
       });
