@@ -302,6 +302,49 @@ export class FindSegmentAudienceDto {
   seller_preference_id?: string[];
 
   @ApiPropertyOptional({
+    description: 'Nome do rfm que deseja filtrar',
+    example: 'Frequente',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({
+    each: true,
+    message: 'Nome do rfm que deseja filtrar deve ser uma string',
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        // Tenta tratar caso seja string do tipo '[female,male]'
+        const fallbackParsed = value
+          .replace(/^\[|\]$/g, '')
+          .split(',')
+          .map((s) => s.trim());
+        return fallbackParsed;
+      }
+    }
+
+    if (Array.isArray(value)) {
+      return value.flatMap((v) => {
+        if (typeof v === 'string' && /^\[.*\]$/.test(v)) {
+          return v
+            .replace(/^\[|\]$/g, '')
+            .split(',')
+            .map((s) => s.trim());
+        }
+        return v;
+      });
+    }
+
+    return [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  rfm_name?: string[];
+
+  @ApiPropertyOptional({
     description: 'id grupo de lojas',
     example: 'Nova era, Patio gourmet',
     type: [String],

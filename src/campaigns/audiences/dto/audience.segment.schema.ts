@@ -45,6 +45,21 @@ export const findSegmentAudienceSchema = z.object({
       }
       return val.map(String);
     }),
+  rfm_name: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed.map(String) : [String(val)];
+        } catch {
+          return [String(val)];
+        }
+      }
+      return val.map(String);
+    }),
   birth_day: z
     .union([z.string(), z.number(), z.array(z.string()), z.array(z.number())])
     .optional()
