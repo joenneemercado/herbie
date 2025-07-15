@@ -116,4 +116,101 @@ export class DashboardService {
       throw error;
     }
   }
+
+  async rmfSegementation(organization_id?: string) {
+    try {
+      // Busca todos os segmentos cadastrados na tabela CustomerField
+      const where: any = { type: 'SEGMENT' };
+      if (organization_id) {
+        where.organization_id = organization_id;
+      }
+      const segments = await this.prisma.customerField.findMany({
+        where,
+        select: {
+          value: true,
+        },
+      });
+
+      // Definição dos segmentos RFM
+      const SEGMENTS = {
+        CHAMPIONS: {
+          name: 'Champions',
+          description: 'Clientes com alta recência, frequência e valor monetário',
+        },
+        LOYAL_CUSTOMERS: {
+          name: 'Loyal Customers',
+          description: 'Clientes fiéis com boa frequência e valor',
+        },
+        POTENTIAL_LOYALISTS: {
+          name: 'Potential Loyalists',
+          description: 'Clientes com potencial para se tornarem fiéis',
+        },
+        RECENT_CUSTOMERS: {
+          name: 'Recent Customers',
+          description: 'Clientes recentes com baixa frequência',
+        },
+        PROMISING: {
+          name: 'Promising',
+          description: 'Clientes promissores com baixa recência mas boa frequência',
+        },
+        NEEDS_ATTENTION: {
+          name: 'Needs Attention',
+          description: 'Clientes que precisam de atenção',
+        },
+        AT_RISK: {
+          name: 'At Risk',
+          description: 'Clientes em risco de abandono',
+        },
+        CANNOT_LOSE: {
+          name: 'Cannot Lose',
+          description: 'Clientes valiosos que não podem ser perdidos',
+        },
+        HIBERNATING: {
+          name: 'Hibernating',
+          description: 'Clientes inativos há muito tempo',
+        },
+        LOST: {
+          name: 'Lost',
+          description: 'Clientes perdidos',
+        },
+      };
+
+      // Função para normalizar o value para UPPER_SNAKE_CASE
+      function toUpperSnakeCase(str: string) {
+        return str
+          .replace(/([a-z])([A-Z])/g, '$1_$2')
+          .replace(/\s+/g, '_')
+          .toUpperCase();
+      }
+      // Contagem de cada segmento
+      const total = segments.length;
+      const counts = Object.keys(SEGMENTS).reduce((acc, key) => {
+        acc[key] = 0;
+        return acc;
+      }, {} as Record<string, number>);
+      for (const seg of segments) {
+        if (seg.value) {
+          const normalized = toUpperSnakeCase(seg.value);
+          if (counts.hasOwnProperty(normalized)) {
+            counts[normalized]++;
+          }
+        }
+      }
+      // Monta o resultado para o gráfico
+      const result = Object.entries(SEGMENTS).map(([key, info]) => {
+        const count = counts[key] || 0;
+        return {
+          key,
+          name: info.name,
+          description: info.description,
+          count,
+          percentage: total > 0 ? Number(((count / total) * 100).toFixed(2)) : 0,
+        };
+      });
+      return result;
+    } catch (error) {
+      console.error('Erro ao calcular segmentação RFM:', error);
+      throw error;
+    }
+  }
 }
