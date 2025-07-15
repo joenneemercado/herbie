@@ -40,6 +40,7 @@ model Organization {
   RFM                   RFM[]
   segments              Segment[]
   sellers               Seller[]
+  SellerChain           SellerChain[]
   Tags                  Tags[]
   events                TypeEvent[]
   users                 User[]
@@ -94,10 +95,11 @@ model Seller {
   updated_at      DateTime      @updatedAt
   channel         String?
   organization_id String
-  store_chain     String?
+  store_chain_id  Int?
   Interaction     Interaction[]
   orders          Order[]
   organization    Organization  @relation(fields: [organization_id], references: [public_id])
+  sellerchain     SellerChain?  @relation(fields: [store_chain_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "seller_sellerchain_fk")
 }
 
 model Event {
@@ -657,6 +659,16 @@ model RFM {
   @@index([customer_unified_id, organization_id])
   @@index([id])
   @@index([organization_id])
+}
+
+model SellerChain {
+  id              Int          @id(map: "sellerchain_pk") @default(autoincrement())
+  name            String
+  organization_id String
+  created_at      DateTime?    @default(now())
+  updated_at      DateTime?
+  Seller          Seller[]
+  Organization    Organization @relation(fields: [organization_id], references: [public_id], onDelete: NoAction, onUpdate: NoAction, map: "sellerchain_organization_fk")
 }
 
 enum Role {
