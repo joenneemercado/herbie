@@ -1,3 +1,4 @@
+import { CustomerUnified } from './../../../node_modules/.prisma/client/index.d';
 import {
   HttpException,
   Injectable,
@@ -587,6 +588,43 @@ export class AudiencesService {
     //   JSON.stringify(filterOrderDateCreate, null, 2),
     // );
 
+    //TODO: FILTRO DE TICKE MEDIO BUSCA NA TABELA CUSTOMER FIELD
+    const filterOrderTicket: any[] = [{ type: 'AVERAGE_TICKET' }];
+    if (
+      findSegmentAudienceDto.ticket_order_start ||
+      findSegmentAudienceDto.ticket_order_end
+    ) {
+      const valueFilter: { gte?: string; lte?: string } = {};
+      valueFilter.gte = findSegmentAudienceDto.ticket_order_start;
+      valueFilter.lte = findSegmentAudienceDto.ticket_order_end;
+
+      if (Object.keys(valueFilter).length > 0) {
+        filterOrderTicket.push({ value: valueFilter });
+      }
+    }
+
+    //console.log('filterOrderTicket', JSON.stringify(filterOrderTicket));
+
+    //TODO: FILTRO DE SELLER PREFERENCE BUSCA NA TABELA CUSTOMER FIELD
+    const filterSellerPreference: any[] = [{ type: 'STORE' }];
+    if (
+      Array.isArray(findSegmentAudienceDto.seller_preference_id) &&
+      findSegmentAudienceDto.seller_preference_id.filter((r) => r.trim() !== '')
+        .length > 0
+    ) {
+      filterSellerPreference.push({
+        value: {
+          in: findSegmentAudienceDto.seller_preference_id.filter(
+            (r) => r.trim() !== '',
+          ),
+        },
+      });
+    }
+    // console.log(
+    //   'filterSellerPreference',
+    //   JSON.stringify(filterSellerPreference),
+    // );
+
     //TODO: FILTRO DE TAGS TABELA ASSOCIATIONTAGS BUSCA QUAL UNIFIED TEM A TAG
     const filterTags: any[] = [];
     if (
@@ -634,13 +672,16 @@ export class AudiencesService {
     //TODO: GRUPO DO SELLER
     const filterSellerChain: any[] = [];
     if (
-      Array.isArray(findSegmentAudienceDto.store_chain) &&
-      findSegmentAudienceDto.store_chain.filter((r) => r.trim() !== '').length >
-        0
+      Array.isArray(findSegmentAudienceDto.store_chain_id) &&
+      findSegmentAudienceDto.store_chain_id.filter(
+        (id) => id !== '' && !isNaN(Number(id)),
+      ).length > 0
     ) {
       filterSellerChain.push({
-        store_chain: {
-          in: findSegmentAudienceDto.store_chain.filter((r) => r.trim() !== ''),
+        store_chain_id: {
+          in: findSegmentAudienceDto.store_chain_id
+            .filter((id) => id !== '' && !isNaN(Number(id)))
+            .map(Number),
         },
       });
     }
@@ -760,6 +801,24 @@ export class AudiencesService {
         Order: {
           some: {
             AND: filterOrderDateCreate,
+          },
+        },
+      });
+    }
+    if (filterOrderTicket.length > 0) {
+      allSegmentConditions.push({
+        customer_fields: {
+          some: {
+            AND: filterOrderTicket,
+          },
+        },
+      });
+    }
+    if (filterSellerPreference.length > 0) {
+      allSegmentConditions.push({
+        customer_fields: {
+          some: {
+            AND: filterSellerPreference,
           },
         },
       });
