@@ -213,4 +213,57 @@ export class DashboardService {
       throw error;
     }
   }
+
+  async dadosDemograficos(organization_id: string) {
+    // Mapas de normalização
+    const genderMap = {
+      Masculino: 'Male',
+      Feminino: 'Female',
+      Outro: 'Other',
+      others: 'Other',
+    };
+    const maritalStatusMap = {
+      'Solteiro(a)': 'single',
+      Solteiro: 'single',
+      Solteira: 'single',
+      'Casado(a)': 'married',
+      Casado: 'married',
+      Casada: 'married',
+      'Divorciado(a)': 'divorced',
+      'Viúvo(a)': 'widowed',
+      'Viuvo(a)': 'widowed',
+    };
+    // Busca todos os clientes unificados da organização
+    const customers = await this.prisma.customerUnified.findMany({
+      where: { organization_id },
+      select: { gender: true, marital_status: true },
+    });
+    // Estatísticas de gênero
+    const genderStats: Record<string, number> = {};
+    // Estatísticas de estado civil
+    const maritalStats: Record<string, number> = {};
+    let total = customers.length;
+    for (const c of customers) {
+      // Gênero
+      let g = c.gender ? genderMap[c.gender] || c.gender : 'Unknown';
+      genderStats[g] = (genderStats[g] || 0) + 1;
+      // Estado civil
+      let m = c.marital_status ? maritalStatusMap[c.marital_status] || c.marital_status : 'Unknown';
+      maritalStats[m] = (maritalStats[m] || 0) + 1;
+    }
+    // Monta o resultado
+    return {
+      total,
+      gender: Object.entries(genderStats).map(([key, count]) => ({
+        key,
+        count,
+        percentage: total > 0 ? Number(((count / total) * 100).toFixed(2)) : 0,
+      })),
+      marital_status: Object.entries(maritalStats).map(([key, count]) => ({
+        key,
+        count,
+        percentage: total > 0 ? Number(((count / total) * 100).toFixed(2)) : 0,
+      })),
+    };
+  }
 }

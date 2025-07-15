@@ -34,4 +34,15 @@ export class DashboardController {
     }
     return this.dashboardService.rmfSegementation(organization_id);
   }
+
+  @Get('dados-demograficos')
+  @ApiOperation({ summary: 'Retorna os dados demográficos dos clientes unificados da organização', description: 'Retorna os dados demográficos dos clientes da organização, agrupados por organization_id.' })
+  @ApiResponse({ status: 200, description: 'Dados demográficos agrupados por gênero e estado civil', schema: { example: { total: 100, gender: [ { key: 'Male', count: 60, percentage: 60 } ], marital_status: [ { key: 'single', count: 50, percentage: 50 } ] } } })
+  @ApiResponse({ status: 400, description: 'organization_id é obrigatório' })
+  async dadosDemograficos(@Query('organization_id') organization_id: string) {
+    if (!organization_id) {
+      throw new BadRequestException('organization_id é obrigatório');
+    }
+    return this.dashboardService.dadosDemograficos(organization_id);
+  }
 }
