@@ -236,12 +236,16 @@ export class DashboardService {
     // Busca todos os clientes unificados da organização
     const customers = await this.prisma.customerUnified.findMany({
       where: { organization_id },
-      select: { gender: true, marital_status: true },
+      select: { gender: true, marital_status: true, date_birth: true },
     });
     // Estatísticas de gênero
     const genderStats: Record<string, number> = {};
     // Estatísticas de estado civil
     const maritalStats: Record<string, number> = {};
+    // Estatísticas de aniversariantes por mês
+    const birthdayMonthStats: Record<number, number> = {};
+    // Estatísticas por geração
+    const generationStats: Record<string, number> = {};
     let total = customers.length;
     for (const c of customers) {
       // Gênero
@@ -250,6 +254,26 @@ export class DashboardService {
       // Estado civil
       let m = c.marital_status ? maritalStatusMap[c.marital_status] || c.marital_status : 'Unknown';
       maritalStats[m] = (maritalStats[m] || 0) + 1;
+      // Aniversariantes por mês
+      if (c.date_birth) {
+        const month = new Date(c.date_birth).getMonth() + 1; // Janeiro = 1, Dezembro = 12
+        birthdayMonthStats[month] = (birthdayMonthStats[month] || 0) + 1;
+        // Geração baseada no ano de nascimento
+        const year = new Date(c.date_birth).getFullYear();
+        let generation = 'Unknown';
+        if (year >= 1946 && year <= 1964) {
+          generation = 'Baby Boomers';
+        } else if (year >= 1960 && year <= 1980) {
+          generation = 'Geração X';
+        } else if (year >= 1980 && year <= 2000) {
+          generation = 'Geração Y (Millennials)';
+        } else if (year >= 1990 && year <= 2010) {
+          generation = 'Geração Z';
+        } else if (year >= 2020) {
+          generation = 'Geração Alpha';
+        }
+        generationStats[generation] = (generationStats[generation] || 0) + 1;
+      }
     }
     // Monta o resultado
     return {
@@ -260,6 +284,17 @@ export class DashboardService {
         percentage: total > 0 ? Number(((count / total) * 100).toFixed(2)) : 0,
       })),
       marital_status: Object.entries(maritalStats).map(([key, count]) => ({
+        key,
+        count,
+        percentage: total > 0 ? Number(((count / total) * 100).toFixed(2)) : 0,
+      })),
+      birthday_month: Object.entries(birthdayMonthStats).map(([month, count]) => ({
+        month: Number(month),
+        month_name: new Date(2024, Number(month) - 1).toLocaleDateString('pt-BR', { month: 'long' }),
+        count,
+        percentage: total > 0 ? Number(((count / total) * 100).toFixed(2)) : 0,
+      })),
+      generations: Object.entries(generationStats).map(([key, count]) => ({
         key,
         count,
         percentage: total > 0 ? Number(((count / total) * 100).toFixed(2)) : 0,
