@@ -38,6 +38,7 @@ model Organization {
   members               Member[]
   orders                Order[]
   RFM                   RFM[]
+  RFMSegmentation       RFMSegmentation[]
   segments              Segment[]
   sellers               Seller[]
   SellerChain           SellerChain[]
@@ -669,6 +670,17 @@ model SellerChain {
   updated_at      DateTime?
   Seller          Seller[]
   Organization    Organization @relation(fields: [organization_id], references: [public_id], onDelete: NoAction, onUpdate: NoAction, map: "sellerchain_organization_fk")
+}
+
+model RFMSegmentation {
+  id              Int          @id @default(autoincrement())
+  name            String
+  description     String?
+  rfm_range       Json?        @db.Json
+  organization_id String
+  created_at      DateTime?    @default(now())
+  updated_at      DateTime?
+  Organization    Organization @relation(fields: [organization_id], references: [public_id], onDelete: NoAction, onUpdate: NoAction, map: "rfmsegmentation_organization_fk")
 }
 
 enum Role {
