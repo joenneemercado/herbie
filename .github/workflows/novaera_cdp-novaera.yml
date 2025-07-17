@@ -7,10 +7,6 @@ on:
   push:
     branches:
       - novaera
-    paths-ignore:
-      - 'README.md'
-      - '.husky'
-      - '**/*.csv'
   workflow_dispatch:
 
 jobs:
@@ -27,12 +23,6 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: npm install, build, and test
-        run: |
-          npm ci
-          npx prisma generate
-          npm run build
-
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
@@ -48,6 +38,9 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
@@ -57,6 +50,13 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A279F8602E2F4422AC6B3B8B66AEE6F9 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C3D68FF3CAE64E0AA2C94505F81F3C9C }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_382C3065AC6542898936106C9D57A82B }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -65,4 +65,4 @@ jobs:
           app-name: 'CDP-NOVAERA'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F9BFA01537A5400AAD85A1BDB1D0CEAF }}
+          
