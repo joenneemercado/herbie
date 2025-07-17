@@ -518,7 +518,57 @@ export class AudiencesService {
 
   async buildSegmentFilters(findSegmentAudienceDto: FindSegmentAudienceSchema) {
     //console.log('buildSegmentFilters', findSegmentAudienceDto);
+
     const filterCustomerUnified: any[] = [];
+
+    //TODO: FILTRO DE ANIVERSÁRIO BUSCA NA TABELA DE CUSTOMER UNIFIED
+    const dateBirthFilter: any[] = [];
+    const datesStart = findSegmentAudienceDto.date_birth_start
+      ? Array.isArray(findSegmentAudienceDto.date_birth_start)
+        ? findSegmentAudienceDto.date_birth_start
+        : findSegmentAudienceDto.date_birth_start
+            .replace(/[^\d, -]/g, '')
+            .split(',')
+      : [];
+    const datesEnd = findSegmentAudienceDto.date_birth_end
+      ? Array.isArray(findSegmentAudienceDto.date_birth_end)
+        ? findSegmentAudienceDto.date_birth_end
+        : findSegmentAudienceDto.date_birth_end
+            .replace(/[^\d, -]/g, '')
+            .split(',')
+      : [];
+    const cleanDate = (d: string) => d.replace(/[\[\]\s]/g, '');
+    for (let i = 0; i < Math.min(datesStart.length, datesEnd.length); i++) {
+      const startDate = new Date(cleanDate(datesStart[i]));
+      const endDate = new Date(cleanDate(datesEnd[i]));
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        dateBirthFilter.push({
+          date_birth: { gte: startDate, lte: endDate },
+        });
+      }
+    }
+    //console.log('📊 Filtros de Data de Nascimento:', dateBirthFilter);
+    if (dateBirthFilter.length > 0) {
+      filterCustomerUnified.push({ OR: dateBirthFilter });
+    }
+    // --- Filtro em memória para birth_year ---
+    if (
+      Array.isArray(findSegmentAudienceDto.birth_year) &&
+      findSegmentAudienceDto.birth_year.length > 0
+    ) {
+      const birthYearConditions = findSegmentAudienceDto.birth_year
+        .map(Number)
+        .filter((year) => !isNaN(year))
+        .map((year) => ({
+          date_birth: {
+            gte: new Date(year, 0, 1),
+            lte: new Date(year, 11, 31, 23, 59, 59, 999),
+          },
+        }));
+      if (birthYearConditions.length > 0) {
+        filterCustomerUnified.push({ OR: birthYearConditions });
+      }
+    }
 
     //TODO: FILTRO DE GÊNERO BUSCA NA TABELA DE CUSTOMER UNIFIED
     if (

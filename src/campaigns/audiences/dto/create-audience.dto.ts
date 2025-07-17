@@ -134,6 +134,42 @@ export class FindSegmentAudienceDto {
   organization_id: string;
 
   @IsOptional()
+  @IsArray({ message: 'O date_birth_start deve ser um array de strings' })
+  @IsArray()
+  @IsString({ each: true, message: 'Cada source_id deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        return [String(value)];
+      }
+    }
+    return Array.isArray(value) ? value.map(String) : [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  date_birth_start?: string[];
+
+  @IsOptional()
+  @IsArray({ message: 'O date_birth_end deve ser um array de strings' })
+  @IsArray()
+  @IsString({ each: true, message: 'Cada source_id deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        return [String(value)];
+      }
+    }
+    return Array.isArray(value) ? value.map(String) : [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  date_birth_end?: string[];
+
+  @IsOptional()
   @ApiProperty({
     description: 'Data de início do pedido', // Descrição corrigida
     example: '2024-01-01T00:00:00.000Z',
