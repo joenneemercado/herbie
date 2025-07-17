@@ -46,7 +46,7 @@ export class CampaignsController {
   @ApiResponse({ status: 201, description: 'Created' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   @Post()
-  create(
+  async create(
     @Body() createCampaingDto: CreateCampaingDto,
     @Request() req: Request,
   ) {
@@ -55,7 +55,11 @@ export class CampaignsController {
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors);
     }
-    return this.campaignsService.create(parsed.data, req);
+    const result = await this.campaignsService.create(parsed.data, req);
+    if (result) {
+      return result;
+    }
+    throw new BadRequestException('Erro ao criar campanha');
   }
 
   @Get('/all')
