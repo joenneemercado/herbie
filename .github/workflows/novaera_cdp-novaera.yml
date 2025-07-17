@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - novaera
+    paths-ignore:
+      - 'README.md'
+      - '.husky'
+      - '**/*.csv'
   workflow_dispatch:
 
 jobs:
@@ -19,17 +23,39 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+      - name: Install NPM UPDATE
+        run: npm install -g npm@latest
+
+      - name: Install NestJS CLI
+        run: npm install -g @nestjs/cli
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Clean dist folder
+        run: rm -rf dist
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Build application
+        run: npm run build
+
+      - name: Prepare package for deploy
+        run: |
+          mkdir packaged
+          cp -r dist node_modules package*.json prisma packaged/
+          cd packaged
+          zip -r ../release.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
+          name: node-app-${{ github.run_id }}
           path: release.zip
 
   deploy:
@@ -38,12 +64,14 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write
     
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: node-app
+          name: node-app-${{ github.run_id }}
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
@@ -54,5 +82,5 @@ jobs:
         with:
           app-name: 'CDP-NOVAERA'
           slot-name: 'Production'
-          package: .
+          package: release.zip
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C4B1A1DFD6834414985F20C983E8E0A7 }}
