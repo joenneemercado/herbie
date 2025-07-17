@@ -6,7 +6,9 @@ import { PrismaService } from '@src/database/prisma.service';
 @Injectable()
 export class MailgridService {
   private readonly apiUrl = 'https://api.mailgrid.net.br/send/';
-  private readonly token = process.env.MAILGRID_TOKEN; // Configure no .env
+  private readonly hostSmtp = process.env.MAILGRID_HOST_SMTP;
+  private readonly usuarioSmtp = process.env.MAILGRID_USUARIO_SMTP;
+  private readonly senhaSmtp = process.env.MAILGRID_SENHA_SMTP;
 
   constructor(
     private readonly httpService: HttpService,
@@ -19,22 +21,58 @@ export class MailgridService {
     html,
     from,
     fromName,
+    text,
+    replyTo,
+    cc,
+    bcc,
+    attachments,
   }: {
     to: string | string[];
     subject: string;
     html: string;
     from: string;
-    fromName: string;
+    fromName?: string;
+    text?: string;
+    replyTo?: string;
+    cc?: string[];
+    bcc?: string[];
+    attachments?: any[];
   }) {
-    const payload = {
-      token_auth: this.token,
+    const payload: any = {
+      host_smtp: this.hostSmtp,
+      usuario_smtp: this.usuarioSmtp,
+      senha_smtp: this.senhaSmtp,
       emailRemetente: from,
       nomeRemetente: fromName,
       emailDestino: Array.isArray(to) ? to : [to],
       assunto: subject,
       mensagem: html,
       mensagemTipo: 'html',
+      mensagemEncoding: 'base64',
     };
+
+    if (text) {
+      payload.mensagemAlt = text;
+    }
+    if (replyTo) {
+      payload.emailReply = replyTo;
+    }
+    if (cc && cc.length > 0) {
+      payload.emailDestinoCopia = cc;
+    }
+    if (bcc && bcc.length > 0) {
+      payload.emailDestinoCopiaOculta = bcc;
+    }
+    if (attachments && attachments.length > 0) {
+      payload.mensagemAnexos = {};
+      attachments.forEach((attachment, index) => {
+        payload.mensagemAnexos[`file${index + 1}`] = {
+          name: attachment.name,
+          type: attachment.type,
+          content: attachment.content,
+        };
+      });
+    }
 
     try {
       const response$ = this.httpService.post(this.apiUrl, payload, {
@@ -67,35 +105,39 @@ export class MailgridService {
     html,
     from,
     fromName,
+    text,
+    replyTo,
+    cc,
+    bcc,
     attachments,
   }: {
     to: string[];
     subject: string;
     html: string;
     from: string;
-    fromName: string;
+    fromName?: string;
+    text?: string;
+    replyTo?: string;
+    cc?: string[];
+    bcc?: string[];
     attachments?: any[];
   }) {
     const results = [];
     for (const email of to) {
-      const payload: any = {
-        token_auth: this.token,
-        emailRemetente: from,
-        nomeRemetente: fromName,
-        emailDestino: [email],
-        assunto: subject,
-        mensagem: html,
-        mensagemTipo: 'html',
-      };
-      if (attachments && attachments.length > 0) {
-        payload.anexos = attachments;
-      }
       try {
-        const response$ = this.httpService.post(this.apiUrl, payload, {
-          headers: { 'Content-Type': 'application/json' },
+        const result = await this.sendMail({
+          to: email,
+          subject,
+          html,
+          from,
+          fromName,
+          text,
+          replyTo,
+          cc,
+          bcc,
+          attachments,
         });
-        const { data } = await firstValueFrom(response$);
-        results.push({ email, status: data.status, codigo: data.codigo });
+        results.push({ email, ...result });
       } catch (error) {
         results.push({ email, error: true, message: error.message });
       }
@@ -108,10 +150,14 @@ export class MailgridService {
     subject: string;
     html: string;
     from: string;
-    fromName: string;
+    fromName?: string;
+    text?: string;
+    replyTo?: string;
+    cc?: string[];
+    bcc?: string[];
     attachments?: any[];
   }) {
-    const { customerIds, subject, html, from, fromName, attachments } = body;
+    const { customerIds, subject, html, from, fromName, text, replyTo, cc, bcc, attachments } = body;
     if (!customerIds || !Array.isArray(customerIds) || customerIds.length === 0) {
       throw new InternalServerErrorException('customerIds é obrigatório e deve ser um array de IDs');
     }
@@ -130,6 +176,10 @@ export class MailgridService {
       html,
       from,
       fromName,
+      text,
+      replyTo,
+      cc,
+      bcc,
       attachments,
     });
   }

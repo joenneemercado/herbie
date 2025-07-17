@@ -57,6 +57,13 @@ export class MailgridController {
     if (!body.to || !body.subject || !body.html || !body.from || !body.fromName) {
       throw new BadRequestException('Campos obrigatórios ausentes');
     }
+    console.log({
+        to: body.to,
+        subject: body.subject,
+        html: body.html,
+        from: body.from,
+        fromName: body.fromName,
+      })
     return this.mailgridService.sendMail({
       to: body.to,
       subject: body.subject,
