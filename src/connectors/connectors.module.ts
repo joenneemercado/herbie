@@ -9,6 +9,7 @@ import { ConnectorsController } from './connectors.controller';
 import { DatabaseModule } from '@src/database/database.module';
 import { AiModule } from './ai/ai.module';
 import { InvioModule } from './invio/invio.module';
+import { MailgridModule } from './mailgrid/mailgrid.module';
 
 @Module({
   controllers: [ConnectorsController],
@@ -22,6 +23,7 @@ import { InvioModule } from './invio/invio.module';
     DatabaseModule,
     AiModule,
     InvioModule,
+    MailgridModule,
   ],
 })
 export class ConnectorsModule {}

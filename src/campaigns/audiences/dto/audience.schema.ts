@@ -50,7 +50,6 @@ export const createAudienceSchema = z.object({
       }
       return val.map(String);
     }),
-
   souce_id: z
     .union([z.string(), z.array(z.string())])
     .optional()

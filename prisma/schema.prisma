@@ -38,8 +38,10 @@ model Organization {
   members               Member[]
   orders                Order[]
   RFM                   RFM[]
+  RFMSegmentation       RFMSegmentation[]
   segments              Segment[]
   sellers               Seller[]
+  SellerChain           SellerChain[]
   Tags                  Tags[]
   events                TypeEvent[]
   users                 User[]
@@ -94,9 +96,11 @@ model Seller {
   updated_at      DateTime      @updatedAt
   channel         String?
   organization_id String
+  store_chain_id  Int?
   Interaction     Interaction[]
   orders          Order[]
   organization    Organization  @relation(fields: [organization_id], references: [public_id])
+  sellerchain     SellerChain?  @relation(fields: [store_chain_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "seller_sellerchain_fk")
 }
 
 model Event {
@@ -137,7 +141,7 @@ model Order {
 
 model OrderItem {
   id       Int     @id @default(autoincrement())
-  quantity Int
+  quantity Float   @db.Real
   price    Int
   discount Int?
   total    Int
@@ -189,7 +193,6 @@ model Customer {
   segments                 SegmentCustomer[]
 
   @@unique([cnpj, source_id], map: "customer_cnpj_idx")
-  @@unique([cpf, source_id], map: "customer_cpf_idx")
 }
 
 model CustomerUnified {
@@ -657,6 +660,27 @@ model RFM {
   @@index([customer_unified_id, organization_id])
   @@index([id])
   @@index([organization_id])
+}
+
+model SellerChain {
+  id              Int          @id(map: "sellerchain_pk") @default(autoincrement())
+  name            String
+  organization_id String
+  created_at      DateTime?    @default(now())
+  updated_at      DateTime?
+  Seller          Seller[]
+  Organization    Organization @relation(fields: [organization_id], references: [public_id], onDelete: NoAction, onUpdate: NoAction, map: "sellerchain_organization_fk")
+}
+
+model RFMSegmentation {
+  id              Int          @id @default(autoincrement())
+  name            String
+  description     String?
+  rfm_range       Json?        @db.Json
+  organization_id String
+  created_at      DateTime?    @default(now())
+  updated_at      DateTime?
+  Organization    Organization @relation(fields: [organization_id], references: [public_id], onDelete: NoAction, onUpdate: NoAction, map: "rfmsegmentation_organization_fk")
 }
 
 enum Role {

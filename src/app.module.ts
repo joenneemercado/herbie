@@ -36,6 +36,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
 import { SellerModule } from './seller/seller.module';
 import { InvioModule } from './connectors/invio/invio.module';
+import { SellerchainModule } from './sellerchain/sellerchain.module';
+import { RfmsegmentationModule } from './rfmsegmentation/rfmsegmentation.module';
 
 @Injectable()
 export class UserThrottlerGuard extends ThrottlerGuard {
@@ -104,11 +106,12 @@ export class UserThrottlerGuard extends ThrottlerGuard {
     EventsModule,
     SellerModule,
     InvioModule,
+    SellerchainModule,
+    RfmsegmentationModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    //PrismaService,
     {
       provide: APP_GUARD,
       useClass: UserThrottlerGuard, // Throttler por usuário

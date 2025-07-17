@@ -20,7 +20,7 @@ export class VtexService {
   constructor(
     private prisma: PrismaService,
     @InjectQueue('vtex-queue') private vtexQueue: Queue,
-  ) { }
+  ) {}
 
   //Funcoes e tipo para ajudar na normalizacao
   // Mapas de Normalização (adicione mais conforme necessário)
@@ -84,6 +84,7 @@ export class VtexService {
   async getOrderId(organization_id: string, orderId: string): Promise<any> {
     try {
       const orderTratado = orderId.slice(4); // Remove os primeiros 4 caracteres
+      // console.log(orderTratado);
       const API_URL = `${VtexConstantes.API_PRINCIPAL_ORDER_URL}${orderTratado}`;
       const API_KEY = VtexConstantes.API_KEY_PRINCIPAL_VTEX;
       const TOKEN = VtexConstantes.TOKEN_PRINCIPAL_VTEX;
@@ -97,8 +98,10 @@ export class VtexService {
 
       //get Email Oficial
       const idProfile = response.data.clientProfileData.userProfileId;
+      //console.log('idProfile', idProfile);
       try {
         const API_URL_CRM = `${VtexConstantes.GET_EMAIL_CRM}=${idProfile}`;
+        //  console.log('API_URL_CRM', API_URL_CRM);
         const vtexResult = await axios.get(API_URL_CRM, {
           headers: {
             'Content-Type': 'application/json',
@@ -106,10 +109,14 @@ export class VtexService {
             'X-VTEX-API-AppToken': TOKEN,
           },
         });
-        if (vtexResult.status == 200) {
+        //console.log('vtexResult', vtexResult.data);
+        if (vtexResult.status == 200 && vtexResult.data.length > 0) {
           let emailVtex = response.data.clientProfileData.email;
+          //  console.log('Email VTEX', emailVtex);
           emailVtex = vtexResult.data[0].email;
+          //  console.log('Email depois VTEX', emailVtex);
           response.data.clientProfileData.email = emailVtex;
+          //  console.log('fim', emailVtex);
         }
       } catch (error) {
         console.error('Erro ao buscar pedido:', error);
@@ -121,198 +128,12 @@ export class VtexService {
     }
   }
 
-  // async createCustomerInteraction(
-  //   organization_id: string,
-  //   orderId: string,
-  // ): Promise<any> {
-  //   try {
-  //     //console.log(organization_id, orderId);
-  //     const pedido = await this.getOrderId(organization_id, orderId);
-  //     //console.log('Pedido:', pedido);
-  //     if (!pedido) {
-  //       return;
-  //     }
-  //     //TODO desestruturar o objeto de cliente
-  //     const { document, phone, firstName, lastName, email } =
-  //       pedido.clientProfileData;
-
-  //     //TODO desestruturar o objeto de endereco
-  //     const {
-  //       addressType,
-  //       postalCode,
-  //       city,
-  //       state,
-  //       country,
-  //       street,
-  //       number,
-  //       neighborhood,
-  //       complement,
-  //       reference,
-  //     } = pedido.shippingData.address;
-
-  //     //verificar se o cliente e unificado
-  //     const verifyCustomerUnified = await this.prisma.customerUnified.findFirst(
-  //       {
-  //         where: {
-  //           organization_id,
-  //           cpf: document,
-  //         },
-  //       },
-  //     );
-  //     //console.log('existe cliente unificado', verifyCustomerUnified);
-  //     const verifyCustomer = await this.prisma.customer.findFirst({
-  //       where: {
-  //         organization_id,
-  //         cpf: document,
-  //         source_id: VtexConstantes.SOURCE_ID_VTEX,
-  //       },
-  //     });
-  //     //console.log('existe cliente na base ', verifyCustomer);
-  //     if (verifyCustomerUnified) {
-  //       const findInteracao = await this.prisma.interaction.findFirst({
-  //         where: {
-  //           organization_id,
-  //           customer_unified_id: verifyCustomerUnified.id,
-  //           event_id: VtexConstantes.EVENT_ID_COMPRA,
-  //           type: VtexConstantes.EVENT_TYPE_COMPRA,
-  //           source_id: VtexConstantes.SOURCE_ID_VTEX,
-  //           created_by: VtexConstantes.SISTEM_USER,
-  //           status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
-  //           //details:pedido
-  //           details: {
-  //             path: ['orderId'], // Caminho dentro do JSON
-  //             equals: pedido.orderId, // Comparação exata
-  //           },
-  //         },
-  //       });
-  //       //console.log('encontrou interacao', findInteracao);
-  //       if (findInteracao) {
-  //         throw new Error('Interacao de compra já existe');
-  //       }
-  //       await this.prisma.interaction.create({
-  //         data: {
-  //           organization_id,
-  //           customer_unified_id: verifyCustomerUnified.id,
-  //           details: pedido,
-  //           total: pedido.value,
-  //           event_id: VtexConstantes.EVENT_ID_COMPRA,
-  //           type: VtexConstantes.EVENT_TYPE_COMPRA,
-  //           source_id: VtexConstantes.SOURCE_ID_VTEX,
-  //           created_by: VtexConstantes.SISTEM_USER,
-  //           status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
-  //         },
-  //       });
-
-  //       //verifico se existe a order
-  //       const orderDB = await this.prisma.order.findFirst({
-  //         where: {
-  //           order_ref: pedido.orderId,
-  //           organization_id,
-
-  //         },
-  //       });
-
-  //       //se nao exite cria a order
-  //       if (!orderDB){
-  //         await this.prisma.order.create({
-  //           data:{
-  //             order_ref: pedido.orderId,
-  //             order_date: new Date(pedido.creationDate),
-  //             organization_id,
-  //             total: pedido.value,
-  //             subtotal: pedido.
-
-  //           }
-  //         })
-  //       }
-
-  //     } else if (!verifyCustomerUnified && verifyCustomer) {
-  //       const findInteracao = await this.prisma.interaction.findFirst({
-  //         where: {
-  //           organization_id,
-  //           customer_id: verifyCustomer.id,
-  //           event_id: VtexConstantes.EVENT_ID_COMPRA,
-  //           type: VtexConstantes.EVENT_TYPE_COMPRA,
-  //           created_by: VtexConstantes.SISTEM_USER,
-  //           source_id: VtexConstantes.SOURCE_ID_VTEX,
-  //           status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
-  //           //details:pedido
-  //           details: {
-  //             path: ['orderId'], // Caminho dentro do JSON
-  //             equals: pedido.orderId, // Comparação exata
-  //           },
-  //         },
-  //       });
-  //       if (findInteracao) {
-  //         throw new Error('Interacao de compra já existe');
-  //       }
-  //       await this.prisma.interaction.create({
-  //         data: {
-  //           organization_id,
-  //           customer_id: verifyCustomer.id,
-  //           details: pedido,
-  //           total: pedido.value,
-  //           event_id: VtexConstantes.EVENT_ID_COMPRA,
-  //           type: VtexConstantes.EVENT_TYPE_COMPRA,
-  //           source_id: VtexConstantes.SOURCE_ID_VTEX,
-  //           created_by: VtexConstantes.SISTEM_USER,
-  //           status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
-  //         },
-  //       });
-  //     } else {
-  //       const createCustomer = await this.prisma.customer.create({
-  //         data: {
-  //           organization_id,
-  //           cpf: document,
-  //           phone,
-  //           firstname: firstName,
-  //           lastname: lastName,
-  //           email,
-  //           source_id: VtexConstantes.SOURCE_ID_VTEX,
-  //           created_by: VtexConstantes.SISTEM_USER,
-  //           addresses: {
-  //             create: {
-  //               organization_id,
-  //               postal_code: postalCode,
-  //               number,
-  //               city,
-  //               neighborhood,
-  //               state,
-  //               street,
-  //               complement,
-  //               country,
-  //               address_type: addressType,
-  //               address_ref: reference,
-  //             },
-  //           },
-  //         },
-  //       });
-
-  //       await this.prisma.interaction.create({
-  //         data: {
-  //           organization_id,
-  //           customer_id: createCustomer.id,
-  //           details: pedido,
-  //           total: pedido.value,
-  //           event_id: VtexConstantes.EVENT_ID_COMPRA,
-  //           type: VtexConstantes.EVENT_TYPE_COMPRA,
-  //           created_by: VtexConstantes.SISTEM_USER,
-  //           source_id: VtexConstantes.SOURCE_ID_VTEX,
-  //           status_id: VtexConstantes.STATUS_ID_CONCLUIDO,
-  //         },
-  //       });
-  //       //console.log(criando);
-  //     }
-  //   } catch (error) {
-  //     console.error('Erro ao obter o pedido:', error);
-  //   }
-  // }
-
   async createCustomerInteraction(
     organization_id: string,
     vtexOrderId: string, // Renomeado para clareza
   ): Promise<any> {
     const pedido = await this.getOrderId(organization_id, vtexOrderId);
+    // console.log('Pedido VTEX:', pedido);
 
     if (!pedido || !pedido.orderId) {
       console.warn(
@@ -332,6 +153,7 @@ export class VtexService {
       marital_status,
     } = pedido.clientProfileData;
     const shippingAddressPayload = pedido.shippingData?.address;
+    // console.log('pedido', pedido.clientProfileData);
 
     return this.prisma.$transaction(
       async (tx) => {
@@ -422,6 +244,7 @@ export class VtexService {
           );
         }
         const sellerRef = this.extrairSellerRef(pedido.sellers[0].name);
+        //console.log('SellerRef:', sellerRef);
 
         // Supondo que você tem um Seller no seu DB e ele tem um campo `vtex_seller_id`
         const sellerFromDb = await tx.seller.findFirst({
@@ -484,6 +307,8 @@ export class VtexService {
             },
             details: pedido as any, // O Prisma espera JsonValue, então pode ser necessário um cast
             total: pedido.value,
+            created_at: this.parseVtexDate(pedido.creationDate) || new Date(),
+            updated_at: new Date(),
             event: {
               connect: {
                 id: VtexConstantes.EVENT_ID_COMPRA,
@@ -694,7 +519,7 @@ export class VtexService {
           console.log('Order ja existe');
         }
       }
-    } catch (error) { }
+    } catch (error) {}
   }
 
   async addFileToQueue(
@@ -966,5 +791,154 @@ export class VtexService {
       savedCustomers: itemsSave,
       issues: issues.length > 0 ? issues : null,
     };
+  }
+
+  // async processingOrderOld(organization_id: string) {
+  //   console.log('Iniciando processamento do pedido', organization_id);
+  //   const API_URL = `${VtexConstantes.API_PRINCIPAL_ORDER_URL}`;
+  //   const API_KEY = VtexConstantes.API_KEY_PRINCIPAL_VTEX;
+  //   const TOKEN = VtexConstantes.TOKEN_PRINCIPAL_VTEX;
+  //   const response = await axios.get(API_URL, {
+  //     params: {
+  //       f_status: 'invoiced',
+  //       orderBy: 'creationDate,asc',
+  //       page: 1,
+  //       per_page: 1,
+  //     },
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'X-VTEX-API-AppKey': API_KEY,
+  //       'X-VTEX-API-AppToken': TOKEN,
+  //     },
+  //   });
+  //   //console.log('response', response.data);
+  //   for (const order of response.data.list) {
+  //     const vtexOrderId = `SLR-1336260576428-01`;
+  //     const vtexOrderId = `SLR-${order.orderId}`;
+  //     const processOrder = await this.createCustomerInteraction(
+  //       organization_id,
+  //       vtexOrderId,
+  //     );
+  //     console.log('processOrder', processOrder);
+  //   }
+  // }
+
+  delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+  async processingOrderOld(organization_id: string) {
+    const API_URL = VtexConstantes.API_PRINCIPAL_ORDER_URL;
+    const API_KEY = VtexConstantes.API_KEY_PRINCIPAL_VTEX;
+    const TOKEN = VtexConstantes.TOKEN_PRINCIPAL_VTEX;
+
+    const PER_PAGE = 100;
+    let totalPedidosProcessados = 0;
+
+    const endDate = new Date();
+    const startDate = new Date('2023-08-31T00:00:00');
+
+    console.log(
+      `Iniciando busca de pedidos de ${startDate.toLocaleDateString()} até ${endDate.toLocaleDateString()}`,
+    );
+
+    for (
+      let d = new Date(startDate);
+      d <= endDate;
+      d.setDate(d.getDate() + 1)
+    ) {
+      // Pega os componentes da data (ano, mês, dia)
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0'); // Meses são 0-indexados
+      const day = String(d.getDate()).padStart(2, '0');
+
+      // Cria strings que representam o início e o fim do dia NO SEU FUSO HORÁRIO (UTC-4)
+      const dayStartLocalISO = `${year}-${month}-${day}T00:00:00.000-04:00`;
+      const dayEndLocalISO = `${year}-${month}-${day}T23:59:59.999-04:00`;
+
+      // Converte essas datas para o formato UTC que a API da VTEX espera
+      // O .toISOString() faz a conversão de -04:00 para Z (UTC) automaticamente
+      const dayStartUTC = new Date(dayStartLocalISO).toISOString();
+      const dayEndUTC = new Date(dayEndLocalISO).toISOString();
+
+      const creationDateFilter = `creationDate:[${dayStartUTC} TO ${dayEndUTC}]`;
+
+      console.log(
+        `--- Buscando pedidos para o dia: ${day}/${month}/${year} (Fuso Local) ---`,
+      );
+
+      let currentPage = 1;
+      let hasMorePages = true;
+
+      while (hasMorePages) {
+        try {
+          // ... o resto do seu código continua igual ...
+          console.log(
+            `Buscando página ${currentPage} para o dia ${day}/${month}/${year}...`,
+          );
+
+          const response = await axios.get(API_URL, {
+            timeout: 30000,
+            params: {
+              f_creationDate: creationDateFilter,
+              f_status: 'invoiced',
+              orderBy: 'creationDate,asc',
+              page: currentPage,
+              per_page: PER_PAGE,
+            },
+            headers: {
+              'Content-Type': 'application/json',
+              'X-VTEX-API-AppKey': API_KEY,
+              'X-VTEX-API-AppToken': TOKEN,
+            },
+          });
+
+          // ... o resto do seu código continua igual ...
+          const { list, paging } = response.data;
+
+          if (list && list.length > 0) {
+            console.log(
+              `Encontrados ${list.length} pedidos na página ${currentPage}.`,
+            );
+            for (const order of list) {
+              try {
+                const vtexOrderId = `SLR-${order.orderId}`;
+                await this.createCustomerInteraction(
+                  organization_id,
+                  vtexOrderId,
+                );
+                totalPedidosProcessados++;
+                console.log(
+                  `[${totalPedidosProcessados}] Pedido ${order.orderId} processado.`,
+                );
+              } catch (orderError) {
+                console.error(
+                  `ERRO ao processar o pedido ${order.orderId}:`,
+                  orderError.message,
+                );
+              }
+            }
+          }
+
+          if (
+            currentPage >= paging.pages ||
+            paging.pages === 0 ||
+            list.length === 0
+          ) {
+            hasMorePages = false;
+          } else {
+            currentPage++;
+          }
+        } catch (pageError) {
+          console.error(
+            `ERRO FATAL ao buscar a página ${currentPage} para o dia ${day}/${month}/${year}.`,
+            pageError.message,
+          );
+          hasMorePages = false;
+        }
+      }
+    }
+
+    console.log(
+      `--- PROCESSO CONCLUÍDO. Total de pedidos processados: ${totalPedidosProcessados} ---`,
+    );
   }
 }

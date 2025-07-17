@@ -7,9 +7,7 @@ import {
   BadRequestException,
   Query,
   UseGuards,
-  Param,
   Patch,
-  Put,
 } from '@nestjs/common';
 import { CampaignsService } from './campaigns.service';
 import {

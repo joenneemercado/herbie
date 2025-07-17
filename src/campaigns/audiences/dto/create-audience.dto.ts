@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, IsArray } from 'class-validator';
 
@@ -22,6 +22,14 @@ export class CreateAudienceDto {
     example: 'mercantilnovaera',
   })
   seller_ref?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Nome do store_chain' })
+  @ApiProperty({
+    description: 'Nome do store_chain',
+    example: 'nova era',
+  })
+  store_chain?: string;
 
   @IsOptional()
   @IsNumber({}, { message: 'O statusId deve ser um número' })
@@ -56,6 +64,24 @@ export class CreateAudienceDto {
   date_birth_end?: string[];
 
   @IsOptional()
+  @IsArray({ message: 'O date_birth_start deve ser um array de strings' })
+  @ApiProperty({
+    description: 'Datas de nascimento início',
+    type: [String],
+    example: ['1990-01-01'],
+  })
+  date_order_start?: string[];
+
+  @IsOptional()
+  @IsArray({ message: 'O date_birth_end deve ser um array de strings' })
+  @ApiProperty({
+    description: 'Datas de nascimento fim',
+    type: [String],
+    example: ['2000-12-31'],
+  })
+  date_order_end?: string[];
+
+  @IsOptional()
   @IsString({ message: 'O gender deve ser uma string' })
   @ApiProperty({ description: 'Gênero', example: 'male' })
   gender?: string;
@@ -88,14 +114,14 @@ export class FindSegmentAudienceDto {
 
   @IsOptional()
   @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
-  @IsNumber({}, { message: 'O total deve ser um número' })
+  @IsNumber({}, { message: 'Valor total minimo de compras deve ser um número' })
   @ApiProperty({ description: 'total', example: 1 })
   total_start?: number;
 
   @IsOptional()
   @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
-  @IsNumber({}, { message: 'O total deve ser um número' })
-  @ApiProperty({ description: 'total', example: 1 })
+  @IsNumber({}, { message: 'Valor total maximo de compras deve ser um número' })
+  @ApiProperty({ description: 'total', example: 1000 })
   total_end?: number;
 
   @IsOptional()
@@ -108,56 +134,36 @@ export class FindSegmentAudienceDto {
   organization_id: string;
 
   @IsOptional()
-  @IsArray({ message: 'O date_birth_start deve ser um array de strings' })
-  @IsArray()
-  @IsString({ each: true, message: 'Cada source_id deve ser uma string' })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      try {
-        const parsed = JSON.parse(value);
-        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
-      } catch {
-        return [String(value)];
-      }
-    }
-    return Array.isArray(value) ? value.map(String) : [String(value)];
-  })
-  @ApiProperty({ type: [String] })
-  date_birth_start?: string[];
-
-  @IsOptional()
-  @IsArray({ message: 'O date_birth_end deve ser um array de strings' })
-  @IsArray()
-  @IsString({ each: true, message: 'Cada source_id deve ser uma string' })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      try {
-        const parsed = JSON.parse(value);
-        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
-      } catch {
-        return [String(value)];
-      }
-    }
-    return Array.isArray(value) ? value.map(String) : [String(value)];
-  })
-  @ApiProperty({ type: [String] })
-  date_birth_end?: string[];
-
-  @IsOptional()
-  @IsString({ message: 'O date_created_start deve ser uma string' })
   @ApiProperty({
-    description: 'Data de término',
-    example: '2024-12-31T23:59:59.999Z',
+    description: 'Data de início do pedido', // Descrição corrigida
+    example: '2024-01-01T00:00:00.000Z',
+    required: false,
   })
-  date_created_start?: string;
+  date_order_start?: string; // Alterar tipo para string
 
   @IsOptional()
-  @IsString({ message: 'O date_created_end deve ser uma string' })
   @ApiProperty({
-    description: 'Data de término',
+    description: 'Data de término do pedido', // Descrição corrigida
     example: '2024-12-31T23:59:59.999Z',
+    required: false,
   })
-  date_created_end?: string;
+  date_order_end?: string; // Alterar tipo para string
+
+  @IsOptional()
+  @ApiProperty({
+    description: 'Ticket Médio Start', // Descrição corrigida
+    example: '100',
+    required: false,
+  })
+  ticket_order_start?: string; // Alterar tipo para string
+
+  @IsOptional()
+  @ApiProperty({
+    description: 'Ticket Médio End', // Descrição corrigida
+    example: '1000',
+    required: false,
+  })
+  ticket_order_end?: string; // Alterar tipo para string
 
   @IsOptional()
   @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
@@ -212,9 +218,14 @@ export class FindSegmentAudienceDto {
   @ApiProperty({ type: [String] })
   gender?: string[];
 
+  @ApiPropertyOptional({
+    description: 'Codigo de referencia da loja',
+    example: '1',
+    type: [String],
+  })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true, message: 'Cada refId deve ser uma string' })
+  @IsString({ each: true, message: 'Cada seller_ref deve ser uma string' })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
@@ -246,14 +257,146 @@ export class FindSegmentAudienceDto {
   })
   @ApiProperty({ type: [String] })
   seller_ref?: string[];
+
+  @ApiPropertyOptional({
+    description: 'id do seller preferencial',
+    example: 'Nova era, Patio gourmet',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({
+    each: true,
+    message: 'Id da loja preferencial deve ser uma string',
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        // Tenta tratar caso seja string do tipo '[female,male]'
+        const fallbackParsed = value
+          .replace(/^\[|\]$/g, '')
+          .split(',')
+          .map((s) => s.trim());
+        return fallbackParsed;
+      }
+    }
+
+    if (Array.isArray(value)) {
+      return value.flatMap((v) => {
+        if (typeof v === 'string' && /^\[.*\]$/.test(v)) {
+          return v
+            .replace(/^\[|\]$/g, '')
+            .split(',')
+            .map((s) => s.trim());
+        }
+        return v;
+      });
+    }
+
+    return [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  seller_preference_id?: string[];
+
+  @ApiPropertyOptional({
+    description: 'Nome do rfm que deseja filtrar',
+    example: 'Frequente',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({
+    each: true,
+    message: 'Nome do rfm que deseja filtrar deve ser uma string',
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        // Tenta tratar caso seja string do tipo '[female,male]'
+        const fallbackParsed = value
+          .replace(/^\[|\]$/g, '')
+          .split(',')
+          .map((s) => s.trim());
+        return fallbackParsed;
+      }
+    }
+
+    if (Array.isArray(value)) {
+      return value.flatMap((v) => {
+        if (typeof v === 'string' && /^\[.*\]$/.test(v)) {
+          return v
+            .replace(/^\[|\]$/g, '')
+            .split(',')
+            .map((s) => s.trim());
+        }
+        return v;
+      });
+    }
+
+    return [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  rfm_name?: string[];
+
+  @ApiPropertyOptional({
+    description: 'id grupo de lojas',
+    example: 'Nova era, Patio gourmet',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true, message: 'Cada store_chain_id deve ser uma string' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [String(value)];
+      } catch {
+        // Tenta tratar caso seja string do tipo '[female,male]'
+        const fallbackParsed = value
+          .replace(/^\[|\]$/g, '')
+          .split(',')
+          .map((s) => s.trim());
+        return fallbackParsed;
+      }
+    }
+
+    if (Array.isArray(value)) {
+      return value.flatMap((v) => {
+        if (typeof v === 'string' && /^\[.*\]$/.test(v)) {
+          return v
+            .replace(/^\[|\]$/g, '')
+            .split(',')
+            .map((s) => s.trim());
+        }
+        return v;
+      });
+    }
+
+    return [String(value)];
+  })
+  @ApiProperty({ type: [String] })
+  store_chain_id?: string[];
+
   // @IsOptional()
   // @IsString({ message: 'O marital_status deve ser uma string' })
   // @ApiProperty({ description: 'Estado civil', example: 'single' })
   // marital_status?: string;
 
+  @ApiPropertyOptional({
+    description: 'estado civil',
+    example: 'solteiro',
+    type: [String],
+  })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true, message: 'Cada refId deve ser uma string' })
+  @IsString({ each: true, message: 'Cada marital_status deve ser uma string' })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
@@ -286,6 +429,11 @@ export class FindSegmentAudienceDto {
   @ApiProperty({ type: [String] })
   marital_status?: string[];
 
+  @ApiPropertyOptional({
+    description: 'id da tag',
+    example: '1',
+    type: [String],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true, message: 'Cada refId deve ser uma string' })
@@ -321,6 +469,11 @@ export class FindSegmentAudienceDto {
   @ApiProperty({ type: [String] })
   tag_id?: string[];
 
+  @ApiPropertyOptional({
+    description: 'id do source_id',
+    example: '1',
+    type: [String],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true, message: 'Cada source_id deve ser uma string' })
@@ -338,6 +491,11 @@ export class FindSegmentAudienceDto {
   @ApiProperty({ type: [String] })
   source_id?: string[];
 
+  @ApiPropertyOptional({
+    description: 'id do event_id',
+    example: '1',
+    type: [String],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true, message: 'Cada event_id deve ser uma string' })
@@ -360,6 +518,11 @@ export class FindSegmentAudienceDto {
   // @ApiProperty({ description: 'refId para paginação', example: '123' })
   // refId?: string;
 
+  @ApiPropertyOptional({
+    description: 'Codigo de referencia dos produtos',
+    example: '1',
+    type: [String],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true, message: 'Cada refId deve ser uma string' })
@@ -496,4 +659,14 @@ export class FindAudienceStatusDto {
     example: 10,
   })
   limit?: number;
+}
+
+export class UploadCSVDto {
+  @IsString({ message: 'O organization_id deve ser uma string' })
+  @ApiProperty({ description: 'ID da organização', example: 'org-abc123' })
+  organization_id: string;
+
+  @IsString({ message: 'O audiencia deve ser uma string' })
+  @ApiProperty({ description: 'Nome da audiência', example: 'Nova audiência' })
+  audienceName: string;
 }

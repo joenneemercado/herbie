@@ -52,6 +52,14 @@ export class VtexController {
     return this.vtexService.createCustomerInteraction(organization_id, orderId);
   }
 
+  @Get('processing/orders/old')
+  async processingOrderOld(
+    @Query('organization_id') organization_id: string,
+  ): Promise<any> {
+    await this.vtexService.processingOrderOld(organization_id);
+    return { message: 'Processing orders old' };
+  }
+
   @ApiExcludeEndpoint()
   @Post('import/customer')
   @UseInterceptors(

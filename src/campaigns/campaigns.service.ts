@@ -15,6 +15,7 @@ import { PrismaService } from '@src/database/prisma.service';
 import { Prisma } from '@prisma/client';
 
 import { JwtService } from '@nestjs/jwt';
+import { CampaignContantes } from './campaign.constantes';
 
 @Injectable()
 export class CampaignsService {
@@ -391,7 +392,6 @@ export class CampaignsService {
           id: Number(campaingDetailsDto.id),
           organization_id: campaingDetailsDto.organization_id,
         },
-
         select: {
           name: true,
           message: true,
@@ -426,6 +426,71 @@ export class CampaignsService {
       if (!data) {
         throw new HttpException('Campanha nao existe', 404);
       }
+      const totalEnviadas = await this.prisma.campaignDetails.count({
+        where: {
+          campaign_id: Number(campaingDetailsDto.id),
+          organization_id: campaingDetailsDto.organization_id,
+          status_id: {
+            in: CampaignContantes.QTD_CAMPAING_DETAILS_SEND,
+          },
+        },
+      });
+      const totalSucesso = await this.prisma.campaignDetails.count({
+        where: {
+          campaign_id: Number(campaingDetailsDto.id),
+          organization_id: campaingDetailsDto.organization_id,
+          status_id: {
+            in: CampaignContantes.QTD_CAMPAING_DETAILS_SUCESS,
+          },
+        },
+      });
+
+      const totalFalha = await this.prisma.campaignDetails.count({
+        where: {
+          campaign_id: Number(campaingDetailsDto.id),
+          organization_id: campaingDetailsDto.organization_id,
+          status_id: {
+            in: CampaignContantes.QTD_CAMPAING_DETAILS_FAILED,
+          },
+        },
+      });
+      const totalEntregue = await this.prisma.campaignDetails.count({
+        where: {
+          campaign_id: Number(campaingDetailsDto.id),
+          organization_id: campaingDetailsDto.organization_id,
+          status_id: {
+            in: CampaignContantes.QTD_CAMPAING_DETAILS_DELIVERED,
+          },
+        },
+      });
+      const totalRespondido = await this.prisma.campaignDetails.count({
+        where: {
+          campaign_id: Number(campaingDetailsDto.id),
+          organization_id: campaingDetailsDto.organization_id,
+          status_id: {
+            in: CampaignContantes.QTD_CAMPAING_DETAILS_ANSWERED,
+          },
+        },
+      });
+      const totallido = await this.prisma.campaignDetails.count({
+        where: {
+          campaign_id: Number(campaingDetailsDto.id),
+          organization_id: campaingDetailsDto.organization_id,
+          status_id: {
+            in: CampaignContantes.QTD_CAMPAING_DETAILS_READ,
+          },
+        },
+      });
+
+      //todo:calculo da taxa de enviado
+      const rateSend = (totalEnviadas / totalEnviadas) * 100;
+      //todo:calculo da taxa de entrega
+      const rateDelivered = (totalEntregue / totalEnviadas) * 100;
+      //todo:calculo da taxa de lido
+      const rateReading = (totallido / totalEnviadas) * 100;
+      //todo:calculo da taxa de respondido
+      const rateAnswered = (totalRespondido / totalEnviadas) * 100;
+
       const totalItems = await this.prisma.campaignDetails.count({
         where: {
           campaign_id: Number(campaingDetailsDto.id),
@@ -437,6 +502,16 @@ export class CampaignsService {
       return {
         campaignInfo: Campaign,
         campaignDetails: data,
+        taxa: {
+          totalSend: totalEnviadas ? totalEnviadas : 0,
+          totalDelivered: totalEntregue ? totalEntregue : 0,
+          totalAnswered: totalRespondido ? totalRespondido : 0,
+          totalRead: totallido ? totallido : 0,
+          rateSend: rateSend ? rateSend : 0,
+          rateDelivered: rateDelivered ? rateDelivered : 0,
+          rateReading: rateReading ? rateReading : 0,
+          rateAnswered: rateAnswered ? rateAnswered : 0,
+        },
         pageInfo: {
           totalItems,
           currentPage,
