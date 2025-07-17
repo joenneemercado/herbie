@@ -91,7 +91,7 @@ export class ZeusController {
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.errors);
     }
-    console.log('teste');
+    //console.log('teste');
     return this.zeusService.interationAcumularPontos(parsed.data, req);
   }
 
