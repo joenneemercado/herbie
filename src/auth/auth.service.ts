@@ -40,6 +40,8 @@ export class AuthService {
   async validateUser(dados: LoginDto): Promise<any> {
     const { username, password } = dados;
     const user = await this.usersService.findOneLogin(username);
+    //console.log('user', user);
+
     if (!user) return null;
     const checkPassword = await bcrypt.compare(password, user.password);
     return checkPassword ? { ...user, password: undefined } : null;
@@ -49,7 +51,7 @@ export class AuthService {
     //console.log('Usuario', user);
 
     const dados = await this.validateUser(user);
-    //console.log('dados', dados);
+    // console.log('dados', dados);
     if (!dados) {
       throw new HttpException('Please, check username or password', 401);
       //throw new UnauthorizedException();
@@ -87,6 +89,8 @@ export class AuthService {
       //console.log('Salvando novo access_token no cache com chave:', accessKey);
       await this.cacheManager.set(accessKey, accessToken, 86400); // TTL: 1 dia
     }
+    await this.usersService.updateLastAcess(dados.id, dados.organization_id);
+    //console.log('update', update);
 
     return {
       access_token: accessToken,

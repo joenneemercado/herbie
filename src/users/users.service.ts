@@ -18,6 +18,7 @@ export class UsersService {
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
+
   async findOneLogin(username: string) {
     try {
       const userFind = await this.prisma.user.findUnique({
@@ -36,6 +37,26 @@ export class UsersService {
         throw new HttpException('por favor verifique usuario e senha', 401);
       }
       return userFind;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async updateLastAcess(id: number, organization_id: string) {
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          id,
+          organization_id,
+        },
+        data: {
+          last_access: new Date(),
+          updated_at: null,
+        },
+      });
+      return {
+        message: 'Ultima acesso atualizado com sucesso',
+      };
     } catch (error) {
       console.log(error);
     }
