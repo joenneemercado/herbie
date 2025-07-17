@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -8,7 +9,6 @@ import { UpdateTagDto } from './dto/update-tag.dto';
 import { PrismaService } from '@src/database/prisma.service';
 import { CreateContactTagsSchema } from './dto/tag.schema';
 import { JwtService } from '@nestjs/jwt';
-import { HttpStatusCode } from 'axios';
 
 @Injectable()
 export class TagsService {
@@ -145,11 +145,14 @@ export class TagsService {
       },
     });
     if (findTagContact) {
-      return {
-        code: HttpStatusCode.Conflict,
-        sucesse: false,
-        message: `tagId: ${findTag.id} ja existe para o contato: ${findTagContact.customer_unified_id}`,
-      };
+      // return {
+      //   code: HttpStatusCode.Conflict,
+      //   sucesse: false,
+      //   message: `tagId: ${findTag.id} ja existe para o contato: ${findTagContact.customer_unified_id}`,
+      // };
+      throw new ConflictException(
+        `A tag com id '${findTag.id}' já está associada ao contato '${findTagContact.customer_unified_id}'.`,
+      );
     }
     if (!findTagContact) {
       await this.prisma.associationTags.create({
